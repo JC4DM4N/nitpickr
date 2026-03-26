@@ -4,7 +4,7 @@
   height: 100svh;
   overflow: hidden;
   background: #f6f5f1;
-  font-family: var(--sans);
+  font-family: var(--mono);
 }
 
 /* ── Sidebar ── */
@@ -259,7 +259,7 @@
   font-size: 14px;
   color: #1a1a1a;
   background: transparent;
-  font-family: var(--sans);
+  font-family: var(--mono);
 }
 
 .explore-search input::placeholder {
@@ -280,7 +280,7 @@
   cursor: pointer;
   white-space: nowrap;
   transition: opacity 0.15s, transform 0.15s;
-  font-family: var(--sans);
+  font-family: var(--mono);
 }
 
 .btn-submit-app:hover {
@@ -343,7 +343,7 @@
   background: #fff;
   cursor: pointer;
   outline: none;
-  font-family: var(--sans);
+  font-family: var(--mono);
   transition: border-color 0.15s;
 }
 
@@ -395,7 +395,7 @@
   background: #fff;
   cursor: pointer;
   outline: none;
-  font-family: var(--sans);
+  font-family: var(--mono);
   transition: border-color 0.15s;
 }
 
@@ -572,7 +572,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  font-family: var(--sans);
+  font-family: var(--mono);
   transition: opacity 0.12s;
 }
 
