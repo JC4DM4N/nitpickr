@@ -44,7 +44,8 @@ export default function Dashboard({ user, onLogout }) {
       <Sidebar page={page} setPage={setPage} user={user} onLogout={onLogout} />
       <main className="dash-main">
         {page === 'explore' && <ExplorePage />}
-        {page !== 'explore' && <ComingSoon label={NAV.find(n => n.id === page)?.label} />}
+        {page === 'reviews' && <ReviewsPage />}
+        {page !== 'explore' && page !== 'reviews' && <ComingSoon label={NAV.find(n => n.id === page)?.label} />}
       </main>
     </div>
   )
@@ -103,11 +104,21 @@ function ExplorePage() {
   const [stage, setStage] = useState('All')
   const [category, setCategory] = useState('All')
   const [sort, setSort] = useState('popular')
+  const [reviewApp, setReviewApp] = useState(null)
 
   useEffect(() => {
-    fetch('http://localhost:8000/apps/')
-      .then(r => r.json())
-      .then(data => { setApps(data); setLoading(false) })
+    const token = localStorage.getItem('token')
+    Promise.all([
+      fetch('http://localhost:8000/apps/').then(r => r.json()),
+      fetch('http://localhost:8000/reviews/me', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).then(r => r.json()),
+    ])
+      .then(([allApps, myReviews]) => {
+        const reviewedIds = new Set(myReviews.map(r => r.app_id))
+        setApps(allApps.filter(a => !reviewedIds.has(a.id)))
+        setLoading(false)
+      })
       .catch(() => { setError('Failed to load apps'); setLoading(false) })
   }, [])
 
@@ -127,6 +138,17 @@ function ExplorePage() {
     })
 
   return (
+    <>
+    {reviewApp && (
+      <ReviewModal
+        app={reviewApp}
+        onClose={() => setReviewApp(null)}
+        onReviewCreated={appId => {
+          setApps(prev => prev.filter(a => a.id !== appId))
+          setReviewApp(null)
+        }}
+      />
+    )}
     <div className="explore">
       <div className="explore-hero">
         <h1 className="explore-title">Discover Apps to Review</h1>
@@ -190,7 +212,9 @@ function ExplorePage() {
           <div className="app-grid">
             {loading && <p className="no-results">Loading apps…</p>}
             {error && <p className="no-results">{error}</p>}
-            {!loading && !error && filtered.map(app => <AppCard key={app.id} app={app} />)}
+            {!loading && !error && filtered.map(app => (
+              <AppCard key={app.id} app={app} onReview={() => setReviewApp(app)} />
+            ))}
             {!loading && !error && filtered.length === 0 && (
               <p className="no-results">No apps match your filters.</p>
             )}
@@ -198,6 +222,7 @@ function ExplorePage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
 
@@ -208,7 +233,7 @@ const STAGE_STYLES = {
   'Live':       { bg: '#d1fae5', color: '#065f46' },
 }
 
-function AppCard({ app }) {
+function AppCard({ app, onReview }) {
   const stage = STAGE_STYLES[app.stage]
   return (
     <div className="app-card">
@@ -234,7 +259,142 @@ function AppCard({ app }) {
           <span className="app-footer-label">FEEDBACK</span>
           <span className="app-footer-value">{app.feedbacks}</span>
         </div>
-        <button className="app-review-btn">Leave feedback →</button>
+        <button className="app-review-btn" onClick={onReview}>Leave feedback →</button>
+      </div>
+    </div>
+  )
+}
+
+/* ── Review modal ── */
+function ReviewModal({ app, onClose, onReviewCreated }) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function handleStart() {
+    setLoading(true)
+    setError(null)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('http://localhost:8000/reviews/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ app_id: app.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.detail || 'Failed to start review')
+        return
+      }
+      onReviewCreated(app.id)
+    } catch {
+      setError('Could not connect to server')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-header">
+          <div className="app-icon" style={{ background: app.color }}>{app.initials}</div>
+          <div>
+            <div className="modal-title">Start a review for <strong>{app.name}</strong></div>
+            <div className="modal-url">{app.url}</div>
+          </div>
+        </div>
+        <p className="modal-section-label">WHAT THE DEVELOPER IS LOOKING FOR</p>
+        <textarea className="modal-request" value={app.request} readOnly />
+        {error && <p className="modal-error">{error}</p>}
+        <div className="modal-actions">
+          <button className="modal-btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="modal-btn-start" onClick={handleStart} disabled={loading}>
+            {loading ? 'Starting…' : 'Start review →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Reviews page ── */
+const STAGE_STYLES_REVIEWS = {
+  'Pre-launch': { bg: '#fef3c7', color: '#92400e' },
+  'Beta':       { bg: '#dbeafe', color: '#1e40af' },
+  'Live':       { bg: '#d1fae5', color: '#065f46' },
+}
+
+function ReviewsPage() {
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    fetch('http://localhost:8000/reviews/me', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => { setReviews(data); setLoading(false) })
+      .catch(() => { setError('Failed to load reviews'); setLoading(false) })
+  }, [])
+
+  return (
+    <div className="reviews-page">
+      <div className="reviews-header">
+        <h1 className="reviews-title">My Reviews</h1>
+        <p className="reviews-sub">Apps you have started reviewing.</p>
+      </div>
+      <div className="reviews-body">
+        {loading && <p className="reviews-empty">Loading…</p>}
+        {error && <p className="reviews-empty">{error}</p>}
+        {!loading && !error && reviews.length === 0 && (
+          <p className="reviews-empty">No reviews yet. Head to Explore to get started.</p>
+        )}
+        {!loading && !error && reviews.length > 0 && (
+          <table className="reviews-table">
+            <thead>
+              <tr>
+                <th>App</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th>Started</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reviews.map(r => (
+                <tr key={r.id}>
+                  <td>
+                    <div className="reviews-app-cell">
+                      <div className="reviews-app-icon" style={{ background: r.app_color }}>{r.app_initials}</div>
+                      <div>
+                        <div className="reviews-app-name">{r.app_name}</div>
+                        <div className="reviews-app-url">{r.app_url}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="app-stage-badge" style={STAGE_STYLES_REVIEWS[r.app_stage]}>
+                      {r.app_stage}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`review-status-badge ${r.is_complete ? 'complete' : 'in-progress'}`}>
+                      {r.is_complete ? 'Complete' : 'In progress'}
+                    </span>
+                  </td>
+                  <td className="reviews-date">
+                    {new Date(r.created_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )

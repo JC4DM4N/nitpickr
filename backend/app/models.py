@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
 from .database import Base
 
@@ -24,7 +24,18 @@ class App(Base):
     category = Column(String(100), nullable=False)
     stage = Column(String(20), nullable=False)
     description = Column(Text, nullable=False)
+    request     = Column(Text, nullable=False)
     views = Column(Integer, nullable=False, default=0)
     feedbacks = Column(Integer, nullable=False, default=0)
     credits = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    app_id       = Column(Integer, ForeignKey("apps.id",  ondelete="CASCADE"), nullable=False)
+    reviewer_id  = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    is_complete  = Column(Boolean, nullable=False, default=False)
+    created_date = Column(DateTime(timezone=True), server_default=func.now())

@@ -34,8 +34,22 @@ class AppOut(BaseModel):
     category: str
     stage: str
     description: str
+    request: str
     views: int
     feedbacks: int
     credits: int
 
     model_config = {"from_attributes": True}
+
+
+class ReviewOut(BaseModel):
+    id: int
+    app_id: int
+    reviewer_id: int
+    is_complete: bool
+    created_date: datetime
+    app_name: str
+    app_initials: str
+    app_color: str
+    app_stage: str
+    app_url: str

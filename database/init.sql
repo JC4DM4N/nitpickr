@@ -24,19 +24,29 @@ CREATE TABLE IF NOT EXISTS apps (
     category  VARCHAR(100) NOT NULL,
     stage     VARCHAR(20)  NOT NULL CHECK (stage IN ('Pre-launch', 'Beta', 'Live')),
     description TEXT       NOT NULL,
+    request     TEXT       NOT NULL,
     views     INTEGER      NOT NULL DEFAULT 0,
     feedbacks INTEGER      NOT NULL DEFAULT 0,
     credits   INTEGER      NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-INSERT INTO apps (name, initials, color, url, category, stage, description, views, feedbacks, credits) VALUES
-    ('NoteStack',    'N', '#4f46e5', 'notestack.app',    'Productivity',    'Beta',       'A minimalist note-taking app with nested pages, markdown support, and offline sync. Built for focused thinkers who hate clutter.',                                    1240, 14,  2),
-    ('Pricewise',    'P', '#0ea5e9', 'pricewise.io',     'SaaS Tools',      'Pre-launch', 'Pricing page A/B testing for indie SaaS founders. No code required — just drop in a script tag and start testing in minutes.',                                        890,  8,   3),
-    ('CalPal',       'C', '#10b981', 'calpal.co',        'Productivity',    'Live',       'Smart scheduling for freelancers. Set your rules, share your link, and let clients book without the back-and-forth emails.',                                           3210, 22,  1),
-    ('Shiplog',      'S', '#f59e0b', 'shiplog.dev',      'Developer Tools', 'Beta',       'Changelog and release notes tool for indie developers. Beautiful public pages, email digests, and one-click embeds for your site.',                                    2100, 18,  2),
-    ('Folio',        'F', '#ec4899', 'getfolio.io',      'Design',          'Pre-launch', 'Portfolio builder for designers and freelancers. Pick a template, drop in your work, and go live in under five minutes.',                                              670,  5,   3),
-    ('Stackwise',    'S', '#8b5cf6', 'stackwise.app',    'Developer Tools', 'Live',       'Tech stack discovery and comparison tool. See what other indie developers are using to build their products, filtered by category.',                                   4500, 31,  1),
-    ('Feedr',        'F', '#ef4444', 'feedr.app',        'Mobile',          'Beta',       'RSS reader reimagined for curious people. Digest mode, AI summaries, and a clean reading experience across all your devices.',                                         1580, 11,  2),
-    ('Checkout Kit', 'C', '#14b8a6', 'checkoutkit.io',   'E-commerce',      'Live',       'Embeddable checkout components for indie makers selling digital products. Stripe-powered, zero backend required.',                                                     2870, 24,  2)
+INSERT INTO apps (name, initials, color, url, category, stage, description, request, views, feedbacks, credits) VALUES
+    ('NoteStack',    'N', '#4f46e5', 'notestack.app',    'Productivity',    'Beta',       'A minimalist note-taking app with nested pages, markdown support, and offline sync. Built for focused thinkers who hate clutter.',                                    'I''d love feedback on the onboarding flow — does it clearly explain the nested pages concept? Also curious whether the offline sync feels reliable or if there are any confusing moments around sync status.',           1240, 14,  2),
+    ('Pricewise',    'P', '#0ea5e9', 'pricewise.io',     'SaaS Tools',      'Pre-launch', 'Pricing page A/B testing for indie SaaS founders. No code required — just drop in a script tag and start testing in minutes.',                                        'Looking for feedback on the landing page clarity — does the value proposition make sense immediately? Does the setup flow feel simple enough for a non-technical founder?',                                              890,  8,   3),
+    ('CalPal',       'C', '#10b981', 'calpal.co',        'Productivity',    'Live',       'Smart scheduling for freelancers. Set your rules, share your link, and let clients book without the back-and-forth emails.',                                           'Please focus on the booking page experience — is it clear what''s being booked and when? Also any thoughts on mobile usability would be really helpful.',                                                                3210, 22,  1),
+    ('Shiplog',      'S', '#f59e0b', 'shiplog.dev',      'Developer Tools', 'Beta',       'Changelog and release notes tool for indie developers. Beautiful public pages, email digests, and one-click embeds for your site.',                                    'Keen to hear whether the public changelog page design feels professional enough to share with customers. Does the email digest format feel readable? Any friction in the embed setup?',                                   2100, 18,  2),
+    ('Folio',        'F', '#ec4899', 'getfolio.io',      'Design',          'Pre-launch', 'Portfolio builder for designers and freelancers. Pick a template, drop in your work, and go live in under five minutes.',                                              'Does the template selection feel intuitive? I want to know if the five-minute promise feels realistic after going through the setup. Any confusing steps would be great to know about.',                                 670,  5,   3),
+    ('Stackwise',    'S', '#8b5cf6', 'stackwise.app',    'Developer Tools', 'Live',       'Tech stack discovery and comparison tool. See what other indie developers are using to build their products, filtered by category.',                                   'Mainly looking for UX feedback on the filtering and search — does it feel fast and useful? Are the category labels intuitive? Would love to know if anything feels missing from the stack profiles.',                    4500, 31,  1),
+    ('Feedr',        'F', '#ef4444', 'feedr.app',        'Mobile',          'Beta',       'RSS reader reimagined for curious people. Digest mode, AI summaries, and a clean reading experience across all your devices.',                                         'Feedback on the digest mode would be most valuable — does the AI summary feel accurate and useful? Is the reading experience comfortable for longer sessions? Any issues on smaller screen sizes?',                      1580, 11,  2),
+    ('Checkout Kit', 'C', '#14b8a6', 'checkoutkit.io',   'E-commerce',      'Live',       'Embeddable checkout components for indie makers selling digital products. Stripe-powered, zero backend required.',                                                     'Please try the checkout flow and let me know if anything feels untrustworthy or confusing — especially around payment input. Does it feel polished enough to put in front of real customers?',                           2870, 24,  2)
 ON CONFLICT DO NOTHING;
+
+-- ── Reviews ──────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS reviews (
+    id           SERIAL PRIMARY KEY,
+    app_id       INTEGER     NOT NULL REFERENCES apps(id)  ON DELETE CASCADE,
+    reviewer_id  INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    is_complete  BOOLEAN     NOT NULL DEFAULT FALSE,
+    created_date TIMESTAMPTZ DEFAULT NOW()
+);
