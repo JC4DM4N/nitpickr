@@ -1,0 +1,135 @@
+/* ── Reviews page ── */
+.reviews-page {
+  min-height: 100%;
+}
+
+.reviews-header {
+  background: #fff;
+  border-bottom: 1px solid #e8e6e0;
+  padding: 40px 48px 32px;
+}
+
+.reviews-title {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #0f0e0b;
+  margin: 0 0 6px;
+}
+
+.reviews-sub {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.reviews-body {
+  padding: 28px 32px;
+}
+
+.reviews-empty {
+  color: #9ca3af;
+  font-size: 14px;
+  padding: 40px 0;
+  text-align: center;
+}
+
+.reviews-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e8e6e0;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.reviews-table thead tr {
+  border-bottom: 1px solid #e8e6e0;
+}
+
+.reviews-table th {
+  padding: 12px 20px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.reviews-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0ede6;
+  vertical-align: middle;
+}
+
+.reviews-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reviews-table tbody tr:hover {
+  background: #fafaf8;
+}
+
+.reviews-app-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reviews-app-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reviews-app-name {
+  font-weight: 600;
+  color: #0f0e0b;
+}
+
+.reviews-app-url {
+  font-size: 12px;
+  color: #9ca3af;
+  font-family: var(--mono);
+}
+
+.app-stage-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.review-status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.review-status-badge.in-progress {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.review-status-badge.complete {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.reviews-date {
+  color: #6b7280;
+  font-family: var(--mono);
+  font-size: 13px;
+}

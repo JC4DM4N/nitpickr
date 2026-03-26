@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import './Dashboard.css'
-
+import './ExplorePage.css'
 
 const CATEGORIES = ['All', 'Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce']
 const STAGES = ['All', 'Pre-launch', 'Beta', 'Live']
@@ -10,93 +9,17 @@ const SORTS = [
   { value: 'most-feedback', label: 'Most feedback' },
 ]
 
-/* ── Icons ── */
-function IconExplore() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+const STAGE_STYLES = {
+  'Pre-launch': { bg: '#fef3c7', color: '#92400e' },
+  'Beta':       { bg: '#dbeafe', color: '#1e40af' },
+  'Live':       { bg: '#d1fae5', color: '#065f46' },
 }
-function IconApps() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-}
-function IconReviews() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-}
-function IconCredits() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h4.5a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3H15"/></svg>
-}
+
 function IconSearch() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
 }
 
-/* ── Nav config ── */
-const NAV = [
-  { id: 'explore', label: 'Explore', Icon: IconExplore },
-  { id: 'my-apps', label: 'My Apps', Icon: IconApps },
-  { id: 'reviews', label: 'Reviews', Icon: IconReviews },
-  { id: 'credits', label: 'Credits', Icon: IconCredits },
-]
-
-/* ── Root ── */
-export default function Dashboard({ user, onLogout }) {
-  const [page, setPage] = useState('explore')
-
-  return (
-    <div className="dashboard">
-      <Sidebar page={page} setPage={setPage} user={user} onLogout={onLogout} />
-      <main className="dash-main">
-        {page === 'explore' && <ExplorePage />}
-        {page === 'reviews' && <ReviewsPage />}
-        {page !== 'explore' && page !== 'reviews' && <ComingSoon label={NAV.find(n => n.id === page)?.label} />}
-      </main>
-    </div>
-  )
-}
-
-/* ── Sidebar ── */
-function Sidebar({ page, setPage, user, onLogout }) {
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-top">
-        <div className="sidebar-logo">
-          <span className="sidebar-logo-icon">◎</span>
-          <span className="sidebar-logo-text">FeedbackPal</span>
-        </div>
-        <nav className="sidebar-nav">
-          {NAV.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              className={`sidebar-item${page === id ? ' active' : ''}`}
-              onClick={() => setPage(id)}
-            >
-              <Icon />
-              {label}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-credits-widget">
-          <div className="credits-widget-top">
-            <span className="credits-widget-label">Your Credits</span>
-            <span className="credits-widget-icon">⚡</span>
-          </div>
-          <div className="credits-widget-value">3</div>
-          <p className="credits-widget-hint">Review an app to earn more</p>
-        </div>
-      </div>
-      <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar">{user?.username?.[0]?.toUpperCase()}</div>
-          <div>
-            <div className="sidebar-name">{user?.username}</div>
-            <div className="sidebar-handle">{user?.email}</div>
-          </div>
-        </div>
-        <button className="sidebar-logout" onClick={onLogout}>Log out</button>
-      </div>
-    </aside>
-  )
-}
-
-/* ── Explore page ── */
-function ExplorePage() {
+export default function ExplorePage() {
   const [apps, setApps] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -226,13 +149,6 @@ function ExplorePage() {
   )
 }
 
-/* ── App card ── */
-const STAGE_STYLES = {
-  'Pre-launch': { bg: '#fef3c7', color: '#92400e' },
-  'Beta':       { bg: '#dbeafe', color: '#1e40af' },
-  'Live':       { bg: '#d1fae5', color: '#065f46' },
-}
-
 function AppCard({ app, onReview }) {
   const stage = STAGE_STYLES[app.stage]
   return (
@@ -265,7 +181,6 @@ function AppCard({ app, onReview }) {
   )
 }
 
-/* ── Review modal ── */
 function ReviewModal({ app, onClose, onReviewCreated }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -317,96 +232,6 @@ function ReviewModal({ app, onClose, onReviewCreated }) {
           </button>
         </div>
       </div>
-    </div>
-  )
-}
-
-/* ── Reviews page ── */
-const STAGE_STYLES_REVIEWS = {
-  'Pre-launch': { bg: '#fef3c7', color: '#92400e' },
-  'Beta':       { bg: '#dbeafe', color: '#1e40af' },
-  'Live':       { bg: '#d1fae5', color: '#065f46' },
-}
-
-function ReviewsPage() {
-  const [reviews, setReviews] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    fetch('http://localhost:8000/reviews/me', {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => { setReviews(data); setLoading(false) })
-      .catch(() => { setError('Failed to load reviews'); setLoading(false) })
-  }, [])
-
-  return (
-    <div className="reviews-page">
-      <div className="reviews-header">
-        <h1 className="reviews-title">My Reviews</h1>
-        <p className="reviews-sub">Apps you have started reviewing.</p>
-      </div>
-      <div className="reviews-body">
-        {loading && <p className="reviews-empty">Loading…</p>}
-        {error && <p className="reviews-empty">{error}</p>}
-        {!loading && !error && reviews.length === 0 && (
-          <p className="reviews-empty">No reviews yet. Head to Explore to get started.</p>
-        )}
-        {!loading && !error && reviews.length > 0 && (
-          <table className="reviews-table">
-            <thead>
-              <tr>
-                <th>App</th>
-                <th>Stage</th>
-                <th>Status</th>
-                <th>Started</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reviews.map(r => (
-                <tr key={r.id}>
-                  <td>
-                    <div className="reviews-app-cell">
-                      <div className="reviews-app-icon" style={{ background: r.app_color }}>{r.app_initials}</div>
-                      <div>
-                        <div className="reviews-app-name">{r.app_name}</div>
-                        <div className="reviews-app-url">{r.app_url}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="app-stage-badge" style={STAGE_STYLES_REVIEWS[r.app_stage]}>
-                      {r.app_stage}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`review-status-badge ${r.is_complete ? 'complete' : 'in-progress'}`}>
-                      {r.is_complete ? 'Complete' : 'In progress'}
-                    </span>
-                  </td>
-                  <td className="reviews-date">
-                    {new Date(r.created_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ── Coming soon placeholder ── */
-function ComingSoon({ label }) {
-  return (
-    <div className="coming-soon">
-      <div className="coming-soon-icon">🚧</div>
-      <h2>{label}</h2>
-      <p>This page is coming soon.</p>
     </div>
   )
 }
