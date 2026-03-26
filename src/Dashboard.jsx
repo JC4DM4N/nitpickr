@@ -1,113 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Dashboard.css'
 
-/* ── Placeholder data ── */
-const APPS = [
-  {
-    id: 1,
-    name: 'NoteStack',
-    initials: 'N',
-    color: '#4f46e5',
-    url: 'notestack.app',
-    category: 'Productivity',
-    stage: 'Beta',
-    desc: 'A minimalist note-taking app with nested pages, markdown support, and offline sync. Built for focused thinkers who hate clutter.',
-    views: 1240,
-    feedbacks: 14,
-    credits: 2,
-  },
-  {
-    id: 2,
-    name: 'Pricewise',
-    initials: 'P',
-    color: '#0ea5e9',
-    url: 'pricewise.io',
-    category: 'SaaS Tools',
-    stage: 'Pre-launch',
-    desc: 'Pricing page A/B testing for indie SaaS founders. No code required — just drop in a script tag and start testing in minutes.',
-    views: 890,
-    feedbacks: 8,
-    credits: 3,
-  },
-  {
-    id: 3,
-    name: 'CalPal',
-    initials: 'C',
-    color: '#10b981',
-    url: 'calpal.co',
-    category: 'Productivity',
-    stage: 'Live',
-    desc: 'Smart scheduling for freelancers. Set your rules, share your link, and let clients book without the back-and-forth emails.',
-    views: 3210,
-    feedbacks: 22,
-    credits: 1,
-  },
-  {
-    id: 4,
-    name: 'Shiplog',
-    initials: 'S',
-    color: '#f59e0b',
-    url: 'shiplog.dev',
-    category: 'Developer Tools',
-    stage: 'Beta',
-    desc: 'Changelog and release notes tool for indie developers. Beautiful public pages, email digests, and one-click embeds for your site.',
-    views: 2100,
-    feedbacks: 18,
-    credits: 2,
-  },
-  {
-    id: 5,
-    name: 'Folio',
-    initials: 'F',
-    color: '#ec4899',
-    url: 'getfolio.io',
-    category: 'Design',
-    stage: 'Pre-launch',
-    desc: 'Portfolio builder for designers and freelancers. Pick a template, drop in your work, and go live in under five minutes.',
-    views: 670,
-    feedbacks: 5,
-    credits: 3,
-  },
-  {
-    id: 6,
-    name: 'Stackwise',
-    initials: 'S',
-    color: '#8b5cf6',
-    url: 'stackwise.app',
-    category: 'Developer Tools',
-    stage: 'Live',
-    desc: 'Tech stack discovery and comparison tool. See what other indie developers are using to build their products, filtered by category.',
-    views: 4500,
-    feedbacks: 31,
-    credits: 1,
-  },
-  {
-    id: 7,
-    name: 'Feedr',
-    initials: 'F',
-    color: '#ef4444',
-    url: 'feedr.app',
-    category: 'Mobile',
-    stage: 'Beta',
-    desc: 'RSS reader reimagined for curious people. Digest mode, AI summaries, and a clean reading experience across all your devices.',
-    views: 1580,
-    feedbacks: 11,
-    credits: 2,
-  },
-  {
-    id: 8,
-    name: 'Checkout Kit',
-    initials: 'C',
-    color: '#14b8a6',
-    url: 'checkoutkit.io',
-    category: 'E-commerce',
-    stage: 'Live',
-    desc: 'Embeddable checkout components for indie makers selling digital products. Stripe-powered, zero backend required.',
-    views: 2870,
-    feedbacks: 24,
-    credits: 2,
-  },
-]
 
 const CATEGORIES = ['All', 'Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce']
 const STAGES = ['All', 'Pre-launch', 'Beta', 'Live']
@@ -203,18 +96,28 @@ function Sidebar({ page, setPage, user, onLogout }) {
 
 /* ── Explore page ── */
 function ExplorePage() {
+  const [apps, setApps] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [stage, setStage] = useState('All')
   const [category, setCategory] = useState('All')
   const [sort, setSort] = useState('popular')
 
-  const filtered = APPS
+  useEffect(() => {
+    fetch('http://localhost:8000/apps/')
+      .then(r => r.json())
+      .then(data => { setApps(data); setLoading(false) })
+      .catch(() => { setError('Failed to load apps'); setLoading(false) })
+  }, [])
+
+  const filtered = apps
     .filter(app =>
       (stage === 'All' || app.stage === stage) &&
       (category === 'All' || app.category === category) &&
       (search === '' ||
         app.name.toLowerCase().includes(search.toLowerCase()) ||
-        app.desc.toLowerCase().includes(search.toLowerCase()))
+        app.description.toLowerCase().includes(search.toLowerCase()))
     )
     .sort((a, b) => {
       if (sort === 'popular') return b.views - a.views
@@ -285,8 +188,10 @@ function ExplorePage() {
             </select>
           </div>
           <div className="app-grid">
-            {filtered.map(app => <AppCard key={app.id} app={app} />)}
-            {filtered.length === 0 && (
+            {loading && <p className="no-results">Loading apps…</p>}
+            {error && <p className="no-results">{error}</p>}
+            {!loading && !error && filtered.map(app => <AppCard key={app.id} app={app} />)}
+            {!loading && !error && filtered.length === 0 && (
               <p className="no-results">No apps match your filters.</p>
             )}
           </div>
@@ -315,7 +220,7 @@ function AppCard({ app }) {
         </div>
         <span className="app-category-tag">{app.category}</span>
       </div>
-      <p className="app-desc">{app.desc}</p>
+      <p className="app-desc">{app.description}</p>
       <div className="app-card-footer">
         <div className="app-footer-stat">
           <span className="app-footer-label">STAGE</span>

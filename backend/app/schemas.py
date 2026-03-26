@@ -23,3 +23,19 @@ class UserOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class AppOut(BaseModel):
+    id: int
+    name: str
+    initials: str
+    color: str
+    url: str
+    category: str
+    stage: str
+    description: str
+    views: int
+    feedbacks: int
+    credits: int
+
+    model_config = {"from_attributes": True}
