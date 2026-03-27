@@ -7,7 +7,7 @@ const STAGE_STYLES = {
   'Live':       { bg: '#d1fae5', color: '#065f46' },
 }
 
-export default function ReviewsPage() {
+export default function ReviewsPage({ onOpenReview }) {
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -46,7 +46,7 @@ export default function ReviewsPage() {
             </thead>
             <tbody>
               {reviews.map(r => (
-                <tr key={r.id}>
+                <tr key={r.id} onClick={() => onOpenReview(r.id)} style={{ cursor: 'pointer' }}>
                   <td>
                     <div className="reviews-app-cell">
                       <div className="reviews-app-icon" style={{ background: r.app_color }}>{r.app_initials}</div>

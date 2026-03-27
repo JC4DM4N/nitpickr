@@ -48,5 +48,14 @@ CREATE TABLE IF NOT EXISTS reviews (
     app_id       INTEGER     NOT NULL REFERENCES apps(id)  ON DELETE CASCADE,
     reviewer_id  INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     is_complete  BOOLEAN     NOT NULL DEFAULT FALSE,
+    feedback     TEXT,
     created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ── Review screenshots ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS review_screenshots (
+    id          SERIAL PRIMARY KEY,
+    review_id   INTEGER      NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+    filename    VARCHAR(255) NOT NULL,
+    created_at  TIMESTAMPTZ  DEFAULT NOW()
 );

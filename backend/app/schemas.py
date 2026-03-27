@@ -53,3 +53,24 @@ class ReviewOut(BaseModel):
     app_color: str
     app_stage: str
     app_url: str
+
+
+class ReviewDetail(BaseModel):
+    id: int
+    app_id: int
+    is_complete: bool
+    created_date: datetime
+    app_name: str
+    app_initials: str
+    app_color: str
+    app_stage: str
+    app_url: str
+    app_description: str
+    app_request: str
+    feedback: str | None
+    screenshots: list[str]
+
+
+class ReviewPatch(BaseModel):
+    feedback: str | None = None
+    is_complete: bool | None = None

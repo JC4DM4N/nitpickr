@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './Dashboard.css'
 import ExplorePage from './ExplorePage'
 import ReviewsPage from './ReviewsPage'
+import ReviewAppPage from './ReviewAppPage'
 
 /* ── Icons ── */
 function IconExplore() {
@@ -26,14 +27,28 @@ const NAV = [
 
 export default function Dashboard({ user, onLogout }) {
   const [page, setPage] = useState('explore')
+  const [reviewId, setReviewId] = useState(null)
+
+  function handleOpenReview(id) {
+    setReviewId(id)
+    setPage('review-app')
+  }
+
+  function handleNavChange(p) {
+    setReviewId(null)
+    setPage(p)
+  }
 
   return (
     <div className="dashboard">
-      <Sidebar page={page} setPage={setPage} user={user} onLogout={onLogout} />
+      <Sidebar page={page} setPage={handleNavChange} user={user} onLogout={onLogout} />
       <main className="dash-main">
-        {page === 'explore' && <ExplorePage />}
-        {page === 'reviews' && <ReviewsPage />}
-        {page !== 'explore' && page !== 'reviews' && <ComingSoon label={NAV.find(n => n.id === page)?.label} />}
+        {page === 'explore'    && <ExplorePage />}
+        {page === 'reviews'    && <ReviewsPage onOpenReview={handleOpenReview} />}
+        {page === 'review-app' && <ReviewAppPage reviewId={reviewId} onBack={() => handleNavChange('reviews')} />}
+        {page !== 'explore' && page !== 'reviews' && page !== 'review-app' && (
+          <ComingSoon label={NAV.find(n => n.id === page)?.label} />
+        )}
       </main>
     </div>
   )
