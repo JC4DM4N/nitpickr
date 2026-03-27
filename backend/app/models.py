@@ -17,6 +17,7 @@ class App(Base):
     __tablename__ = "apps"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(100), nullable=False)
     initials = Column(String(4), nullable=False)
     color = Column(String(7), nullable=False)

@@ -27,6 +27,7 @@ class UserOut(BaseModel):
 
 class AppOut(BaseModel):
     id: int
+    owner_id: int
     name: str
     initials: str
     color: str
@@ -74,3 +75,11 @@ class ReviewDetail(BaseModel):
 class ReviewPatch(BaseModel):
     feedback: str | None = None
     is_complete: bool | None = None
+
+
+class AppReviewFeedItem(BaseModel):
+    id: int
+    reviewer_username: str
+    feedback: str | None
+    is_complete: bool
+    created_date: datetime

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './Dashboard.css'
 import ExplorePage from './ExplorePage'
+import MyAppsPage from './MyAppsPage'
+import MyAppDetailPage from './MyAppDetailPage'
 import ReviewsPage from './ReviewsPage'
 import ReviewAppPage from './ReviewAppPage'
 
@@ -28,14 +30,21 @@ const NAV = [
 export default function Dashboard({ user, onLogout }) {
   const [page, setPage] = useState('explore')
   const [reviewId, setReviewId] = useState(null)
+  const [appId, setAppId] = useState(null)
 
   function handleOpenReview(id) {
     setReviewId(id)
     setPage('review-app')
   }
 
+  function handleOpenApp(id) {
+    setAppId(id)
+    setPage('my-app-detail')
+  }
+
   function handleNavChange(p) {
     setReviewId(null)
+    setAppId(null)
     setPage(p)
   }
 
@@ -43,10 +52,12 @@ export default function Dashboard({ user, onLogout }) {
     <div className="dashboard">
       <Sidebar page={page} setPage={handleNavChange} user={user} onLogout={onLogout} />
       <main className="dash-main">
-        {page === 'explore'    && <ExplorePage />}
-        {page === 'reviews'    && <ReviewsPage onOpenReview={handleOpenReview} />}
-        {page === 'review-app' && <ReviewAppPage reviewId={reviewId} onBack={() => handleNavChange('reviews')} />}
-        {page !== 'explore' && page !== 'reviews' && page !== 'review-app' && (
+        {page === 'explore'       && <ExplorePage />}
+        {page === 'my-apps'       && <MyAppsPage onOpenApp={handleOpenApp} />}
+        {page === 'my-app-detail' && <MyAppDetailPage appId={appId} onBack={() => handleNavChange('my-apps')} />}
+        {page === 'reviews'       && <ReviewsPage onOpenReview={handleOpenReview} />}
+        {page === 'review-app'    && <ReviewAppPage reviewId={reviewId} onBack={() => handleNavChange('reviews')} />}
+        {page !== 'explore' && page !== 'my-apps' && page !== 'my-app-detail' && page !== 'reviews' && page !== 'review-app' && (
           <ComingSoon label={NAV.find(n => n.id === page)?.label} />
         )}
       </main>

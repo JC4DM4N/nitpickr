@@ -38,8 +38,9 @@ export default function ExplorePage() {
       }).then(r => r.json()),
     ])
       .then(([allApps, myReviews]) => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}')
         const reviewedIds = new Set(myReviews.map(r => r.app_id))
-        setApps(allApps.filter(a => !reviewedIds.has(a.id)))
+        setApps(allApps.filter(a => a.owner_id !== user.id && !reviewedIds.has(a.id)))
         setLoading(false)
       })
       .catch(() => { setError('Failed to load apps'); setLoading(false) })
