@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
-import { STAGE_STYLES } from '../../constants'
+import { AppPageHeader } from '../../components/AppPageHeader'
+import { FeedbackRequestSection } from '../../components/FeedbackRequestSection'
+import { FeedbackFeed } from '../../components/FeedbackFeed'
 
 export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
   const [app, setApp] = useState(null)
@@ -30,71 +32,25 @@ export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
   if (loading) return <div className="review-app-loading">Loading…</div>
   if (error) return <div className="review-app-loading">{error}</div>
 
-  const stage = STAGE_STYLES[app.stage]
-
   return (
     <div className="review-app-page">
-      <div className="review-app-header">
-        <button className="review-app-back" onClick={onBack}>← Back to my apps</button>
-        <div className="review-app-title-row">
-          <div className="review-app-icon" style={{ background: app.color }}>
-            {app.initials}
-          </div>
-          <div className="review-app-title-block">
-            <h1 className="review-app-name">{app.name}</h1>
-            <div className="review-app-meta">
-              <span className="app-stage-badge" style={stage}>
-                {app.stage}
-              </span>
-            </div>
-          </div>
-          <a
-            href={app.url.startsWith('http') ? app.url : `https://${app.url}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="visit-app-btn"
-          >
-            Visit app ↗
-          </a>
-        </div>
-      </div>
+      <AppPageHeader
+        backLabel="← Back to my apps"
+        onBack={onBack}
+        color={app.color}
+        initials={app.initials}
+        name={app.name}
+        stage={app.stage}
+        url={app.url}
+      />
 
       <div className="review-app-body">
         <div className="review-app-main">
-          <section className="review-section">
-            <p className="review-section-label">DESCRIBE THE FEEDBACK YOU ARE LOOKING FOR</p>
-            <textarea className="review-request-text" value={app.request} readOnly />
-          </section>
+          <FeedbackRequestSection value={app.request} />
 
           <section className="review-section">
             <p className="review-section-label">YOUR FEEDBACK</p>
-            {reviews.length === 0 ? (
-              <p className="feed-empty">No feedback yet.</p>
-            ) : (
-              <div className="feedback-feed">
-                {reviews.map(r => (
-                  <div key={r.id} className="feed-item" onClick={() => onOpenReview(r.id)} style={{ cursor: 'pointer' }}>
-                    <div className="feed-item-header">
-                      <div className="feed-avatar">{r.reviewer_username[0].toUpperCase()}</div>
-                      <div className="feed-meta">
-                        <span className="feed-username">{r.reviewer_username}</span>
-                        <span className="feed-date">
-                          {new Date(r.created_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <span className={`review-status-badge ${r.is_rejected ? 'rejected' : r.is_complete ? 'complete' : r.is_submitted ? 'awaiting' : 'in-progress'}`}>
-                        {r.is_rejected ? 'Rejected' : r.is_complete ? 'Approved' : r.is_submitted ? 'Awaiting approval' : r.review_requested ? 'Review Requested' : 'In progress'}
-                      </span>
-                    </div>
-                    {r.feedback ? (
-                      <p className="feed-text">{r.feedback}</p>
-                    ) : (
-                      <p className="feed-text feed-text--empty">No feedback written yet.</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            <FeedbackFeed reviews={reviews} onOpenReview={onOpenReview} />
           </section>
         </div>
       </div>

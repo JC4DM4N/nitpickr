@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import './ReviewAppPage.css'
 import { STAGE_STYLES } from '../../constants'
+import { OwnerMessageBanner } from '../../components/OwnerMessageBanner'
 
 export default function ReviewAppPage({ reviewId, onBack }) {
   const [detail, setDetail] = useState(null)
@@ -143,14 +144,11 @@ export default function ReviewAppPage({ reviewId, onBack }) {
             <textarea className="review-request-text" value={detail.app_request} readOnly />
           </section>
 
-          {detail.owner_message && (
-            <div className={`owner-message-banner ${detail.is_rejected ? 'owner-message-banner--rejected' : detail.is_complete ? 'owner-message-banner--approved' : ''}`}>
-              <span className="owner-message-label">
-                {detail.is_rejected ? 'Review rejected' : detail.is_complete ? 'Review approved' : 'Changes requested'}
-              </span>
-              <p className="owner-message-text">{detail.owner_message}</p>
-            </div>
-          )}
+          <OwnerMessageBanner
+            message={detail.owner_message}
+            is_complete={detail.is_complete}
+            is_rejected={detail.is_rejected}
+          />
 
           <section className="review-section">
             <p className="review-section-label">YOUR FEEDBACK</p>
