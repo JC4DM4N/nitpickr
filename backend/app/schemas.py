@@ -36,7 +36,6 @@ class AppOut(BaseModel):
     stage: str
     description: str
     request: str
-    views: int
     credits: int
     approved_count: int
     in_progress_count: int

@@ -45,7 +45,6 @@ def _build_app_outs(apps: list, db: Session) -> list:
             stage=a.stage,
             description=a.description,
             request=a.request,
-            views=a.views,
             credits=a.credits,
             approved_count=approved.get(a.id, 0),
             in_progress_count=in_progress.get(a.id, 0),

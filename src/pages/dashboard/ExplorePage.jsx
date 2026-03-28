@@ -50,7 +50,7 @@ export default function ExplorePage() {
         app.description.toLowerCase().includes(search.toLowerCase()))
     )
     .sort((a, b) => {
-      if (sort === 'popular') return b.views - a.views
+      if (sort === 'popular') return b.approved_count - a.approved_count
       if (sort === 'newest') return b.id - a.id
       if (sort === 'most-feedback') return b.feedbacks - a.feedbacks
       return 0

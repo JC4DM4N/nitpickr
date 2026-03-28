@@ -26,7 +26,6 @@ class App(Base):
     stage = Column(String(20), nullable=False)
     description = Column(Text, nullable=False)
     request     = Column(Text, nullable=False)
-    views = Column(Integer, nullable=False, default=0)
     credits = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
