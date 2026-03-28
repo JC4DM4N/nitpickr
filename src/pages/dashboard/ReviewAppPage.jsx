@@ -143,10 +143,10 @@ export default function ReviewAppPage({ reviewId, onBack }) {
             <textarea className="review-request-text" value={detail.app_request} readOnly />
           </section>
 
-          {detail.owner_message && !detail.is_complete && (
-            <div className={`owner-message-banner ${detail.is_rejected ? 'owner-message-banner--rejected' : ''}`}>
+          {detail.owner_message && (
+            <div className={`owner-message-banner ${detail.is_rejected ? 'owner-message-banner--rejected' : detail.is_complete ? 'owner-message-banner--approved' : ''}`}>
               <span className="owner-message-label">
-                {detail.is_rejected ? 'Review rejected' : 'Changes requested'}
+                {detail.is_rejected ? 'Review rejected' : detail.is_complete ? 'Review approved' : 'Changes requested'}
               </span>
               <p className="owner-message-text">{detail.owner_message}</p>
             </div>

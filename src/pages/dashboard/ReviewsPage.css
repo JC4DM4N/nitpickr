@@ -133,3 +133,17 @@
   font-family: var(--mono);
   font-size: 13px;
 }
+
+.in-progress-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--mono);
+}

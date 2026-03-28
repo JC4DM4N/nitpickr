@@ -38,7 +38,7 @@ def create_review(
     ).first():
         raise HTTPException(status_code=400, detail="You have already reviewed this app")
 
-    review = models.Review(app_id=payload.app_id, reviewer_id=current_user.id, review_requested=True)
+    review = models.Review(app_id=payload.app_id, reviewer_id=current_user.id)
     db.add(review)
     db.commit()
     db.refresh(review)

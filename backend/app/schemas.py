@@ -37,8 +37,9 @@ class AppOut(BaseModel):
     description: str
     request: str
     views: int
-    feedbacks: int
     credits: int
+    approved_count: int
+    in_progress_count: int
 
     model_config = {"from_attributes": True}
 

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 
 from .. import models, schemas
@@ -9,17 +10,63 @@ from ..dependencies import get_current_user
 router = APIRouter(prefix="/apps", tags=["apps"])
 
 
+def _build_app_outs(apps: list, db: Session) -> list:
+    if not apps:
+        return []
+    app_ids = [a.id for a in apps]
+
+    approved = dict(
+        db.query(models.Review.app_id, func.count(models.Review.id))
+        .filter(models.Review.app_id.in_(app_ids), models.Review.is_complete == True)
+        .group_by(models.Review.app_id)
+        .all()
+    )
+    in_progress = dict(
+        db.query(models.Review.app_id, func.count(models.Review.id))
+        .filter(
+            models.Review.app_id.in_(app_ids),
+            models.Review.is_submitted == True,
+            models.Review.is_complete == False,
+            models.Review.is_rejected == False,
+        )
+        .group_by(models.Review.app_id)
+        .all()
+    )
+
+    return [
+        schemas.AppOut(
+            id=a.id,
+            owner_id=a.owner_id,
+            name=a.name,
+            initials=a.initials,
+            color=a.color,
+            url=a.url,
+            category=a.category,
+            stage=a.stage,
+            description=a.description,
+            request=a.request,
+            views=a.views,
+            credits=a.credits,
+            approved_count=approved.get(a.id, 0),
+            in_progress_count=in_progress.get(a.id, 0),
+        )
+        for a in apps
+    ]
+
+
 @router.get("/mine", response_model=List[schemas.AppOut])
 def list_my_apps(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    return db.query(models.App).filter(models.App.owner_id == current_user.id).order_by(models.App.id).all()
+    apps = db.query(models.App).filter(models.App.owner_id == current_user.id).order_by(models.App.id).all()
+    return _build_app_outs(apps, db)
 
 
 @router.get("/", response_model=List[schemas.AppOut])
 def list_apps(db: Session = Depends(get_db)):
-    return db.query(models.App).order_by(models.App.id).all()
+    apps = db.query(models.App).order_by(models.App.id).all()
+    return _build_app_outs(apps, db)
 
 
 @router.post("/{app_id}/reviews/{review_id}/approve", response_model=schemas.ReviewDetail)
@@ -33,7 +80,6 @@ def approve_review(
     app, review = _get_owner_review(app_id, review_id, current_user, db)
     review.is_complete = True
     review.owner_message = payload.message
-    app.feedbacks += 1
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
@@ -169,4 +215,4 @@ def get_app(app_id: int, db: Session = Depends(get_db)):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="App not found")
-    return app
+    return _build_app_outs([app], db)[0]

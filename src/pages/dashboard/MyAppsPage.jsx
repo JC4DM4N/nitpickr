@@ -36,7 +36,8 @@ export default function MyAppsPage({ onOpenApp }) {
                 <th>App</th>
                 <th>Category</th>
                 <th>Stage</th>
-                <th>Feedbacks</th>
+                <th>Feedback</th>
+                <th>Feedback In Progress</th>
                 <th>Views</th>
               </tr>
             </thead>
@@ -58,7 +59,12 @@ export default function MyAppsPage({ onOpenApp }) {
                       {app.stage}
                     </span>
                   </td>
-                  <td className="reviews-date">{app.feedbacks}</td>
+                  <td className="reviews-date">{app.approved_count}</td>
+                  <td className="reviews-date">
+                    {app.in_progress_count > 0
+                      ? <span className="in-progress-badge">{app.in_progress_count}</span>
+                      : 0}
+                  </td>
                   <td className="reviews-date">{app.views}</td>
                 </tr>
               ))}
