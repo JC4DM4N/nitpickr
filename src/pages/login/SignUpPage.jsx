@@ -1,25 +1,34 @@
 import { useState } from 'react'
 import './LoginPage.css'
 
-export default function LoginPage({ onSuccess, onBack, onSignUp }) {
-  const [identifier, setIdentifier] = useState('')
+export default function SignUpPage({ onSuccess, onBack, onLogin }) {
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (/\s/.test(username)) {
+      setError('Username must not contain spaces')
+      return
+    }
+    if (/\s/.test(password)) {
+      setError('Password must not contain spaces')
+      return
+    }
     setError('')
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8000/auth/login', {
+      const res = await fetch('http://localhost:8000/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ username, email, password }),
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.detail || 'Invalid credentials')
+        setError(data.detail || 'Could not create account')
         return
       }
       localStorage.setItem('token', data.access_token)
@@ -44,19 +53,31 @@ export default function LoginPage({ onSuccess, onBack, onSignUp }) {
           <span className="login-logo-icon">◎</span>
           <span className="login-logo-text">FeedbackPal</span>
         </div>
-        <h1 className="login-title">Welcome back</h1>
-        <p className="login-sub">Sign in to your account to continue</p>
+        <h1 className="login-title">Create account</h1>
+        <p className="login-sub">Join the community of indie developers</p>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-field">
-            <label htmlFor="identifier">Username or email</label>
+            <label htmlFor="username">Username</label>
             <input
-              id="identifier"
+              id="username"
               type="text"
-              value={identifier}
-              onChange={e => setIdentifier(e.target.value)}
-              placeholder="Username or email address"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="your_username"
               autoFocus
+              required
+            />
+          </div>
+
+          <div className="login-field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
               required
             />
           </div>
@@ -76,13 +97,13 @@ export default function LoginPage({ onSuccess, onBack, onSignUp }) {
           {error && <p className="login-error">{error}</p>}
 
           <button type="submit" className="login-submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 
         <p className="login-switch">
-          Don't have an account?{' '}
-          <button className="login-switch-btn" onClick={onSignUp}>Sign up</button>
+          Already have an account?{' '}
+          <button className="login-switch-btn" onClick={onLogin}>Sign in</button>
         </p>
       </div>
     </div>

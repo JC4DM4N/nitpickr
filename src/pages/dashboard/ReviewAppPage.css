@@ -226,7 +226,7 @@
 /* ── Request (read-only) ── */
 .review-request-text {
   width: 100%;
-  min-height: 100px;
+  min-height: 60px;
   padding: 14px;
   border: 1.5px solid #e8e6e0;
   border-radius: 10px;
@@ -235,18 +235,22 @@
   background: #fafaf8;
   resize: none;
   line-height: 1.6;
-  font-family: var(--sans);
+  font-family: var(--mono);
   outline: none;
   cursor: default;
   box-sizing: border-box;
+  field-sizing: content;
+  overflow: hidden;
 }
 
 .review-request-text--editable {
   background: #fff;
   cursor: text;
-  resize: vertical;
+  resize: none;
   color: #1a1a1a;
   transition: border-color 0.15s;
+  field-sizing: content;
+  overflow: hidden;
 }
 
 .review-request-text--editable:focus {
@@ -291,12 +295,14 @@
   font-size: 14px;
   color: #1a1a1a;
   background: #fff;
-  resize: vertical;
+  resize: none;
   line-height: 1.6;
-  font-family: var(--sans);
+  font-family: var(--mono);
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s;
+  field-sizing: content;
+  overflow: hidden;
 }
 
 .review-feedback-input:focus {

@@ -105,6 +105,7 @@ class AppPatch(BaseModel):
     stage: str | None = None
     description: str | None = None
     request: str | None = None
+    color: str | None = None
 
 
 class UserCredits(BaseModel):

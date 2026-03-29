@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import LandingPage from './pages/landing/LandingPage'
 import LoginPage from './pages/login/LoginPage'
+import SignUpPage from './pages/login/SignUpPage'
 import Dashboard from './pages/dashboard/Dashboard'
 
 function getStoredUser() {
@@ -34,6 +35,17 @@ function App() {
       <LoginPage
         onSuccess={handleLoginSuccess}
         onBack={() => setView('landing')}
+        onSignUp={() => setView('signup')}
+      />
+    )
+  }
+
+  if (view === 'signup') {
+    return (
+      <SignUpPage
+        onSuccess={handleLoginSuccess}
+        onBack={() => setView('landing')}
+        onLogin={() => setView('login')}
       />
     )
   }
@@ -45,7 +57,8 @@ function App() {
   return (
     <LandingPage
       onLogin={() => setView('login')}
-      onGetStarted={() => setView('login')}
+      onGetStarted={() => setView('signup')}
+      onSignUp={() => setView('signup')}
     />
   )
 }

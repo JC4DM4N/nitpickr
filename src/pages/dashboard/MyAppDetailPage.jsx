@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
+import './SubmitAppPage.css'
 import { AppPageHeader } from '../../components/AppPageHeader'
 import { FeedbackRequestSection } from '../../components/FeedbackRequestSection'
 import { FeedbackFeed } from '../../components/FeedbackFeed'
 
 const CATEGORIES = ['Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce']
 const STAGES = ['Pre-launch', 'Beta', 'Live']
+const PALETTE = [
+  '#f87171', '#fb923c', '#fbbf24', '#a3e635',
+  '#34d399', '#22d3ee', '#60a5fa', '#a78bfa',
+  '#f472b6', '#94a3b8', '#d6bcfa', '#86efac',
+]
 
 export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
   const [app, setApp] = useState(null)
@@ -45,6 +51,7 @@ export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
       stage: app.stage,
       description: app.description,
       request: app.request,
+      color: app.color,
     })
     setSaveError(null)
     setEditMode(true)
@@ -94,7 +101,7 @@ export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
       <AppPageHeader
         backLabel="← Back to my apps"
         onBack={onBack}
-        color={app.color}
+        color={editMode ? editFields.color : app.color}
         initials={editMode ? (editFields.name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('') || app.initials) : app.initials}
         name={editMode ? editFields.name : app.name}
         stage={editMode ? editFields.stage : app.stage}
@@ -145,8 +152,23 @@ export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
               </div>
 
               <div className="edit-field-group">
+                <label className="edit-field-label">COLOR</label>
+                <div className="color-palette">
+                  {PALETTE.map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`color-swatch${editFields.color === c ? ' color-swatch--selected' : ''}`}
+                      style={{ background: c }}
+                      onClick={() => setEditFields(prev => ({ ...prev, color: c }))}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="edit-field-group">
                 <label className="edit-field-label">DESCRIPTION</label>
-                <textarea className="edit-field-textarea" value={editFields.description} onChange={field('description')} rows={3} />
+                <textarea className="edit-field-textarea" value={editFields.description} onChange={field('description')} />
               </div>
 
               <FeedbackRequestSection

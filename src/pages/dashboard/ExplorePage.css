@@ -351,6 +351,26 @@
   white-space: nowrap;
 }
 
+.app-visit-btn {
+  margin-left: auto;
+  padding: 6px 12px;
+  background: #0f0e0b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--mono);
+  text-decoration: none;
+  transition: opacity 0.12s;
+}
+
+.app-visit-btn:hover {
+  opacity: 0.8;
+}
+
 .app-review-btn {
   margin-left: auto;
   padding: 8px 16px;
@@ -461,7 +481,7 @@
   background: #fafaf8;
   resize: vertical;
   line-height: 1.6;
-  font-family: var(--sans);
+  font-family: var(--mono);
   outline: none;
   cursor: default;
   box-sizing: border-box;

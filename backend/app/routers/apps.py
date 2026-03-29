@@ -90,7 +90,7 @@ def patch_app(
         raise HTTPException(status_code=404, detail="App not found")
     if app.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
-    for field in ('name', 'url', 'category', 'stage', 'description', 'request'):
+    for field in ('name', 'url', 'category', 'stage', 'description', 'request', 'color'):
         value = getattr(payload, field)
         if value is not None:
             setattr(app, field, value)

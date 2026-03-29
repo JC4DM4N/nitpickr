@@ -10,7 +10,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     password = Column(String, nullable=False)
     username = Column(String(50), unique=True, nullable=False, index=True)
-    credits        = Column(Integer, nullable=False, default=1)
+    credits        = Column(Integer, nullable=False, default=0)
     escrow_credits = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

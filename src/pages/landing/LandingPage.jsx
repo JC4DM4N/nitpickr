@@ -1,9 +1,9 @@
 import './LandingPage.css'
 
-export default function LandingPage({ onLogin, onGetStarted }) {
+export default function LandingPage({ onLogin, onGetStarted, onSignUp }) {
   return (
     <div className="landing">
-      <Nav onLogin={onLogin} />
+      <Nav onLogin={onLogin} onSignUp={onSignUp ?? onGetStarted} />
       <Hero onGetStarted={onGetStarted} />
       <HowItWorks />
       <Features />
@@ -14,7 +14,7 @@ export default function LandingPage({ onLogin, onGetStarted }) {
   )
 }
 
-function Nav({ onLogin }) {
+function Nav({ onLogin, onSignUp }) {
   return (
     <nav className="nav">
       <div className="nav-inner">
@@ -28,7 +28,7 @@ function Nav({ onLogin }) {
         </div>
         <div className="nav-actions">
           <button onClick={onLogin} className="btn btn-ghost">Log in</button>
-          <button onClick={onLogin} className="btn btn-primary">Get started</button>
+          <button onClick={onSignUp} className="btn btn-primary">Get started</button>
         </div>
       </div>
     </nav>

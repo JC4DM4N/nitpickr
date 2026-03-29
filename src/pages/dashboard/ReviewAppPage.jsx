@@ -143,6 +143,11 @@ export default function ReviewAppPage({ reviewId, onBack }) {
       <div className="review-app-body">
         <div className="review-app-main">
           <section className="review-section">
+            <p className="review-section-label">ABOUT THIS APP</p>
+            <textarea className="review-request-text" value={detail.app_description} readOnly />
+          </section>
+
+          <section className="review-section">
             <p className="review-section-label">WHAT THE DEVELOPER IS LOOKING FOR</p>
             <textarea className="review-request-text" value={detail.app_request} readOnly />
           </section>

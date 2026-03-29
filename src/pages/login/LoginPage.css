@@ -144,3 +144,23 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.login-switch {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.login-switch-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--sans);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

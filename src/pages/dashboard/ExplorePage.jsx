@@ -157,6 +157,7 @@ function AppCard({ app, onReview }) {
           <div className="app-url">{app.url}</div>
         </div>
         <span className="app-category-tag">{app.category}</span>
+        <a className="app-visit-btn" href={app.url.startsWith('http') ? app.url : `https://${app.url}`} target="_blank" rel="noreferrer">Visit ↗</a>
       </div>
       <p className="app-desc">{app.description}</p>
       <div className="app-card-footer">
