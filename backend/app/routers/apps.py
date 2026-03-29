@@ -65,8 +65,12 @@ def patch_app(
         raise HTTPException(status_code=404, detail="App not found")
     if app.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
-    if payload.request is not None:
-        app.request = payload.request
+    for field in ('name', 'url', 'category', 'stage', 'description', 'request'):
+        value = getattr(payload, field)
+        if value is not None:
+            setattr(app, field, value)
+    if payload.name is not None:
+        app.initials = ''.join(w[0].upper() for w in payload.name.split()[:2])
     db.commit()
     db.refresh(app)
     return _build_app_outs([app], db)[0]

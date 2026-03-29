@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import './ReviewAppPage.css'
 import { STAGE_STYLES } from '../../constants'
 import { OwnerMessageBanner } from '../../components/OwnerMessageBanner'
+import { ImageLightbox } from '../../components/ImageLightbox'
 
 export default function ReviewAppPage({ reviewId, onBack }) {
   const [detail, setDetail] = useState(null)
@@ -11,6 +12,7 @@ export default function ReviewAppPage({ reviewId, onBack }) {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
+  const [expandedImg, setExpandedImg] = useState(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -104,6 +106,7 @@ export default function ReviewAppPage({ reviewId, onBack }) {
 
   return (
     <div className="review-app-page">
+      <ImageLightbox src={expandedImg} onClose={() => setExpandedImg(null)} />
       <div className="review-app-header">
         <button className="review-app-back" onClick={onBack}>← Back to reviews</button>
         <div className="review-app-title-row">
@@ -195,7 +198,8 @@ export default function ReviewAppPage({ reviewId, onBack }) {
                     key={i}
                     src={`http://localhost:8000/uploads/${filename}`}
                     alt={`Screenshot ${i + 1}`}
-                    className="screenshot-thumb"
+                    className="screenshot-thumb screenshot-thumb--clickable"
+                    onClick={() => setExpandedImg(`http://localhost:8000/uploads/${filename}`)}
                   />
                 ))}
               </div>

@@ -13,7 +13,7 @@ export function FeedbackRequestSection({ value, originalValue, onChange, onSave,
         readOnly={!editable}
         onChange={editable ? e => onChange(e.target.value) : undefined}
       />
-      {isDirty && (
+      {isDirty && onSave && (
         <div className="save-request-row">
           <button className="save-request-btn" onClick={onSave} disabled={saving}>
             {saving ? 'Saving…' : 'Save'}

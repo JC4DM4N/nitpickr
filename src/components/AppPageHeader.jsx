@@ -1,7 +1,7 @@
 import { STAGE_STYLES } from '../constants'
 import '../pages/dashboard/ReviewAppPage.css'
 
-export function AppPageHeader({ backLabel, onBack, color, initials, name, stage, url, children }) {
+export function AppPageHeader({ backLabel, onBack, color, initials, name, stage, url, actions, children }) {
   return (
     <div className="review-app-header">
       <button className="review-app-back" onClick={onBack}>{backLabel}</button>
@@ -14,14 +14,17 @@ export function AppPageHeader({ backLabel, onBack, color, initials, name, stage,
             {children}
           </div>
         </div>
-        <a
-          href={url.startsWith('http') ? url : `https://${url}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="visit-app-btn"
-        >
-          Visit app ↗
-        </a>
+        <div className="header-actions">
+          {actions}
+          <a
+            href={url.startsWith('http') ? url : `https://${url}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="visit-app-btn"
+          >
+            Visit app ↗
+          </a>
+        </div>
       </div>
     </div>
   )

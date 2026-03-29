@@ -78,3 +78,144 @@
   color: #9ca3af;
   font-style: italic;
 }
+
+/* ── Header actions ── */
+.header-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.edit-app-btn {
+  padding: 0 18px;
+  background: transparent;
+  color: #0f0e0b;
+  border: 1.5px solid #d1cfc8;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: border-color 0.12s, background 0.12s;
+  white-space: nowrap;
+}
+
+.edit-app-btn:hover {
+  border-color: #0f0e0b;
+  background: #f5f4f0;
+}
+
+.edit-save-btn {
+  padding: 0 18px;
+  background: #0f0e0b;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: opacity 0.12s;
+  white-space: nowrap;
+}
+
+.edit-save-btn:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.edit-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edit-cancel-btn {
+  padding: 0 18px;
+  background: transparent;
+  color: #6b7280;
+  border: 1.5px solid #d1cfc8;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: border-color 0.12s;
+  white-space: nowrap;
+}
+
+.edit-cancel-btn:hover {
+  border-color: #9ca3af;
+}
+
+/* ── Edit form ── */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.edit-form-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0;
+}
+
+.edit-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.edit-field-row {
+  display: flex;
+  gap: 16px;
+}
+
+.edit-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.06em;
+  font-family: var(--mono);
+}
+
+.edit-field-input,
+.edit-field-select,
+.edit-field-textarea {
+  padding: 10px 12px;
+}
+
+.edit-field-select {
+  padding: 10px 36px 10px 12px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.edit-field-input,
+.edit-field-select,
+.edit-field-textarea {
+  border: 1.5px solid #e8e6e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #0f0e0b;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.12s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-field-input:focus,
+.edit-field-select:focus,
+.edit-field-textarea:focus {
+  border-color: #0f0e0b;
+}
+
+.edit-field-textarea {
+  resize: vertical;
+  line-height: 1.5;
+}

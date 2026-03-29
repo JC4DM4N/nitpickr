@@ -89,6 +89,11 @@ class OwnerActionPayload(BaseModel):
 
 
 class AppPatch(BaseModel):
+    name: str | None = None
+    url: str | None = None
+    category: str | None = None
+    stage: str | None = None
+    description: str | None = None
     request: str | None = None
 
 
