@@ -5,14 +5,7 @@ import './SubmitAppPage.css'
 import { AppPageHeader } from '../../components/AppPageHeader'
 import { FeedbackRequestSection } from '../../components/FeedbackRequestSection'
 import { FeedbackFeed } from '../../components/FeedbackFeed'
-
-const CATEGORIES = ['Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce']
-const STAGES = ['Pre-launch', 'Beta', 'Live']
-const PALETTE = [
-  '#f87171', '#fb923c', '#fbbf24', '#a3e635',
-  '#34d399', '#22d3ee', '#60a5fa', '#a78bfa',
-  '#f472b6', '#94a3b8', '#d6bcfa', '#86efac',
-]
+import { CATEGORIES, STAGES, PALETTE } from '../../constants'
 
 export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
   const [app, setApp] = useState(null)

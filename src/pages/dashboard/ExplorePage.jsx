@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react'
 import './ExplorePage.css'
-import { STAGE_STYLES } from '../../constants'
+import { STAGE_STYLES, CATEGORIES, STAGES, SORTS } from '../../constants'
 
-const CATEGORIES = ['All', 'Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce']
-const STAGES = ['All', 'Pre-launch', 'Beta', 'Live']
-const SORTS = [
-  { value: 'popular', label: 'Most viewed' },
-  { value: 'newest', label: 'Newest first' },
-  { value: 'most-feedback', label: 'Most feedback' },
-]
+const FILTER_CATEGORIES = ['All', ...CATEGORIES]
+const FILTER_STAGES = ['All', ...STAGES]
 
 function IconSearch() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -98,13 +93,13 @@ export default function ExplorePage({ onOpenReview, onSubmitApp }) {
               value={category}
               onChange={e => setCategory(e.target.value)}
             >
-              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+              {FILTER_CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
 
           <div className="filter-group">
             <label className="filter-label">Stage</label>
-            {STAGES.map(s => (
+            {FILTER_STAGES.map(s => (
               <label key={s} className="filter-radio">
                 <input
                   type="radio"

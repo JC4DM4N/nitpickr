@@ -2,15 +2,7 @@ import { useState } from 'react'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
 import './SubmitAppPage.css'
-import { STAGE_STYLES } from '../../constants'
-
-const CATEGORIES = ['Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce']
-const STAGES = ['Pre-launch', 'Beta', 'Live']
-const PALETTE = [
-  '#f87171', '#fb923c', '#fbbf24', '#a3e635',
-  '#34d399', '#22d3ee', '#60a5fa', '#a78bfa',
-  '#f472b6', '#94a3b8', '#d6bcfa', '#86efac',
-]
+import { STAGE_STYLES, CATEGORIES, STAGES, PALETTE } from '../../constants'
 
 export default function SubmitAppPage({ onBack, onAppCreated }) {
   const [fields, setFields] = useState({
