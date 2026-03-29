@@ -92,6 +92,14 @@ class AppPatch(BaseModel):
     request: str | None = None
 
 
+class UserCredits(BaseModel):
+    available: int
+    in_escrow: int
+    total: int
+    earned_ever: int
+    spent_ever: int
+
+
 class AppReviewFeedItem(BaseModel):
     id: int
     reviewer_username: str

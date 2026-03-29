@@ -1,31 +1,19 @@
 import { useState } from 'react'
 import './Dashboard.css'
+import Sidebar from '../../components/Sidebar'
 import ExplorePage from './ExplorePage'
 import MyAppsPage from './MyAppsPage'
 import MyAppDetailPage from './MyAppDetailPage'
 import OwnerReviewPage from './OwnerReviewPage'
 import ReviewsPage from './ReviewsPage'
 import ReviewAppPage from './ReviewAppPage'
-
-/* ── Icons ── */
-function IconExplore() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-}
-function IconApps() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-}
-function IconReviews() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-}
-function IconCredits() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h4.5a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3H15"/></svg>
-}
+import CreditsPage from './CreditsPage'
 
 const NAV = [
-  { id: 'explore', label: 'Explore', Icon: IconExplore },
-  { id: 'my-apps', label: 'My Apps', Icon: IconApps },
-  { id: 'reviews', label: 'Reviews', Icon: IconReviews },
-  { id: 'credits', label: 'Credits', Icon: IconCredits },
+  { id: 'explore',  label: 'Explore' },
+  { id: 'my-apps',  label: 'My Apps' },
+  { id: 'reviews',  label: 'Reviews' },
+  { id: 'credits',  label: 'Credits' },
 ]
 
 export default function Dashboard({ user, onLogout }) {
@@ -64,7 +52,8 @@ export default function Dashboard({ user, onLogout }) {
         {page === 'owner-review'  && <OwnerReviewPage appId={appId} reviewId={reviewId} onBack={() => setPage('my-app-detail')} />}
         {page === 'reviews'       && <ReviewsPage onOpenReview={handleOpenReview} />}
         {page === 'review-app'    && <ReviewAppPage reviewId={reviewId} onBack={() => handleNavChange('reviews')} />}
-        {page !== 'explore' && page !== 'my-apps' && page !== 'my-app-detail' && page !== 'owner-review' && page !== 'reviews' && page !== 'review-app' && (
+        {page === 'credits'       && <CreditsPage />}
+        {page !== 'explore' && page !== 'my-apps' && page !== 'my-app-detail' && page !== 'owner-review' && page !== 'reviews' && page !== 'review-app' && page !== 'credits' && (
           <ComingSoon label={NAV.find(n => n.id === page)?.label} />
         )}
       </main>
@@ -72,48 +61,6 @@ export default function Dashboard({ user, onLogout }) {
   )
 }
 
-function Sidebar({ page, setPage, user, onLogout }) {
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-top">
-        <div className="sidebar-logo">
-          <span className="sidebar-logo-icon">◎</span>
-          <span className="sidebar-logo-text">FeedbackPal</span>
-        </div>
-        <nav className="sidebar-nav">
-          {NAV.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              className={`sidebar-item${page === id ? ' active' : ''}`}
-              onClick={() => setPage(id)}
-            >
-              <Icon />
-              {label}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-credits-widget">
-          <div className="credits-widget-top">
-            <span className="credits-widget-label">Your Credits</span>
-            <span className="credits-widget-icon">⚡</span>
-          </div>
-          <div className="credits-widget-value">3</div>
-          <p className="credits-widget-hint">Review an app to earn more</p>
-        </div>
-      </div>
-      <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar">{user?.username?.[0]?.toUpperCase()}</div>
-          <div>
-            <div className="sidebar-name">{user?.username}</div>
-            <div className="sidebar-handle">{user?.email}</div>
-          </div>
-        </div>
-        <button className="sidebar-logout" onClick={onLogout}>Log out</button>
-      </div>
-    </aside>
-  )
-}
 
 function ComingSoon({ label }) {
   return (

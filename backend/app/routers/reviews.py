@@ -29,7 +29,8 @@ def create_review(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    if not db.query(models.App).filter(models.App.id == payload.app_id).first():
+    app = db.query(models.App).filter(models.App.id == payload.app_id).first()
+    if not app:
         raise HTTPException(status_code=404, detail="App not found")
 
     if db.query(models.Review).filter(
@@ -40,10 +41,13 @@ def create_review(
 
     review = models.Review(app_id=payload.app_id, reviewer_id=current_user.id)
     db.add(review)
+
+    owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+    owner.credits -= app.credits
+    owner.escrow_credits += app.credits
+
     db.commit()
     db.refresh(review)
-
-    app = db.query(models.App).filter(models.App.id == payload.app_id).first()
     return _to_out(review, app)
 
 
@@ -146,6 +150,12 @@ def delete_review(
         raise HTTPException(status_code=404, detail="Review not found")
     if review.reviewer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
+
+    if not review.is_complete and not review.is_rejected:
+        app = db.query(models.App).filter(models.App.id == review.app_id).first()
+        owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+        owner.escrow_credits -= app.credits
+        owner.credits += app.credits
 
     db.delete(review)
     db.commit()

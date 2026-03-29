@@ -83,8 +83,18 @@ def list_my_apps(
 
 @router.get("/", response_model=List[schemas.AppOut])
 def list_apps(db: Session = Depends(get_db)):
-    apps = db.query(models.App).order_by(models.App.id).all()
-    return _build_app_outs(apps, db)
+    all_apps = db.query(models.App).order_by(models.App.id).all()
+    if not all_apps:
+        return []
+
+    owner_ids = list({a.owner_id for a in all_apps})
+    owner_available = {
+        u.id: u.credits
+        for u in db.query(models.User).filter(models.User.id.in_(owner_ids)).all()
+    }
+
+    visible_apps = [a for a in all_apps if owner_available.get(a.owner_id, 0) > 0]
+    return _build_app_outs(visible_apps, db)
 
 
 @router.post("/{app_id}/reviews/{review_id}/approve", response_model=schemas.ReviewDetail)
@@ -96,8 +106,11 @@ def approve_review(
     current_user: models.User = Depends(get_current_user),
 ):
     app, review = _get_owner_review(app_id, review_id, current_user, db)
+    reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
     review.is_complete = True
     review.owner_message = payload.message
+    current_user.escrow_credits -= app.credits
+    reviewer.credits += app.credits
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
@@ -132,6 +145,8 @@ def reject_review(
     app, review = _get_owner_review(app_id, review_id, current_user, db)
     review.is_rejected = True
     review.owner_message = payload.message
+    current_user.escrow_credits -= app.credits
+    current_user.credits += app.credits
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail

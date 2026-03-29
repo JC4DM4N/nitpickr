@@ -5,8 +5,49 @@ import bcrypt as bcryptlib
 
 from .. import models, schemas
 from ..database import get_db
+from ..dependencies import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get("/me/credits", response_model=schemas.UserCredits)
+def get_my_credits(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    in_escrow = current_user.escrow_credits
+
+    # ── Earned ever: sum of app.credits for completed reviews I submitted ───
+    earned_rows = (
+        db.query(models.App.credits)
+        .join(models.Review, models.Review.app_id == models.App.id)
+        .filter(
+            models.Review.reviewer_id == current_user.id,
+            models.Review.is_complete == True,
+        )
+        .all()
+    )
+    earned_ever = sum(r[0] for r in earned_rows)
+
+    # ── Spent ever: sum of app.credits for completed reviews on my apps ─────
+    spent_rows = (
+        db.query(models.App.credits)
+        .join(models.Review, models.Review.app_id == models.App.id)
+        .filter(
+            models.App.owner_id == current_user.id,
+            models.Review.is_complete == True,
+        )
+        .all()
+    )
+    spent_ever = sum(r[0] for r in spent_rows)
+
+    return schemas.UserCredits(
+        available=current_user.credits,
+        in_escrow=in_escrow,
+        total=current_user.credits + in_escrow,
+        earned_ever=earned_ever,
+        spent_ever=spent_ever,
+    )
 
 
 @router.post("/", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED)

@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     password   VARCHAR(255) NOT NULL,          -- bcrypt hash, never plain text
     username   VARCHAR(50)  UNIQUE NOT NULL
                    CHECK (username ~ '^[A-Za-z0-9_]+$'),  -- single word, no spaces
+    credits         INTEGER NOT NULL DEFAULT 1,
+    escrow_credits  INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
