@@ -14,7 +14,7 @@ function IconSearch() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
 }
 
-export default function ExplorePage() {
+export default function ExplorePage({ onOpenReview }) {
   const [apps, setApps] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -62,9 +62,10 @@ export default function ExplorePage() {
       <ReviewModal
         app={reviewApp}
         onClose={() => setReviewApp(null)}
-        onReviewCreated={appId => {
+        onReviewCreated={(reviewId, appId) => {
           setApps(prev => prev.filter(a => a.id !== appId))
           setReviewApp(null)
+          onOpenReview?.(reviewId)
         }}
       />
     )}
@@ -199,7 +200,7 @@ function ReviewModal({ app, onClose, onReviewCreated }) {
         setError(data.detail || 'Failed to start review')
         return
       }
-      onReviewCreated(app.id)
+      onReviewCreated(data.id, app.id)
     } catch {
       setError('Could not connect to server')
     } finally {

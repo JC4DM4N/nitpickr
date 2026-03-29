@@ -46,7 +46,7 @@ export default function Dashboard({ user, onLogout }) {
     <div className="dashboard">
       <Sidebar page={page} setPage={handleNavChange} user={user} onLogout={onLogout} />
       <main className="dash-main">
-        {page === 'explore'       && <ExplorePage />}
+        {page === 'explore'       && <ExplorePage onOpenReview={handleOpenReview} />}
         {page === 'my-apps'       && <MyAppsPage onOpenApp={handleOpenApp} />}
         {page === 'my-app-detail' && <MyAppDetailPage appId={appId} onBack={() => handleNavChange('my-apps')} onOpenReview={handleOpenOwnerReview} />}
         {page === 'owner-review'  && <OwnerReviewPage appId={appId} reviewId={reviewId} onBack={() => setPage('my-app-detail')} />}
