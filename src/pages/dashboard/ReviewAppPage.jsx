@@ -172,9 +172,11 @@ export default function ReviewAppPage({ reviewId, onBack }) {
           {error && <p className="review-app-error">{error}</p>}
 
           <div className="review-app-actions">
-            <button className="review-delete-btn" onClick={handleDelete}>
-              Delete review
-            </button>
+            {!detail.is_complete && (
+              <button className="review-delete-btn" onClick={handleDelete}>
+                Delete review
+              </button>
+            )}
             <button
               className="review-submit-btn"
               onClick={handleSubmit}
