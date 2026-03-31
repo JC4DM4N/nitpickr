@@ -121,13 +121,13 @@ export default function OwnerReviewPage({ appId, reviewId, onBack }) {
                 <p className="review-screenshots-hint">No screenshots attached.</p>
               ) : (
                 <div className="screenshots-grid">
-                  {detail.screenshots.map((filename, i) => (
+                  {detail.screenshots.map((url, i) => (
                     <img
                       key={i}
-                      src={`http://localhost:8000/uploads/${filename}`}
+                      src={url}
                       alt={`Screenshot ${i + 1}`}
                       className="screenshot-thumb screenshot-thumb--clickable"
-                      onClick={() => setExpandedImg(`http://localhost:8000/uploads/${filename}`)}
+                      onClick={() => setExpandedImg(url)}
                     />
                   ))}
                 </div>

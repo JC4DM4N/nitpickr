@@ -88,7 +88,7 @@ export default function ReviewAppPage({ reviewId, onBack }) {
         })
         if (res.ok) {
           const data = await res.json()
-          setScreenshots(prev => [...prev, data.filename])
+          setScreenshots(prev => [...prev, data.url])
         }
       }
     } catch {
@@ -198,13 +198,13 @@ export default function ReviewAppPage({ reviewId, onBack }) {
 
             {screenshots.length > 0 && (
               <div className="screenshots-grid">
-                {screenshots.map((filename, i) => (
+                {screenshots.map((url, i) => (
                   <img
                     key={i}
-                    src={`http://localhost:8000/uploads/${filename}`}
+                    src={url}
                     alt={`Screenshot ${i + 1}`}
                     className="screenshot-thumb screenshot-thumb--clickable"
-                    onClick={() => setExpandedImg(`http://localhost:8000/uploads/${filename}`)}
+                    onClick={() => setExpandedImg(url)}
                   />
                 ))}
               </div>

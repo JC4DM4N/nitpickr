@@ -1,20 +1,16 @@
-import os
 import uuid
 from pathlib import Path
-from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, schemas, r2
 from ..database import get_db
 from ..dependencies import get_current_user
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
-
-UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
 
 
 class ReviewCreate(BaseModel):
@@ -178,17 +174,15 @@ def upload_screenshot(
 
     suffix = Path(file.filename).suffix.lower() if file.filename else ".png"
     filename = f"{uuid.uuid4().hex}{suffix}"
-    dest = os.path.join(UPLOADS_DIR, filename)
+    content_type = file.content_type or "image/png"
 
-    os.makedirs(UPLOADS_DIR, exist_ok=True)
-    with open(dest, "wb") as f:
-        f.write(file.file.read())
+    r2.upload(file.file.read(), filename, content_type)
 
     screenshot = models.ReviewScreenshot(review_id=review_id, filename=filename)
     db.add(screenshot)
     db.commit()
 
-    return {"filename": filename}
+    return {"filename": filename, "url": r2.presign(filename)}
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -229,5 +223,5 @@ def _to_detail(review: models.Review, app: models.App, screenshots: list) -> sch
         app_description=app.description,
         app_request=app.request,
         feedback=review.feedback,
-        screenshots=screenshots,
+        screenshots=[r2.presign(f) for f in screenshots],
     )
