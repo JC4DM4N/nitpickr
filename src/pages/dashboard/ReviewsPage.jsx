@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './ReviewsPage.css'
 import { STAGE_STYLES } from '../../constants'
 import { formatTimeRemaining } from '../../utils/time'
 
-export default function ReviewsPage({ onOpenReview }) {
+export default function ReviewsPage() {
+  const navigate = useNavigate()
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -50,7 +52,7 @@ export default function ReviewsPage({ onOpenReview }) {
                 const isUrgent = timeLeft && timeLeft.startsWith('0') || (timeLeft && !timeLeft.includes('d') && !timeLeft.includes('h'))
 
                 return (
-                  <tr key={r.id} onClick={() => onOpenReview(r.id)} style={{ cursor: 'pointer' }}>
+                  <tr key={r.id} onClick={() => navigate(`/reviews/${r.id}`)} style={{ cursor: 'pointer' }}>
                     <td>
                       <div className="reviews-app-cell">
                         <div className="reviews-app-icon" style={{ background: r.app_color }}>{r.app_initials}</div>

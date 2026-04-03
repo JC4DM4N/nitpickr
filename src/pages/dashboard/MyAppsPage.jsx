@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./ReviewsPage.css";
 import { STAGE_STYLES } from "../../constants";
 
-export default function MyAppsPage({ onOpenApp }) {
+export default function MyAppsPage() {
+  const navigate = useNavigate()
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -50,7 +52,7 @@ export default function MyAppsPage({ onOpenApp }) {
               {apps.map((app) => (
                 <tr
                   key={app.id}
-                  onClick={() => onOpenApp(app.id)}
+                  onClick={() => navigate(`/my-apps/${app.id}`)}
                   style={{ cursor: "pointer" }}
                 >
                   <td>

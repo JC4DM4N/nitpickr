@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
 import './SubmitAppPage.css'
@@ -7,7 +8,9 @@ import { FeedbackRequestSection } from '../../components/FeedbackRequestSection'
 import { FeedbackFeed } from '../../components/FeedbackFeed'
 import { CATEGORIES, STAGES, PALETTE } from '../../constants'
 
-export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
+export default function MyAppDetailPage() {
+  const { appId } = useParams()
+  const navigate = useNavigate()
   const [app, setApp] = useState(null)
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
@@ -93,7 +96,7 @@ export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
     <div className="review-app-page">
       <AppPageHeader
         backLabel="← Back to my apps"
-        onBack={onBack}
+        onBack={() => navigate('/my-apps')}
         color={editMode ? editFields.color : app.color}
         initials={editMode ? (editFields.name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('') || app.initials) : app.initials}
         name={editMode ? editFields.name : app.name}
@@ -179,7 +182,7 @@ export default function MyAppDetailPage({ appId, onBack, onOpenReview }) {
 
           <section className="review-section">
             <p className="review-section-label">YOUR FEEDBACK</p>
-            <FeedbackFeed reviews={reviews} onOpenReview={onOpenReview} />
+            <FeedbackFeed reviews={reviews} onOpenReview={id => navigate(`/my-apps/${appId}/reviews/${id}`)} />
           </section>
         </div>
       </div>

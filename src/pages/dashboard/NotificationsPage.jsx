@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import './NotificationsPage.css'
 
 const TYPE_ICONS = {
@@ -15,7 +16,9 @@ const TYPE_ICONS = {
 // Notifications sent to the app owner — should open the owner review view
 const OWNER_REVIEW_TYPES = new Set(['review_started', 'review_submitted', 'review_resubmitted'])
 
-export default function NotificationsPage({ onOpenReview, onOpenOwnerReview, onOpenApp, onRead }) {
+export default function NotificationsPage() {
+  const navigate = useNavigate()
+  const { onRead } = useOutletContext()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -41,11 +44,11 @@ export default function NotificationsPage({ onOpenReview, onOpenOwnerReview, onO
       onRead()
     }
     if (n.review_id && OWNER_REVIEW_TYPES.has(n.type)) {
-      onOpenOwnerReview(n.review_id, n.app_id)
+      navigate(`/my-apps/${n.app_id}/reviews/${n.review_id}`)
     } else if (n.review_id) {
-      onOpenReview(n.review_id)
+      navigate(`/reviews/${n.review_id}`)
     } else if (n.app_id) {
-      onOpenApp(n.app_id)
+      navigate(`/my-apps/${n.app_id}`)
     }
   }
 

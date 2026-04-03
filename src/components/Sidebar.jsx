@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import '../pages/dashboard/Dashboard.css'
 
 function IconExplore() {
@@ -18,14 +19,16 @@ function IconBell() {
 }
 
 const NAV = [
-  { id: 'explore',       label: 'Explore',       Icon: IconExplore },
-  { id: 'my-apps',       label: 'My Apps',       Icon: IconApps },
-  { id: 'reviews',       label: 'Reviews',       Icon: IconReviews },
-  { id: 'notifications', label: 'Notifications', Icon: IconBell },
-  { id: 'credits',       label: 'Credits',       Icon: IconCredits },
+  { path: '/explore',       label: 'Explore',       Icon: IconExplore },
+  { path: '/my-apps',       label: 'My Apps',       Icon: IconApps },
+  { path: '/reviews',       label: 'Reviews',       Icon: IconReviews },
+  { path: '/notifications', label: 'Notifications', Icon: IconBell },
+  { path: '/credits',       label: 'Credits',       Icon: IconCredits },
 ]
 
-export default function Sidebar({ page, setPage, user, onLogout, unreadCount }) {
+export default function Sidebar({ user, onLogout, unreadCount }) {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [credits, setCredits] = useState(null)
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function Sidebar({ page, setPage, user, onLogout, unreadCount }) 
       .then(r => r.json())
       .then(data => setCredits(data.available))
       .catch(() => {})
-  }, [page])
+  }, [location.pathname])
 
   return (
     <aside className="sidebar">
@@ -46,19 +49,22 @@ export default function Sidebar({ page, setPage, user, onLogout, unreadCount }) 
           <span className="sidebar-logo-text">FeedbackPal</span>
         </div>
         <nav className="sidebar-nav">
-          {NAV.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              className={`sidebar-item${page === id ? ' active' : ''}`}
-              onClick={() => setPage(id)}
-            >
-              <Icon />
-              {label}
-              {id === 'notifications' && unreadCount > 0 && (
-                <span className="sidebar-notif-badge">{unreadCount}</span>
-              )}
-            </button>
-          ))}
+          {NAV.map(({ path, label, Icon }) => {
+            const isActive = location.pathname === path || (path !== '/explore' && location.pathname.startsWith(path))
+            return (
+              <button
+                key={path}
+                className={`sidebar-item${isActive ? ' active' : ''}`}
+                onClick={() => navigate(path)}
+              >
+                <Icon />
+                {label}
+                {path === '/notifications' && unreadCount > 0 && (
+                  <span className="sidebar-notif-badge">{unreadCount}</span>
+                )}
+              </button>
+            )
+          })}
         </nav>
         <div className="sidebar-credits-widget">
           <div className="credits-widget-top">

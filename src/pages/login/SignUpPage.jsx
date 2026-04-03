@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './LoginPage.css'
 
-export default function SignUpPage({ onSuccess, onBack, onLogin }) {
+export default function SignUpPage({ onSuccess }) {
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,6 +40,7 @@ export default function SignUpPage({ onSuccess, onBack, onLogin }) {
         email: data.email,
       }))
       onSuccess({ id: data.user_id, username: data.username, email: data.email })
+      navigate('/explore')
     } catch {
       setError('Could not connect to server. Is it running?')
     } finally {
@@ -48,7 +51,7 @@ export default function SignUpPage({ onSuccess, onBack, onLogin }) {
   return (
     <div className="login-page">
       <div className="login-card">
-        <button className="login-back" onClick={onBack}>← Back</button>
+        <button className="login-back" onClick={() => navigate('/')}>← Back</button>
         <div className="login-logo">
           <span className="login-logo-icon">◎</span>
           <span className="login-logo-text">FeedbackPal</span>
@@ -103,7 +106,7 @@ export default function SignUpPage({ onSuccess, onBack, onLogin }) {
 
         <p className="login-switch">
           Already have an account?{' '}
-          <button className="login-switch-btn" onClick={onLogin}>Sign in</button>
+          <button className="login-switch-btn" onClick={() => navigate('/login')}>Sign in</button>
         </p>
       </div>
     </div>

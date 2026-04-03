@@ -1,8 +1,18 @@
 import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import LandingPage from './pages/landing/LandingPage'
 import LoginPage from './pages/login/LoginPage'
 import SignUpPage from './pages/login/SignUpPage'
 import Dashboard from './pages/dashboard/Dashboard'
+import ExplorePage from './pages/dashboard/ExplorePage'
+import MyAppsPage from './pages/dashboard/MyAppsPage'
+import MyAppDetailPage from './pages/dashboard/MyAppDetailPage'
+import OwnerReviewPage from './pages/dashboard/OwnerReviewPage'
+import ReviewsPage from './pages/dashboard/ReviewsPage'
+import ReviewAppPage from './pages/dashboard/ReviewAppPage'
+import CreditsPage from './pages/dashboard/CreditsPage'
+import SubmitAppPage from './pages/dashboard/SubmitAppPage'
+import NotificationsPage from './pages/dashboard/NotificationsPage'
 
 function getStoredUser() {
   try {
@@ -14,52 +24,51 @@ function getStoredUser() {
 }
 
 function App() {
-  const storedUser = getStoredUser()
-  const [view, setView] = useState(storedUser ? 'dashboard' : 'landing')
-  const [user, setUser] = useState(storedUser)
+  const [user, setUser] = useState(getStoredUser())
 
   function handleLoginSuccess(userData) {
     setUser(userData)
-    setView('dashboard')
   }
 
   function handleLogout() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setUser(null)
-    setView('landing')
   }
 
-  if (view === 'login') {
-    return (
-      <LoginPage
-        onSuccess={handleLoginSuccess}
-        onBack={() => setView('landing')}
-        onSignUp={() => setView('signup')}
-      />
-    )
+  // Redirects to /explore if already logged in
+  function PublicOnly({ children }) {
+    return user ? <Navigate to="/explore" replace /> : children
   }
 
-  if (view === 'signup') {
-    return (
-      <SignUpPage
-        onSuccess={handleLoginSuccess}
-        onBack={() => setView('landing')}
-        onLogin={() => setView('login')}
-      />
-    )
-  }
-
-  if (view === 'dashboard') {
-    return <Dashboard user={user} onLogout={handleLogout} />
+  // Redirects to /login if not logged in
+  function Protected() {
+    return user ? <Outlet /> : <Navigate to="/login" replace />
   }
 
   return (
-    <LandingPage
-      onLogin={() => setView('login')}
-      onGetStarted={() => setView('signup')}
-      onSignUp={() => setView('signup')}
-    />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<PublicOnly><LandingPage /></PublicOnly>} />
+        <Route path="/login" element={<PublicOnly><LoginPage onSuccess={handleLoginSuccess} /></PublicOnly>} />
+        <Route path="/signup" element={<PublicOnly><SignUpPage onSuccess={handleLoginSuccess} /></PublicOnly>} />
+
+        <Route element={<Protected />}>
+          <Route element={<Dashboard user={user} onLogout={handleLogout} />}>
+            <Route path="/explore"       element={<ExplorePage />} />
+            <Route path="/my-apps"       element={<MyAppsPage />} />
+            <Route path="/my-apps/new"   element={<SubmitAppPage />} />
+            <Route path="/my-apps/:appId"                          element={<MyAppDetailPage />} />
+            <Route path="/my-apps/:appId/reviews/:reviewId"        element={<OwnerReviewPage />} />
+            <Route path="/reviews"       element={<ReviewsPage />} />
+            <Route path="/reviews/:reviewId"                       element={<ReviewAppPage />} />
+            <Route path="/credits"       element={<CreditsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="*"              element={<Navigate to="/explore" replace />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 

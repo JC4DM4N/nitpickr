@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './ExplorePage.css'
 import { STAGE_STYLES, CATEGORIES, STAGES } from '../../constants'
 
@@ -9,7 +10,8 @@ function IconSearch() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
 }
 
-export default function ExplorePage({ onOpenReview, onSubmitApp }) {
+export default function ExplorePage() {
+  const navigate = useNavigate()
   const [apps, setApps] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -53,7 +55,7 @@ export default function ExplorePage({ onOpenReview, onSubmitApp }) {
         onReviewCreated={(reviewId, appId) => {
           setApps(prev => prev.filter(a => a.id !== appId))
           setReviewApp(null)
-          onOpenReview?.(reviewId)
+          navigate(`/reviews/${reviewId}`)
         }}
       />
     )}
@@ -71,7 +73,7 @@ export default function ExplorePage({ onOpenReview, onSubmitApp }) {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <button className="btn-submit-app" onClick={onSubmitApp}>+ Submit your app</button>
+          <button className="btn-submit-app" onClick={() => navigate('/my-apps/new')}>+ Submit your app</button>
         </div>
       </div>
 

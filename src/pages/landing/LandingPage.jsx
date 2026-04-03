@@ -1,6 +1,11 @@
+import { useNavigate } from 'react-router-dom'
 import './LandingPage.css'
 
-export default function LandingPage({ onLogin, onGetStarted, onSignUp }) {
+export default function LandingPage() {
+  const navigate = useNavigate()
+  const onLogin = () => navigate('/login')
+  const onGetStarted = () => navigate('/signup')
+  const onSignUp = () => navigate('/signup')
   return (
     <div className="landing">
       <Nav onLogin={onLogin} onSignUp={onSignUp ?? onGetStarted} />

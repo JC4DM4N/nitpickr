@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
 import './SubmitAppPage.css'
 import { STAGE_STYLES, CATEGORIES, STAGES, PALETTE } from '../../constants'
 
-export default function SubmitAppPage({ onBack, onAppCreated }) {
+export default function SubmitAppPage() {
+  const navigate = useNavigate()
   const [fields, setFields] = useState({
     name: '',
     url: '',
@@ -45,7 +47,7 @@ export default function SubmitAppPage({ onBack, onAppCreated }) {
         setError(data.detail || 'Failed to submit app')
         return
       }
-      onAppCreated(data.id)
+      navigate(`/my-apps/${data.id}`)
     } catch {
       setError('Could not connect to server')
     } finally {
@@ -56,7 +58,7 @@ export default function SubmitAppPage({ onBack, onAppCreated }) {
   return (
     <div className="review-app-page">
       <div className="review-app-header">
-        <button className="review-app-back" onClick={onBack}>← Back</button>
+        <button className="review-app-back" onClick={() => navigate('/explore')}>← Back</button>
         <div className="review-app-title-row">
           <div className="review-app-icon" style={{ background: fields.color }}>
             {initials}

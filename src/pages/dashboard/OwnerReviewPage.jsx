@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import './OwnerReviewPage.css'
 
@@ -10,7 +11,9 @@ import { ActionModal } from '../../components/ActionModal'
 import { ImageLightbox } from '../../components/ImageLightbox'
 import { ReviewerDeadlineBanner, OwnerDeadlineBanner } from '../../components/DeadlineBanner'
 
-export default function OwnerReviewPage({ appId, reviewId, onBack }) {
+export default function OwnerReviewPage() {
+  const { appId, reviewId } = useParams()
+  const navigate = useNavigate()
   const [detail, setDetail] = useState(null)
   const [expandedImg, setExpandedImg] = useState(null)
   const [modal, setModal] = useState(null) // 'approve' | 'request-changes' | 'reject'
@@ -62,7 +65,7 @@ export default function OwnerReviewPage({ appId, reviewId, onBack }) {
       <div className="review-app-page">
         <AppPageHeader
           backLabel="← Back to app"
-          onBack={onBack}
+          onBack={() => navigate(`/my-apps/${appId}`)}
           color={detail.app_color}
           initials={detail.app_initials}
           name={detail.app_name}

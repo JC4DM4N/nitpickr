@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import { STAGE_STYLES } from '../../constants'
 import { OwnerMessageBanner } from '../../components/OwnerMessageBanner'
 import { ImageLightbox } from '../../components/ImageLightbox'
 import { ReviewerDeadlineBanner, OwnerDeadlineBanner } from '../../components/DeadlineBanner'
 
-export default function ReviewAppPage({ reviewId, onBack }) {
+export default function ReviewAppPage() {
+  const { reviewId } = useParams()
+  const navigate = useNavigate()
   const [detail, setDetail] = useState(null)
   const [feedback, setFeedback] = useState('')
   const [screenshots, setScreenshots] = useState([])
@@ -66,7 +69,7 @@ export default function ReviewAppPage({ reviewId, onBack }) {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       })
-      onBack()
+      navigate('/reviews')
     } catch {
       setError('Could not connect to server')
     }
@@ -109,7 +112,7 @@ export default function ReviewAppPage({ reviewId, onBack }) {
     <div className="review-app-page">
       <ImageLightbox src={expandedImg} onClose={() => setExpandedImg(null)} />
       <div className="review-app-header">
-        <button className="review-app-back" onClick={onBack}>← Back to reviews</button>
+        <button className="review-app-back" onClick={() => navigate('/reviews')}>← Back to reviews</button>
         <div className="review-app-title-row">
           <div className="review-app-icon" style={{ background: detail.app_color }}>
             {detail.app_initials}
