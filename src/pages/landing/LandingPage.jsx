@@ -25,7 +25,7 @@ function Nav({ onLogin, onSignUp }) {
       <div className="nav-inner">
         <a href="/" className="logo">
           <span className="logo-icon">◎</span>
-          <span className="logo-text">FeedbackPal</span>
+          <span className="logo-text">NitPickr</span>
         </a>
         <div className="nav-links">
           <a href="#how-it-works">How it works</a>
@@ -300,7 +300,7 @@ function Footer() {
         <div className="footer-brand">
           <a href="/" className="logo">
             <span className="logo-icon">◎</span>
-            <span className="logo-text">FeedbackPal</span>
+            <span className="logo-text">NitPickr</span>
           </a>
           <p>Real feedback from real indie developers.</p>
         </div>
@@ -326,7 +326,7 @@ function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>© 2026 FeedbackPal. Made with ♥ for indie developers.</p>
+        <p>© 2026 NitPickr. Made with ♥ for indie developers.</p>
       </div>
     </footer>
   )

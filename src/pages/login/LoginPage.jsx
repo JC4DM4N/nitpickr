@@ -45,7 +45,7 @@ export default function LoginPage({ onSuccess }) {
         <button className="login-back" onClick={() => navigate('/')}>← Back</button>
         <div className="login-logo">
           <span className="login-logo-icon">◎</span>
-          <span className="login-logo-text">FeedbackPal</span>
+          <span className="login-logo-text">NitPickr</span>
         </div>
         <h1 className="login-title">Welcome back</h1>
         <p className="login-sub">Sign in to your account to continue</p>

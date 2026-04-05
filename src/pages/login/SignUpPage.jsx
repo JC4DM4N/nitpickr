@@ -54,7 +54,7 @@ export default function SignUpPage({ onSuccess }) {
         <button className="login-back" onClick={() => navigate('/')}>← Back</button>
         <div className="login-logo">
           <span className="login-logo-icon">◎</span>
-          <span className="login-logo-text">FeedbackPal</span>
+          <span className="login-logo-text">NitPickr</span>
         </div>
         <h1 className="login-title">Create account</h1>
         <p className="login-sub">Join the community of indie developers</p>

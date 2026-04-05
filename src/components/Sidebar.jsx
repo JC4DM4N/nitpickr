@@ -46,7 +46,7 @@ export default function Sidebar({ user, onLogout, unreadCount }) {
       <div className="sidebar-top">
         <div className="sidebar-logo">
           <span className="sidebar-logo-icon">◎</span>
-          <span className="sidebar-logo-text">FeedbackPal</span>
+          <span className="sidebar-logo-text">NitPickr</span>
         </div>
         <nav className="sidebar-nav">
           {NAV.map(({ path, label, Icon }) => {

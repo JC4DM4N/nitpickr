@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: feedbackpal
+      POSTGRES_DB: nitpickr
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -23,7 +23,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/feedbackpal
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/nitpickr
       SECRET_KEY: super-secret-dev-key-change-in-production
     depends_on:
       db:

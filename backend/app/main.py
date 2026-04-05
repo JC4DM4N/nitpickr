@@ -105,7 +105,7 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown()
 
 
-app = FastAPI(title="FeedbackPal API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Nitpickr API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
