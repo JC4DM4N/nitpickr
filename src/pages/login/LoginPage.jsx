@@ -44,8 +44,7 @@ export default function LoginPage({ onSuccess }) {
       <div className="login-card">
         <button className="login-back" onClick={() => navigate('/')}>← Back</button>
         <div className="login-logo">
-          <span className="login-logo-icon">◎</span>
-          <span className="login-logo-text">NitPickr</span>
+          <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
         </div>
         <h1 className="login-title">Welcome back</h1>
         <p className="login-sub">Sign in to your account to continue</p>

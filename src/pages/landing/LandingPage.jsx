@@ -24,8 +24,7 @@ function Nav({ onLogin, onSignUp }) {
     <nav className="nav">
       <div className="nav-inner">
         <a href="/" className="logo">
-          <span className="logo-icon">◎</span>
-          <span className="logo-text">NitPickr</span>
+          <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
         </a>
         <div className="nav-links">
           <a href="#how-it-works">How it works</a>
@@ -299,8 +298,7 @@ function Footer() {
       <div className="footer-inner">
         <div className="footer-brand">
           <a href="/" className="logo">
-            <span className="logo-icon">◎</span>
-            <span className="logo-text">NitPickr</span>
+            <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
           </a>
           <p>Real feedback from real indie developers.</p>
         </div>

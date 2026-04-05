@@ -21,7 +21,7 @@
 }
 
 .sidebar-top {
-  padding: 24px 16px 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -30,10 +30,11 @@
 .sidebar-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px 16px;
+  /* justify-content: center; */
+  padding: 4px 8px 8px;
   border-bottom: 1px solid #f0ede6;
   margin-bottom: 8px;
+  margin-left: 20px;
 }
 
 .sidebar-logo-icon {

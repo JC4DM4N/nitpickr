@@ -45,8 +45,7 @@ export default function Sidebar({ user, onLogout, unreadCount }) {
     <aside className="sidebar">
       <div className="sidebar-top">
         <div className="sidebar-logo">
-          <span className="sidebar-logo-icon">◎</span>
-          <span className="sidebar-logo-text">NitPickr</span>
+          <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
         </div>
         <nav className="sidebar-nav">
           {NAV.map(({ path, label, Icon }) => {
