@@ -406,6 +406,10 @@
   margin: 0 auto 56px;
 }
 
+.how-it-works-section {
+  background: linear-gradient(135deg, var(--accent-bg) 0%, transparent 60%);
+}
+
 /* ── Steps ── */
 .steps {
   display: grid;
@@ -614,7 +618,7 @@
 
 .cta-stages {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   width: 100%;
   margin-bottom: 36px;
@@ -629,32 +633,36 @@
 }
 
 .cta-stage-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 20px;
+  padding: 28px;
   border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--bg);
   text-align: left;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.cta-stage-card:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
 }
 
 .cta-stage-icon {
-  font-size: 26px;
+  font-size: 28px;
+  margin-bottom: 12px;
+  display: block;
 }
 
 .cta-stage-label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-h);
-  line-height: 1.2;
+  margin: 0 0 8px;
 }
 
 .cta-stage-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .cta-note {

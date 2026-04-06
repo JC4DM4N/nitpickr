@@ -1,22 +1,22 @@
-import { useNavigate } from 'react-router-dom'
-import './LandingPage.css'
+import { useNavigate } from "react-router-dom";
+import "./LandingPage.css";
 
 export default function LandingPage() {
-  const navigate = useNavigate()
-  const onLogin = () => navigate('/login')
-  const onGetStarted = () => navigate('/signup')
-  const onSignUp = () => navigate('/signup')
+  const navigate = useNavigate();
+  const onLogin = () => navigate("/login");
+  const onGetStarted = () => navigate("/signup");
+  const onSignUp = () => navigate("/signup");
   return (
     <div className="landing">
       <Nav onLogin={onLogin} onSignUp={onSignUp ?? onGetStarted} />
       <Hero onGetStarted={onGetStarted} />
       <HowItWorks />
       <Features />
-      <Testimonials />
+      {/* <Testimonials /> */}
       <CTA onGetStarted={onGetStarted} />
       <Footer />
     </div>
-  )
+  );
 }
 
 function Nav({ onLogin, onSignUp }) {
@@ -31,12 +31,16 @@ function Nav({ onLogin, onSignUp }) {
           <a href="#features">Features</a>
         </div>
         <div className="nav-actions">
-          <button onClick={onLogin} className="btn btn-ghost">Log in</button>
-          <button onClick={onSignUp} className="btn btn-primary">Get started</button>
+          <button onClick={onLogin} className="btn btn-ghost">
+            Log in
+          </button>
+          <button onClick={onSignUp} className="btn btn-primary">
+            Get started
+          </button>
         </div>
       </div>
     </nav>
-  )
+  );
 }
 
 function Hero({ onGetStarted }) {
@@ -44,21 +48,28 @@ function Hero({ onGetStarted }) {
     <section className="hero">
       <div className="hero-badge">
         <span className="badge-dot"></span>
-        Feedback-for-feedback — no payment needed
+        Completely free beta testing for your app
       </div>
       <h1 className="hero-headline">
-        Real feedback from<br />
+        Real feedback from
+        <br />
         <span className="gradient-text">real indie developers</span>
       </h1>
       <p className="hero-sub">
-        Post your app. Give feedback on others. Get honest, actionable feedback in return.<br />
-        A community where indie developers help each other ship better products.
+        Post your app. Give feedback on others. Get honest, actionable feedback
+        in return.
+        <br />A community where indie developers help each other ship better
+        products.
       </p>
       <div className="hero-actions">
-        <button onClick={onGetStarted} className="btn btn-primary btn-lg">Submit your app</button>
-        <a href="#how-it-works" className="btn btn-outline btn-lg">See how it works</a>
+        <button onClick={onGetStarted} className="btn btn-primary btn-lg">
+          Submit your app
+        </button>
+        <a href="#how-it-works" className="btn btn-outline btn-lg">
+          See how it works
+        </a>
       </div>
-      <div className="hero-social-proof">
+      {/* <div className="hero-social-proof">
         <div className="avatars">
           {['A', 'B', 'C', 'D', 'E'].map((l, i) => (
             <div key={i} className="avatar" style={{ '--hue': i * 40 }}>{l}</div>
@@ -87,9 +98,9 @@ function Hero({ onGetStarted }) {
           feedbackCount={12}
           credits={5}
         />
-      </div>
+      </div> */}
     </section>
-  )
+  );
 }
 
 function AppCard({ name, url, tag, feedbackCount, credits }) {
@@ -108,7 +119,7 @@ function AppCard({ name, url, tag, feedbackCount, credits }) {
         <span>⭐ {credits} credits earned</span>
       </div>
     </div>
-  )
+  );
 }
 
 function FeedbackCard({ reviewer, time, text, rating }) {
@@ -120,40 +131,47 @@ function FeedbackCard({ reviewer, time, text, rating }) {
           <div className="mock-reviewer-name">{reviewer}</div>
           <div className="mock-feedback-time">{time}</div>
         </div>
-        <div className="mock-rating">{'★'.repeat(rating)}{'☆'.repeat(5 - rating)}</div>
+        <div className="mock-rating">
+          {"★".repeat(rating)}
+          {"☆".repeat(5 - rating)}
+        </div>
       </div>
       <p className="mock-feedback-text">{text}</p>
     </div>
-  )
+  );
 }
 
 function HowItWorks() {
   const steps = [
     {
-      number: '01',
-      icon: '🚀',
-      title: 'Submit your app',
-      desc: 'Add your app with a link, description, and what kind of feedback you\'re looking for.',
+      number: "01",
+      icon: "🚀",
+      title: "Submit your app",
+      desc: "Add your app with a link, description, and what kind of feedback you're looking for.",
     },
     {
-      number: '02',
-      icon: '💬',
-      title: 'Give feedback to others',
-      desc: 'Browse apps from other indie developers and leave honest, constructive feedback. Each feedback earns you a credit.',
+      number: "02",
+      icon: "💬",
+      title: "Give feedback to others",
+      desc: "Browse apps from other indie developers and leave honest, constructive feedback. Each feedback earns you a credit.",
     },
     {
-      number: '03',
-      icon: '📬',
-      title: 'Receive feedback',
-      desc: 'Spend your credits to unlock feedback on your own app. Feedback can be kept private or made public — your choice.',
+      number: "03",
+      icon: "📬",
+      title: "Receive feedback",
+      desc: "Spend your credits to get feedback on your own app. Credits are only spent once you approve the reviewers feedback.",
     },
-  ]
+  ];
 
   return (
-    <section id="how-it-works" className="section">
+    <section id="how-it-works" className="section how-it-works-section">
       <div className="section-label">How it works</div>
-      <h2 className="section-title">Simple. Fair. Effective.</h2>
-      <p className="section-sub">A credit-based system that keeps the community balanced — everyone gives as much as they receive.</p>
+      {/* <h2 className="section-title">Simple. Fair. Effective.</h2> */}
+      <h2 className="section-title">A review-for-review economy.</h2>
+      <p className="section-sub">
+        A credit-based system that keeps the community balanced — everyone gives
+        as much as they receive.
+      </p>
       <div className="steps">
         {steps.map((step, i) => (
           <div key={i} className="step">
@@ -166,48 +184,55 @@ function HowItWorks() {
         ))}
       </div>
     </section>
-  )
+  );
 }
 
 function Features() {
   const features = [
     {
-      icon: '🔒',
-      title: 'Private or public feedback',
-      desc: 'You choose who sees your feedback. Keep it private for candid responses, or make it public to build social proof.',
+      icon: "⚖️",
+      title: "Balanced credit system",
+      desc: "Give one feedback, earn one credit. Spend a credit to receive feedback. Simple and fair for everyone.",
     },
     {
-      icon: '⚖️',
-      title: 'Balanced credit system',
-      desc: 'Give one feedback, earn one credit. Spend a credit to receive feedback. Simple and fair for everyone.',
+      icon: "🎯",
+      title: "Targeted feedback requests",
+      desc: "Specify what you want feedback on — UX, onboarding, pricing, features. Get answers to your actual questions.",
     },
     {
-      icon: '🎯',
-      title: 'Targeted feedback requests',
-      desc: 'Specify what you want feedback on — UX, onboarding, pricing, features. Get answers to your actual questions.',
+      icon: "✅",
+      title: "Quality ensured feedback",
+      desc: "Credits are only awarded once you approve the feedback you receive. No incentive to spam — reviewers earn only when their feedback is genuinely useful.",
     },
     {
-      icon: '✅',
-      title: 'Quality ensured feedback',
-      desc: 'Credits are only awarded once you approve the feedback you receive. No incentive to spam — reviewers earn only when their feedback is genuinely useful.',
+      icon: "🙋",
+      title: "Get your first users",
+      desc: "Every reviewer who tries your app is a real user. Guaranteed eyes on your product from day one — some of them might stick around and become your first paying customers.",
     },
     {
-      icon: '🌍',
-      title: 'Built for indie developers',
-      desc: 'No enterprise noise. Just solo founders, indie hackers, and small teams building real products.',
+      icon: "🎉",
+      title: "It's completely free!",
+      desc: "No subscriptions, no paywalls, no credit card required. NitPickr is 100% free — just sign up and start getting feedback today.",
     },
     {
-      icon: '⚡',
-      title: 'Fast turnaround',
-      desc: 'Active reviewers mean you can get your first feedback within hours of submitting, not days.',
+      icon: "⚡",
+      title: "Fast turnaround",
+      desc: "Reviewers are given 24 hours to submit their feedback, ensuring quick feedback cycles for faster shipping.",
     },
-  ]
+    // {
+    //   icon: '🌍',
+    //   title: 'Built for indie developers',
+    //   desc: 'No enterprise noise. Just solo founders, indie hackers, and small teams building real products.',
+    // },
+  ];
 
   return (
     <section id="features" className="section section-alt">
       <div className="section-label">Features</div>
       <h2 className="section-title">Everything you need to improve your app</h2>
-      <p className="section-sub">Built by indie developers, for indie developers.</p>
+      <p className="section-sub">
+        Built by indie developers, for indie developers.
+      </p>
       <div className="features-grid">
         {features.map((f, i) => (
           <div key={i} className="feature-card">
@@ -218,27 +243,30 @@ function Features() {
         ))}
       </div>
     </section>
-  )
+  );
 }
 
 function Testimonials() {
   const testimonials = [
     {
-      quote: "Got 6 pieces of feedback in the first day. One of them pointed out a UX issue I'd been blind to for months. Worth every credit.",
+      quote:
+        "Got 6 pieces of feedback in the first day. One of them pointed out a UX issue I'd been blind to for months. Worth every credit.",
       name: "Sarah L.",
       role: "Founder, Notely",
     },
     {
-      quote: "I love that I can keep the feedback private. Some of my early testers were brutally honest — exactly what I needed.",
+      quote:
+        "I love that I can keep the feedback private. Some of my early testers were brutally honest — exactly what I needed.",
       name: "James T.",
       role: "Indie developer",
     },
     {
-      quote: "The credit system is genius. You're forced to actually engage with other people's work, which makes you a better builder too.",
+      quote:
+        "The credit system is genius. You're forced to actually engage with other people's work, which makes you a better builder too.",
       name: "Priya M.",
       role: "Solo founder",
     },
-  ]
+  ];
 
   return (
     <section className="section">
@@ -259,24 +287,40 @@ function Testimonials() {
         ))}
       </div>
     </section>
-  )
+  );
 }
 
 function CTA({ onGetStarted }) {
   const stages = [
-    { icon: '💡', label: 'Just an idea', desc: "Validate your concept before writing a single line of code." },
-    { icon: '🔧', label: 'Early prototype', desc: "Get a gut-check on your UX before you build the wrong thing." },
-    { icon: '🚀', label: 'Beta / pre-launch', desc: "Iron out the rough edges before you go public." },
-    { icon: '📈', label: 'Already live', desc: "Keep improving with ongoing feedback from fresh eyes." },
-  ]
+    // { icon: '💡', label: 'Just an idea', desc: "Validate your concept before writing a single line of code." },
+    {
+      icon: "🔧",
+      label: "Early prototype",
+      desc: "Get a gut-check on your UX before you build the wrong thing.",
+    },
+    {
+      icon: "🚀",
+      label: "Beta / pre-launch",
+      desc: "Iron out the rough edges before you go public.",
+    },
+    {
+      icon: "📈",
+      label: "Already live",
+      desc: "Keep improving with ongoing feedback from fresh eyes.",
+    },
+  ];
 
   return (
     <section className="cta-section">
       <div className="cta-inner">
         <div className="cta-badge">Completely free — no credit card needed</div>
         <h2>Ready to stop guessing?</h2>
-        <p>Submit your app at whatever stage it's at. You don't need a finished product — you just need a willingness to give and receive honest feedback.</p>
-        <div className="cta-stages">
+        <p>
+          Submit your app at whatever stage it's at. You don't need a finished
+          product — you just need a willingness to give and receive honest
+          feedback.
+        </p>
+        {/* <div className="cta-stages">
           {stages.map((s, i) => (
             <div key={i} className="cta-stage-card">
               <span className="cta-stage-icon">{s.icon}</span>
@@ -285,11 +329,24 @@ function CTA({ onGetStarted }) {
             </div>
           ))}
         </div>
-        <button onClick={onGetStarted} className="btn btn-primary btn-lg">Submit your app — it's free</button>
+         */}
+        <div className="features-grid">
+          {stages.map((f, i) => (
+            <div key={i} className="feature-card">
+              <div className="feature-icon">{f.icon}</div>
+              <span className="cta-stage-label">{f.label}</span>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+        <button onClick={onGetStarted} className="btn btn-primary btn-lg">
+          Submit your app — it's free
+        </button>
         <p className="cta-note">No credit card. No paid plans. No catch.</p>
       </div>
     </section>
-  )
+  );
 }
 
 function Footer() {
@@ -327,5 +384,5 @@ function Footer() {
         <p>© 2026 NitPickr. Made with ♥ for indie developers.</p>
       </div>
     </footer>
-  )
+  );
 }
