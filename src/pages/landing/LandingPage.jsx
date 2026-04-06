@@ -330,7 +330,7 @@ function CTA({ onGetStarted }) {
           ))}
         </div>
          */}
-        <div className="features-grid">
+        <div className="cta-stages">
           {stages.map((f, i) => (
             <div key={i} className="feature-card">
               <div className="feature-icon">{f.icon}</div>
