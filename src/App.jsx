@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import LandingPage from './pages/landing/LandingPage'
 import LoginPage from './pages/login/LoginPage'
 import SignUpPage from './pages/login/SignUpPage'
+import ForgotPasswordPage from './pages/login/ForgotPasswordPage'
+import ResetPasswordPage from './pages/login/ResetPasswordPage'
 import Dashboard from './pages/dashboard/Dashboard'
 import ExplorePage from './pages/dashboard/ExplorePage'
 import MyAppsPage from './pages/dashboard/MyAppsPage'
@@ -52,6 +54,8 @@ function App() {
         <Route path="/" element={<PublicOnly><LandingPage /></PublicOnly>} />
         <Route path="/login" element={<PublicOnly><LoginPage onSuccess={handleLoginSuccess} /></PublicOnly>} />
         <Route path="/signup" element={<PublicOnly><SignUpPage onSuccess={handleLoginSuccess} /></PublicOnly>} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route element={<Protected />}>
           <Route element={<Dashboard user={user} onLogout={handleLogout} />}>

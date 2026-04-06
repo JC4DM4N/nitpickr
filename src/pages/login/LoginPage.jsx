@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import './LoginPage.css'
 
 export default function LoginPage({ onSuccess }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const successMessage = location.state?.message
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -75,6 +77,7 @@ export default function LoginPage({ onSuccess }) {
             />
           </div>
 
+          {successMessage && <p className="login-error" style={{ color: '#16a34a', background: '#f0fdf4', borderColor: '#bbf7d0' }}>{successMessage}</p>}
           {error && <p className="login-error">{error}</p>}
 
           <button type="submit" className="login-submit" disabled={loading}>
@@ -82,6 +85,9 @@ export default function LoginPage({ onSuccess }) {
           </button>
         </form>
 
+        <p className="login-switch">
+          <button className="login-switch-btn" onClick={() => navigate('/forgot-password')}>Forgot password?</button>
+        </p>
         <p className="login-switch">
           Don't have an account?{' '}
           <button className="login-switch-btn" onClick={() => navigate('/signup')}>Sign up</button>
