@@ -454,6 +454,14 @@
   margin: 0;
 }
 
+.modal-description {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
 .modal-request {
   width: 100%;
   min-height: 120px;

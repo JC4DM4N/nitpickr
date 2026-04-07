@@ -174,10 +174,18 @@ export default function MyAppDetailPage() {
               />
             </div>
           ) : (
-            <FeedbackRequestSection
-              value={app.request}
-              originalValue={app.request}
-            />
+            <>
+              {app.description && (
+                <section className="review-section">
+                  <p className="review-section-label">About</p>
+                  <p className="app-description-text">{app.description}</p>
+                </section>
+              )}
+              <FeedbackRequestSection
+                value={app.request}
+                originalValue={app.request}
+              />
+            </>
           )}
 
           <section className="review-section">

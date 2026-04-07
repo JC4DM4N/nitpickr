@@ -238,3 +238,11 @@
   overflow: hidden;
   font-family: var(--mono);
 }
+
+.app-description-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
