@@ -7,7 +7,7 @@ export default function CreditsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch('http://localhost:8000/users/me/credits', {
+    fetch('/users/me/credits', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then(r => r.json())

@@ -21,7 +21,7 @@ export default function ReviewAppPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch(`http://localhost:8000/reviews/${reviewId}`, {
+    fetch(`/reviews/${reviewId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
@@ -39,7 +39,7 @@ export default function ReviewAppPage() {
     setError(null)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:8000/reviews/${reviewId}`, {
+      const res = await fetch(`/reviews/${reviewId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export default function ReviewAppPage() {
     if (!window.confirm('Delete this review? This cannot be undone.')) return
     try {
       const token = localStorage.getItem('token')
-      await fetch(`http://localhost:8000/reviews/${reviewId}`, {
+      await fetch(`/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       })
@@ -85,7 +85,7 @@ export default function ReviewAppPage() {
       for (const file of files) {
         const form = new FormData()
         form.append('file', file)
-        const res = await fetch(`http://localhost:8000/reviews/${reviewId}/screenshots`, {
+        const res = await fetch(`/reviews/${reviewId}/screenshots`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: form,

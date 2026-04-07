@@ -24,10 +24,10 @@ export default function MyAppDetailPage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     Promise.all([
-      fetch(`http://localhost:8000/apps/${appId}`, {
+      fetch(`/apps/${appId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       }).then(r => r.json()),
-      fetch(`http://localhost:8000/apps/${appId}/reviews`, {
+      fetch(`/apps/${appId}/reviews`, {
         headers: { 'Authorization': `Bearer ${token}` },
       }).then(r => r.json()),
     ])
@@ -64,7 +64,7 @@ export default function MyAppDetailPage() {
     setSaveError(null)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:8000/apps/${appId}`, {
+      const res = await fetch(`/apps/${appId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(editFields),

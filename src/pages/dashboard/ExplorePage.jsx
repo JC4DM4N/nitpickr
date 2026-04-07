@@ -23,8 +23,8 @@ export default function ExplorePage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     Promise.all([
-      fetch('http://localhost:8000/apps/').then(r => r.json()),
-      fetch('http://localhost:8000/reviews/me', {
+      fetch('/apps/').then(r => r.json()),
+      fetch('/reviews/me', {
         headers: { 'Authorization': `Bearer ${token}` },
       }).then(r => r.json()),
     ])
@@ -171,7 +171,7 @@ function ReviewModal({ app, onClose, onReviewCreated }) {
     setError(null)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:8000/reviews/', {
+      const res = await fetch('/reviews/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

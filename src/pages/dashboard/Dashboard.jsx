@@ -9,7 +9,7 @@ export default function Dashboard({ user, onLogout }) {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch('http://localhost:8000/notifications/me', {
+    fetch('/notifications/me', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then(r => r.json())

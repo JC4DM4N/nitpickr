@@ -11,7 +11,7 @@ export default function MyAppsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8000/apps/mine", {
+    fetch("/apps/mine", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())

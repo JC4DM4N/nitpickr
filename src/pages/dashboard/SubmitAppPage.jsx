@@ -37,7 +37,7 @@ export default function SubmitAppPage() {
     setError(null)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:8000/apps/', {
+      const res = await fetch('/apps/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(fields),

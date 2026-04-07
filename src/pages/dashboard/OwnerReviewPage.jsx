@@ -22,7 +22,7 @@ export default function OwnerReviewPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch(`http://localhost:8000/apps/${appId}/reviews/${reviewId}`, {
+    fetch(`/apps/${appId}/reviews/${reviewId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -32,7 +32,7 @@ export default function OwnerReviewPage() {
 
   async function handleAction(action, message) {
     const token = localStorage.getItem('token')
-    const res = await fetch(`http://localhost:8000/apps/${appId}/reviews/${reviewId}/${action}`, {
+    const res = await fetch(`/apps/${appId}/reviews/${reviewId}/${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ message }),

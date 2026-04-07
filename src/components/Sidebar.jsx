@@ -33,7 +33,7 @@ export default function Sidebar({ user, onLogout, unreadCount }) {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch('http://localhost:8000/users/me/credits', {
+    fetch('/users/me/credits', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then(r => r.json())

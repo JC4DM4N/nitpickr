@@ -12,7 +12,7 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch('http://localhost:8000/reviews/me', {
+    fetch('/reviews/me', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then(r => r.json())

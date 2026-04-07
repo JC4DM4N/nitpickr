@@ -25,7 +25,7 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch('http://localhost:8000/notifications/me', {
+    fetch('/notifications/me', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -36,7 +36,7 @@ export default function NotificationsPage() {
   async function handleClick(n) {
     if (!n.is_read) {
       const token = localStorage.getItem('token')
-      fetch(`http://localhost:8000/notifications/${n.id}/read`, {
+      fetch(`/notifications/${n.id}/read`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
       }).catch(() => {})
