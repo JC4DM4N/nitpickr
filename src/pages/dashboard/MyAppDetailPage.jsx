@@ -159,18 +159,7 @@ export default function MyAppDetailPage() {
             </>
           ) : (
             <>
-              {deleteError && <p className="edit-form-error">{deleteError}</p>}
-              {confirmDelete ? (
-                <>
-                  <span className="delete-confirm-label">Are you sure? This cannot be undone.</span>
-                  <button className="delete-cancel-btn" onClick={() => setConfirmDelete(false)}>Cancel</button>
-                  <button className="delete-confirm-btn" onClick={handleDelete} disabled={deleting}>
-                    {deleting ? 'Deleting…' : 'Yes, delete'}
-                  </button>
-                </>
-              ) : (
-                <button className="header-action-btn delete-app-btn" onClick={() => setConfirmDelete(true)}>Delete app</button>
-              )}
+              <button className="header-action-btn delete-app-btn" onClick={() => setConfirmDelete(true)}>Delete app</button>
               <button className="header-action-btn app-visibility-btn" onClick={handleToggleHidden} disabled={toggling}>
                 {app.is_hidden ? 'Show in feed' : 'Hide from feed'}
               </button>
@@ -258,6 +247,21 @@ export default function MyAppDetailPage() {
           </section>
         </div>
       </div>
+      {confirmDelete && (
+        <div className="delete-modal-overlay" onClick={() => setConfirmDelete(false)}>
+          <div className="delete-modal" onClick={e => e.stopPropagation()}>
+            <p className="delete-modal-title">Delete app?</p>
+            <p className="delete-modal-body">This cannot be undone.</p>
+            {deleteError && <p className="edit-form-error">{deleteError}</p>}
+            <div className="delete-modal-actions">
+              <button className="delete-cancel-btn" onClick={() => setConfirmDelete(false)}>Cancel</button>
+              <button className="delete-confirm-btn" onClick={handleDelete} disabled={deleting}>
+                {deleting ? 'Deleting…' : 'Yes, delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

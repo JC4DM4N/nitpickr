@@ -269,6 +269,48 @@
   cursor: not-allowed;
 }
 
+/* ── Delete modal ── */
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.delete-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+}
+
+.delete-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f0e0b;
+  margin: 0;
+}
+
+.delete-modal-body {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 8px;
+}
+
+.delete-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 /* ── Danger zone ── */
 .app-danger-zone {
   border-top: 1px solid #f3f3f0;
