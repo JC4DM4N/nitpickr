@@ -396,6 +396,7 @@
   }
 
   .header-actions {
+    flex-basis: 100%;
     align-items: stretch;
   }
 
