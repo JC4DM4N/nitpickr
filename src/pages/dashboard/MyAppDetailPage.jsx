@@ -169,12 +169,12 @@ export default function MyAppDetailPage() {
                   </button>
                 </>
               ) : (
-                <button className="delete-app-btn" onClick={() => setConfirmDelete(true)}>Delete app</button>
+                <button className="header-action-btn delete-app-btn" onClick={() => setConfirmDelete(true)}>Delete app</button>
               )}
-              <button className="app-visibility-btn" onClick={handleToggleHidden} disabled={toggling}>
+              <button className="header-action-btn app-visibility-btn" onClick={handleToggleHidden} disabled={toggling}>
                 {app.is_hidden ? 'Show in feed' : 'Hide from feed'}
               </button>
-              <button className="edit-app-btn" onClick={handleEdit}>Edit</button>
+              <button className="header-action-btn edit-app-btn" onClick={handleEdit}>Edit</button>
             </>
           )
         }

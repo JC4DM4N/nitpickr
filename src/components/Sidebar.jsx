@@ -26,7 +26,7 @@ const NAV = [
   { path: '/credits',       label: 'Credits',       Icon: IconCredits },
 ]
 
-export default function Sidebar({ user, onLogout, unreadCount }) {
+export default function Sidebar({ user, onLogout, unreadCount, isOpen, onClose }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [credits, setCredits] = useState(null)
@@ -42,7 +42,9 @@ export default function Sidebar({ user, onLogout, unreadCount }) {
   }, [location.pathname])
 
   return (
-    <aside className="sidebar">
+    <>
+      {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
+      <aside className={`sidebar${isOpen ? ' sidebar--open' : ''}`}>
       <div className="sidebar-top">
         <div className="sidebar-logo">
           <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
@@ -85,5 +87,6 @@ export default function Sidebar({ user, onLogout, unreadCount }) {
         <button className="sidebar-logout" onClick={onLogout}>Log out</button>
       </div>
     </aside>
+    </>
   )
 }

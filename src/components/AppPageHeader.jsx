@@ -20,7 +20,7 @@ export function AppPageHeader({ backLabel, onBack, color, initials, name, stage,
             href={url.startsWith('http') ? url : `https://${url}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="visit-app-btn"
+            className="header-action-btn visit-app-btn"
           >
             Visit app ↗
           </button>

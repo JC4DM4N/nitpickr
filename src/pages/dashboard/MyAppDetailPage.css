@@ -102,20 +102,24 @@
   flex-shrink: 0;
 }
 
-.edit-app-btn {
+.header-action-btn {
   padding: 12px 18px;
-  background: transparent;
-  color: #0f0e0b;
-  border: 1.5px solid #d1cfc8;
   border-radius: 9px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--mono);
-  transition: border-color 0.12s, background 0.12s;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
+  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+  text-decoration: none;
+}
+
+.edit-app-btn {
+  background: transparent;
+  color: #0f0e0b;
+  border: 1.5px solid #d1cfc8;
 }
 
 .edit-app-btn:hover {
@@ -251,19 +255,9 @@
 
 /* ── Visibility toggle ── */
 .app-visibility-btn {
-  padding: 12px 18px;
   background: transparent;
   color: #0f0e0b;
   border: 1.5px solid #d1cfc8;
-  border-radius: 9px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--mono);
-  transition: border-color 0.12s, color 0.12s;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
 }
 
 .app-visibility-btn:hover:not(:disabled) {
@@ -285,19 +279,9 @@
 }
 
 .delete-app-btn {
-  padding: 12px 18px;
   background: transparent;
   color: #dc2626;
   border: 1.5px solid #fca5a5;
-  border-radius: 9px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--mono);
-  transition: background 0.12s, border-color 0.12s;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
 }
 
 .delete-app-btn:hover {
@@ -355,4 +339,26 @@
 .delete-confirm-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .edit-field-row {
+    flex-direction: column;
+  }
+
+  .delete-cancel-btn,
+  .delete-confirm-btn {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .header-actions {
+    align-items: stretch;
+  }
+
+  .header-action-btn {
+    font-size: 10px;
+    padding: 6px;
+  }
 }
