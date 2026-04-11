@@ -184,25 +184,6 @@ export default function ReviewAppPage() {
           </section>
 
           {error && <p className="review-app-error">{error}</p>}
-
-          <div className="review-app-actions">
-            {!detail.is_complete && (
-              <button className="review-delete-btn" onClick={handleDelete}>
-                Delete review
-              </button>
-            )}
-            <button
-              className="review-submit-btn"
-              onClick={handleSubmit}
-              disabled={saving || detail.is_complete || detail.is_submitted || detail.is_rejected || !feedback.trim()}
-            >
-              {saving ? 'Submitting…'
-                : detail.is_complete ? 'Approved'
-                : detail.is_rejected ? 'Rejected'
-                : detail.is_submitted ? 'Awaiting approval'
-                : 'Submit review →'}
-            </button>
-          </div>
         </div>
 
         <aside className="review-app-sidebar">
@@ -252,6 +233,25 @@ export default function ReviewAppPage() {
             )}
           </section>
         </aside>
+
+        <div className="review-app-actions">
+          {!detail.is_complete && (
+            <button className="review-delete-btn" onClick={handleDelete}>
+              Delete review
+            </button>
+          )}
+          <button
+            className="review-submit-btn"
+            onClick={handleSubmit}
+            disabled={saving || detail.is_complete || detail.is_submitted || detail.is_rejected || !feedback.trim()}
+          >
+            {saving ? 'Submitting…'
+              : detail.is_complete ? 'Approved'
+              : detail.is_rejected ? 'Rejected'
+              : detail.is_submitted ? 'Awaiting approval'
+              : 'Submit review →'}
+          </button>
+        </div>
       </div>
     </div>
   )
