@@ -131,8 +131,36 @@
   line-height: 1.6;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .credits-page {
-    padding: 24px;
+    padding: 16px;
+  }
+
+  .credits-page-header {
+    margin-bottom: 20px;
+  }
+
+  .credits-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .credits-stat-card {
+    padding: 14px 16px;
+  }
+
+  .credits-stat-value {
+    font-size: 28px;
+    letter-spacing: -1px;
+    margin: 4px 0 2px;
+  }
+
+  .credits-divider {
+    margin: 16px 0;
+  }
+
+  .credits-explainer {
+    margin-top: 20px;
+    padding: 16px;
   }
 }
