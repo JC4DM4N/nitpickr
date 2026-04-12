@@ -135,14 +135,14 @@ export default function ReviewAppPage() {
             </div>
           </div>
           <div className="header-actions">
-            <button
+            <a
               href={detail.app_url.startsWith('http') ? detail.app_url : `https://${detail.app_url}`}
               target="_blank"
               rel="noopener noreferrer"
               className="header-action-btn visit-app-btn"
             >
               Visit app ↗
-            </button>
+            </a>
           </div>
         </div>
       </div>

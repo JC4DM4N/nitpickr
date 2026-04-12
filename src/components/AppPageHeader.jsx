@@ -16,14 +16,14 @@ export function AppPageHeader({ backLabel, onBack, color, initials, name, stage,
         </div>
         <div className="header-actions">
           {actions}
-          <button
+          <a
             href={url.startsWith('http') ? url : `https://${url}`}
             target="_blank"
             rel="noopener noreferrer"
             className="header-action-btn visit-app-btn"
           >
             Visit app ↗
-          </button>
+          </a>
         </div>
       </div>
     </div>
