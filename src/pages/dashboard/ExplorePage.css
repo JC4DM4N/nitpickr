@@ -270,35 +270,29 @@
 
   .app-card-header {
     display: grid;
-    grid-template-columns: 44px 1fr auto;
+    grid-template-columns: 44px 1fr;
     column-gap: 12px;
     row-gap: 8px;
-    align-items: center;
+    align-items: start;
   }
 
   .app-icon {
     grid-column: 1;
-    grid-row: 1 / 3;
-    align-self: start;
-  }
-
-  /* Name spans both col 2 and 3 so it gets full width */
-  .app-name-block {
-    grid-column: 2 / 4;
     grid-row: 1;
   }
 
-  /* Row 2: category on left, visit on right */
-  .app-category-tag {
+  .app-name-block {
     grid-column: 2;
-    grid-row: 2;
-    justify-self: start;
+    grid-row: 1;
+    align-self: center;
   }
 
-  .app-visit-btn {
-    grid-column: 3;
+  /* Meta (category + visit) drops to row 2 under the name */
+  .app-card-meta {
+    grid-column: 2;
     grid-row: 2;
     margin-left: 0;
+    flex-wrap: wrap;
   }
 
   .app-review-btn {
@@ -380,6 +374,14 @@
   font-family: var(--mono);
 }
 
+.app-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .app-category-tag {
   background: #f6f5f1;
   color: #6b7280;
@@ -442,7 +444,6 @@
 }
 
 .app-visit-btn {
-  margin-left: auto;
   padding: 6px 12px;
   background: #0f0e0b;
   color: #fff;

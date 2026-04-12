@@ -189,15 +189,17 @@ function AppCard({ app, onReview }) {
           <div className="app-name">{app.name}</div>
           <div className="app-url">{app.url}</div>
         </div>
-        <span className="app-category-tag">{app.category}</span>
-        <a
-          className="app-visit-btn"
-          href={app.url.startsWith("http") ? app.url : `https://${app.url}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Visit ↗
-        </a>
+        <div className="app-card-meta">
+          <span className="app-category-tag">{app.category}</span>
+          <a
+            className="app-visit-btn"
+            href={app.url.startsWith("http") ? app.url : `https://${app.url}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Visit ↗
+          </a>
+        </div>
       </div>
       <p className="app-desc">{app.description}</p>
       <div className="app-card-footer">
