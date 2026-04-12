@@ -434,6 +434,16 @@
   text-align: left;
 }
 
+.step--clickable {
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.step--clickable:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+
 .step-number {
   font-size: 12px;
   font-weight: 700;

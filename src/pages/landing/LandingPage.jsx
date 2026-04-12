@@ -141,7 +141,8 @@ function FeedbackCard({ reviewer, time, text, rating }) {
   );
 }
 
-export function HowItWorks({ white }) {
+export function HowItWorks({ white, links }) {
+  const navigate = useNavigate();
   const steps = [
     {
       number: "01",
@@ -166,22 +167,28 @@ export function HowItWorks({ white }) {
   return (
     <section id="how-it-works" className={`section${white ? '' : ' how-it-works-section'}`}>
       <div className="section-label">How it works</div>
-      {/* <h2 className="section-title">Simple. Fair. Effective.</h2> */}
       <h2 className="section-title">A review-for-review economy.</h2>
       <p className="section-sub">
         A credit-based system that keeps the community balanced — everyone gives
         as much as they receive.
       </p>
       <div className="steps">
-        {steps.map((step, i) => (
-          <div key={i} className="step">
-            <div className="step-number">{step.number}</div>
-            <div className="step-icon">{step.icon}</div>
-            <h3>{step.title}</h3>
-            <p>{step.desc}</p>
-            {i < steps.length - 1 && <div className="step-connector" />}
-          </div>
-        ))}
+        {steps.map((step, i) => {
+          const link = links?.[i];
+          return (
+            <div
+              key={i}
+              className={`step${link ? ' step--clickable' : ''}`}
+              onClick={link ? () => navigate(link) : undefined}
+            >
+              <div className="step-number">{step.number}</div>
+              <div className="step-icon">{step.icon}</div>
+              <h3>{step.title}</h3>
+              <p>{step.desc}</p>
+              {i < steps.length - 1 && <div className="step-connector" />}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
