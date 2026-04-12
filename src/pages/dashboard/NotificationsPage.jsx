@@ -16,6 +16,8 @@ const TYPE_ICONS = {
 // Notifications sent to the app owner — should open the owner review view
 const OWNER_REVIEW_TYPES = new Set(['review_started', 'review_submitted', 'review_resubmitted'])
 
+const DEAD_END_TYPES = new Set(['reviewer_deadline_expired', 'owner_deadline_expired'])
+
 export default function NotificationsPage() {
   const navigate = useNavigate()
   const { onRead } = useOutletContext()
@@ -34,6 +36,7 @@ export default function NotificationsPage() {
   }, [])
 
   async function handleClick(n) {
+    if (DEAD_END_TYPES.has(n.type)) return
     if (!n.is_read) {
       const token = localStorage.getItem('token')
       fetch(`/notifications/${n.id}/read`, {
@@ -70,7 +73,7 @@ export default function NotificationsPage() {
             {notifications.map(n => (
               <div
                 key={n.id}
-                className={`notif-item${n.is_read ? '' : ' notif-item--unread'}${n.review_id || n.app_id ? ' notif-item--clickable' : ''}`}
+                className={`notif-item${n.is_read ? '' : ' notif-item--unread'}${(n.review_id || n.app_id) && !DEAD_END_TYPES.has(n.type) ? ' notif-item--clickable' : ''}`}
                 onClick={() => (n.review_id || n.app_id) && handleClick(n)}
               >
                 <span className="notif-icon">{TYPE_ICONS[n.type] ?? '🔔'}</span>
