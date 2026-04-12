@@ -19,7 +19,7 @@ export default function LandingPage() {
   );
 }
 
-function Nav({ onLogin, onSignUp }) {
+export function Nav({ onLogin, onSignUp }) {
   return (
     <nav className="nav">
       <div className="nav-inner">
@@ -27,7 +27,7 @@ function Nav({ onLogin, onSignUp }) {
           <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
         </a>
         <div className="nav-links">
-          <a href="#how-it-works">How it works</a>
+          <a href="/how-it-works">How it works</a>
           <a href="#features">Features</a>
         </div>
         <div className="nav-actions">
@@ -65,7 +65,7 @@ function Hero({ onGetStarted }) {
         <button onClick={onGetStarted} className="btn btn-primary btn-lg">
           Submit your app - it's free!
         </button>
-        <a href="#how-it-works" className="btn btn-outline btn-lg">
+        <a href="/how-it-works" className="btn btn-outline btn-lg">
           See how it works
         </a>
       </div>
@@ -141,7 +141,7 @@ function FeedbackCard({ reviewer, time, text, rating }) {
   );
 }
 
-function HowItWorks() {
+export function HowItWorks({ white }) {
   const steps = [
     {
       number: "01",
@@ -153,18 +153,18 @@ function HowItWorks() {
       number: "02",
       icon: "💬",
       title: "Give feedback to others",
-      desc: "Browse apps from other indie developers and leave honest, constructive feedback. Each feedback earns you a credit.",
+      desc: "Browse apps from other indie developers and leave honest, constructive feedback. Each feedback earns you a credit once approved by the app owner.",
     },
     {
       number: "03",
       icon: "📬",
       title: "Receive feedback",
-      desc: "Spend your credits to get feedback on your own app. Credits are only spent once you approve the reviewers feedback.",
+      desc: "Spend your credits when getting feedback on your own app. Credits are only spent once you approve the reviewers feedback.",
     },
   ];
 
   return (
-    <section id="how-it-works" className="section how-it-works-section">
+    <section id="how-it-works" className={`section${white ? '' : ' how-it-works-section'}`}>
       <div className="section-label">How it works</div>
       {/* <h2 className="section-title">Simple. Fair. Effective.</h2> */}
       <h2 className="section-title">A review-for-review economy.</h2>
@@ -349,7 +349,7 @@ function CTA({ onGetStarted }) {
   );
 }
 
-function Footer() {
+export function Footer() {
   return (
     <footer className="footer">
       <div className="footer-inner">

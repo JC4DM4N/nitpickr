@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import LandingPage from './pages/landing/LandingPage'
+import HowItWorksPage from './pages/landing/HowItWorksPage'
+import DashboardHowItWorksPage from './pages/dashboard/HowItWorksPage'
 import LoginPage from './pages/login/LoginPage'
 import SignUpPage from './pages/login/SignUpPage'
 import ForgotPasswordPage from './pages/login/ForgotPasswordPage'
@@ -73,6 +75,7 @@ function App() {
             <Route path="/reviews/:reviewId"                       element={<ReviewAppPage />} />
             <Route path="/credits"       element={<CreditsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/how-it-works"  element={<DashboardHowItWorksPage />} />
             <Route path="*"              element={<Navigate to="/explore" replace />} />
           </Route>
         </Route>
