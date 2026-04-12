@@ -63,7 +63,7 @@ function Hero({ onGetStarted }) {
       </p>
       <div className="hero-actions">
         <button onClick={onGetStarted} className="btn btn-primary btn-lg">
-          Submit your app
+          Submit your app - it's free
         </button>
         <a href="#how-it-works" className="btn btn-outline btn-lg">
           See how it works
@@ -341,7 +341,7 @@ function CTA({ onGetStarted }) {
           ))}
         </div>
         <button onClick={onGetStarted} className="btn btn-primary btn-lg">
-          Submit your app — it's free
+          Submit your app - it's free
         </button>
         <p className="cta-note">No credit card. No paid plans. No catch.</p>
       </div>
