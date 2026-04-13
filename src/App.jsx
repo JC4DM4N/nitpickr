@@ -56,6 +56,13 @@ function App() {
     return user ? <Outlet /> : <Navigate to="/login" replace />
   }
 
+  // Shows Dashboard shell when logged in, bare content when not
+  function ConditionalDashboard() {
+    return user
+      ? <Dashboard user={user} onLogout={handleLogout} />
+      : <Outlet />
+  }
+
   return (
     <BrowserRouter>
       <Routes>
@@ -64,7 +71,10 @@ function App() {
         <Route path="/signup" element={<PublicOnly><SignUpPage onSuccess={handleLoginSuccess} /></PublicOnly>} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/:username" element={<UserProfilePage />} />
+
+        <Route element={<ConditionalDashboard />}>
+          <Route path="/:username" element={<UserProfilePage />} />
+        </Route>
 
         <Route element={<Protected />}>
           <Route element={<Dashboard user={user} onLogout={handleLogout} />}>

@@ -38,9 +38,12 @@
   flex-shrink: 0;
 }
 
-/* non-own profile: keep avatar centred */
-.explore-hero:not(.profile-hero--own) .profile-avatar {
-  margin: 0 auto 16px;
+/* non-own profile: stack avatar + title centered */
+.explore-hero:not(.profile-hero--own) .profile-hero-identity {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 100%;
 }
 
 .profile-no-credits-banner {
@@ -205,33 +208,6 @@
   }
 }
 
-.profile-topbar {
-  padding: 12px 48px;
-  background: #fff;
-  border-bottom: 1px solid #e8e6e0;
-}
-
-.profile-back-btn {
-  background: none;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 0;
-  font-family: var(--mono);
-  transition: color 0.12s;
-}
-
-.profile-back-btn:hover {
-  color: #0f0e0b;
-}
-
-@media (max-width: 640px) {
-  .profile-topbar {
-    padding: 10px 16px;
-  }
-}
 
 .profile-error-state {
   display: flex;

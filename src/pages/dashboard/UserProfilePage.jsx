@@ -102,13 +102,6 @@ export default function UserProfilePage() {
         />
       )}
       <div className="explore">
-        {isLoggedIn && (
-          <div className="profile-topbar">
-            <button className="profile-back-btn" onClick={() => navigate(-1)}>
-              ← Back
-            </button>
-          </div>
-        )}
         <div className={`explore-hero profile-hero${isOwnProfile ? ' profile-hero--own' : ''}`}>
           <div className="profile-hero-identity">
             <div className="profile-avatar">
