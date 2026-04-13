@@ -187,53 +187,58 @@ export default function ReviewAppPage() {
           {error && <p className="review-app-error">{error}</p>}
         </div>
 
-        <aside className="review-app-sidebar">
-          <section className="review-section">
-            <p className="review-section-label">SCREENSHOTS</p>
-            <p className="review-screenshots-hint">
-              Attach screenshots to illustrate your feedback.
-            </p>
+        {(!detail.is_complete || screenshots.length > 0) && (
+          <aside className="review-app-sidebar">
+            <section className="review-section">
+              <p className="review-section-label">SCREENSHOTS</p>
 
-            {screenshots.length > 0 && (
-              <div className="screenshots-grid">
-                {screenshots.map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt={`Screenshot ${i + 1}`}
-                    className="screenshot-thumb screenshot-thumb--clickable"
-                    onClick={() => setExpandedImg(url)}
-                  />
-                ))}
-              </div>
-            )}
+              {!detail.is_complete && (
+                <p className="review-screenshots-hint">
+                  Attach screenshots to illustrate your feedback.
+                </p>
+              )}
 
-            {!detail.is_complete && (
-              <>
-                <div
-                  className={`upload-zone${uploading ? ' uploading' : ''}`}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {uploading ? 'Uploading…' : (
-                    <>
-                      <span className="upload-zone-icon">📎</span>
-                      <span>Click to upload</span>
-                      <span className="upload-zone-sub">PNG, JPG, GIF up to 10MB</span>
-                    </>
-                  )}
+              {screenshots.length > 0 && (
+                <div className="screenshots-grid">
+                  {screenshots.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt={`Screenshot ${i + 1}`}
+                      className="screenshot-thumb screenshot-thumb--clickable"
+                      onClick={() => setExpandedImg(url)}
+                    />
+                  ))}
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                />
-              </>
-            )}
-          </section>
-        </aside>
+              )}
+
+              {!detail.is_complete && (
+                <>
+                  <div
+                    className={`upload-zone${uploading ? ' uploading' : ''}`}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? 'Uploading…' : (
+                      <>
+                        <span className="upload-zone-icon">📎</span>
+                        <span>Click to upload</span>
+                        <span className="upload-zone-sub">PNG, JPG, GIF up to 10MB</span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                  />
+                </>
+              )}
+            </section>
+          </aside>
+        )}
 
         <div className="review-app-actions">
           {!detail.is_complete && (
