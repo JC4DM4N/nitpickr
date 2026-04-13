@@ -34,6 +34,7 @@ export default function ExplorePage() {
   const [stage, setStage] = useState("All");
   const [category, setCategory] = useState("All");
   const [reviewApp, setReviewApp] = useState(null);
+  const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -42,8 +43,12 @@ export default function ExplorePage() {
       authFetch("/reviews/me", {
         headers: { Authorization: `Bearer ${token}` },
       }).then((r) => r.json()),
+      authFetch("/users/me/credits", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
     ])
-      .then(([allApps, myReviews]) => {
+      .then(([allApps, myReviews, creditsData]) => {
+        if (creditsData.available === 0) setShowNoCreditsModal(true);
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const activeReviewedIds = new Set(
           myReviews
@@ -78,6 +83,28 @@ export default function ExplorePage() {
 
   return (
     <>
+      {showNoCreditsModal && (
+        <div className="modal-overlay" onClick={() => setShowNoCreditsModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
+              <div className="modal-title" style={{ fontSize: 17, fontWeight: 700, color: "#0f0e0b" }}>
+                You have no credits available
+              </div>
+              <p className="modal-description" style={{ margin: 0 }}>
+                Other users will not be able to review your apps currently. Review someone else's app to earn a credit.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button className="modal-btn-cancel" onClick={() => setShowNoCreditsModal(false)}>
+                Dismiss
+              </button>
+              <button className="modal-btn-start" onClick={() => { setShowNoCreditsModal(false); navigate("/how-it-works"); }}>
+                How it works →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {reviewApp && (
         <ReviewModal
           app={reviewApp}
