@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
 import './SubmitAppPage.css'
+import './ExplorePage.css'
 import { STAGE_STYLES, CATEGORIES, STAGES, PALETTE } from '../../constants'
 import { authFetch } from '../../utils/authFetch'
 
@@ -19,6 +20,7 @@ export default function SubmitAppPage() {
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [submittedAppId, setSubmittedAppId] = useState(null)
 
   function set(key) {
     return e => setFields(prev => ({ ...prev, [key]: e.target.value }))
@@ -48,12 +50,39 @@ export default function SubmitAppPage() {
         setError(data.detail || 'Failed to submit app')
         return
       }
-      navigate(`/my-apps/${data.id}`)
+      setSubmittedAppId(data.id)
     } catch {
       setError('Could not connect to server')
     } finally {
       setSaving(false)
     }
+  }
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  if (submittedAppId) {
+    return (
+      <div className="modal-overlay">
+        <div className="modal-card">
+          <div className="modal-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            <div className="modal-title" style={{ fontSize: 18, fontWeight: 700, color: '#0f0e0b' }}>
+              Share your apps to get feedback faster!
+            </div>
+            <p className="modal-description" style={{ margin: 0 }}>
+              Go to your share page to get your shareable link.
+            </p>
+          </div>
+          <div className="modal-actions">
+            <button className="modal-btn-cancel" onClick={() => navigate(`/my-apps/${submittedAppId}`)}>
+              Close
+            </button>
+            <button className="modal-btn-start" onClick={() => navigate(`/${user.username}`)}>
+              Go →
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
