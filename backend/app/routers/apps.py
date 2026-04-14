@@ -117,10 +117,27 @@ def list_my_apps(
 
 @router.get("/", response_model=List[schemas.AppOut])
 def list_apps(db: Session = Depends(get_db)):
-    all_apps = db.query(models.App).order_by(models.App.id).all()
-    if not all_apps:
+    # Join latest review date per app, sort nulls first then oldest review first
+    latest_review = (
+        db.query(
+            models.Review.app_id,
+            func.max(models.Review.created_date).label("last_reviewed"),
+        )
+        .group_by(models.Review.app_id)
+        .subquery()
+    )
+
+    rows = (
+        db.query(models.App, latest_review.c.last_reviewed)
+        .outerjoin(latest_review, models.App.id == latest_review.c.app_id)
+        .order_by(latest_review.c.last_reviewed.asc().nullsfirst())
+        .all()
+    )
+
+    if not rows:
         return []
 
+    all_apps = [r[0] for r in rows]
     owner_ids = list({a.owner_id for a in all_apps})
     owner_available = {
         u.id: u.credits
