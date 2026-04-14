@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, coalesce
+from sqlalchemy import func
 from typing import List
 
 from .. import models, schemas, loops
@@ -130,7 +130,7 @@ def list_apps(db: Session = Depends(get_db)):
     rows = (
         db.query(models.App, latest_review.c.last_reviewed)
         .outerjoin(latest_review, models.App.id == latest_review.c.app_id)
-        .order_by(coalesce(latest_review.c.last_reviewed, models.App.created_at).asc())
+        .order_by(func.coalesce(latest_review.c.last_reviewed, models.App.created_at).asc())
         .all()
     )
 
