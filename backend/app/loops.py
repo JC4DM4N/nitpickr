@@ -6,6 +6,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 LOOPS_API_KEY = os.getenv("LOOPS_API_KEY", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+ENV = os.getenv("ENV", "development")
 
 _API_URL = "https://app.loops.so/api/v1/transactional"
 
@@ -37,7 +38,10 @@ _NOTIFICATION_TYPE_TO_ID = {
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def send_transactional(email: str, transactional_id: str, data_variables: dict) -> None:
-    """Send a transactional email via Loops. No-ops if LOOPS_API_KEY is not set."""
+    """Send a transactional email via Loops. No-ops in development or if LOOPS_API_KEY is not set."""
+    if ENV != "production":
+        print(f"[loops] ENV={ENV} — skipping email to {email}")
+        return
     if not LOOPS_API_KEY:
         print("[loops] LOOPS_API_KEY is not set — skipping email")
         return
