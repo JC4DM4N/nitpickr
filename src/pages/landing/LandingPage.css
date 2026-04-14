@@ -4,6 +4,14 @@
 .landing {
   width: 100%;
   overflow-x: hidden;
+  font-family: var(--mono);
+}
+
+.landing h1,
+.landing h2,
+.landing h3,
+.landing h4 {
+  font-family: var(--sans);
 }
 
 /* ── Nav ── */
@@ -103,34 +111,36 @@
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: #0f0e0b;
   color: #fff;
+  font-family: var(--mono);
 }
 
 .btn-primary:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
+  opacity: 0.8;
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--text);
+  color: #374151;
+  font-family: var(--mono);
 }
 
 .btn-ghost:hover {
-  color: var(--text-h);
-  background: var(--accent-bg);
+  color: #0f0e0b;
+  background: #f6f5f1;
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--text-h);
-  border: 1.5px solid var(--border);
+  color: #374151;
+  border: 1.5px solid #e8e6e0;
+  font-family: var(--mono);
 }
 
 .btn-outline:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: #0f0e0b;
+  color: #0f0e0b;
 }
 
 /* ── Hero ── */
@@ -148,43 +158,33 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 28px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-family: var(--mono);
+  margin-bottom: 24px;
 }
 
 .badge-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--accent);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+  background: #9ca3af;
 }
 
 .hero-headline {
   font-size: clamp(36px, 6vw, 64px);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -2px;
-  color: var(--text-h);
+  color: #0f0e0b;
   margin: 0 0 20px;
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent);
 }
 
 .hero-sub {
@@ -373,30 +373,31 @@
 }
 
 .section-alt {
-  background: var(--code-bg);
+  background: #fff;
 }
 
 @media (prefers-color-scheme: dark) {
   .section-alt {
-    background: rgba(255,255,255,0.025);
+    background: rgba(255,255,255,0.04);
   }
 }
 
 .section-label {
   display: inline-block;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: #9ca3af;
+  font-family: var(--mono);
   margin-bottom: 12px;
 }
 
 .section-title {
   font-size: clamp(28px, 4vw, 42px);
-  font-weight: 700;
-  letter-spacing: -1px;
-  color: var(--text-h);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  color: #0f0e0b;
   margin: 0 0 12px;
 }
 
@@ -408,7 +409,7 @@
 }
 
 .how-it-works-section {
-  background: linear-gradient(135deg, var(--accent-bg) 0%, transparent 60%);
+  background: #f6f5f1;
 }
 
 /* ── Steps ── */
@@ -445,16 +446,16 @@
 }
 
 .step-number {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--accent);
+  letter-spacing: 0.1em;
+  color: #9ca3af;
+  font-family: var(--mono);
   margin-bottom: 12px;
 }
 
 .step-icon {
-  font-size: 28px;
-  margin-bottom: 12px;
+  display: none;
 }
 
 .step h3 {
@@ -502,8 +503,7 @@
 }
 
 .feature-icon {
-  font-size: 28px;
-  margin-bottom: 12px;
+  display: none;
 }
 
 .feature-card h3 {
@@ -583,9 +583,9 @@
 /* ── CTA ── */
 .cta-section {
   padding: 100px 24px;
-  background: linear-gradient(135deg, var(--accent-bg) 0%, transparent 60%);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  background: #f6f5f1;
+  border-top: 1px solid #e8e6e0;
+  border-bottom: 1px solid #e8e6e0;
 }
 
 .cta-inner {
@@ -600,21 +600,20 @@
 .cta-badge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 16px;
-  border-radius: 999px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-family: var(--mono);
   margin-bottom: 24px;
 }
 
 .cta-inner h2 {
   font-size: clamp(32px, 5vw, 52px);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -2px;
-  color: var(--text-h);
+  color: #0f0e0b;
   margin: 0 0 16px;
   line-height: 1.1;
 }

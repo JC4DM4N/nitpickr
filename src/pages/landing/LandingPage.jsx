@@ -48,24 +48,24 @@ function Hero({ onGetStarted }) {
     <section className="hero">
       <div className="hero-badge">
         <span className="badge-dot"></span>
-        Completely free beta testing for your app
+        Completely free testing and user feedback for your app
       </div>
       <h1 className="hero-headline">
         Real feedback from
         <br />
-        <span className="gradient-text">real indie developers</span>
+        <span className="gradient-text">real developers</span>
       </h1>
       <p className="hero-sub">
         Post your app. Give feedback on others. Get honest, actionable feedback
         in return.
-        <br />A community where indie developers help each other ship better
+        <br />A community where developers help each other ship better
         products.
       </p>
       <div className="hero-actions">
         <button onClick={onGetStarted} className="btn btn-primary btn-lg">
           Submit your app - it's free!
         </button>
-        <a href="/how-it-works" className="btn btn-outline btn-lg">
+        <a href="#how-it-works" className="btn btn-outline btn-lg">
           See how it works
         </a>
       </div>
@@ -154,7 +154,7 @@ export function HowItWorks({ white, links }) {
       number: "02",
       icon: "💬",
       title: "Give feedback to others",
-      desc: "Browse apps from other indie developers and leave honest, constructive feedback. Each feedback earns you a credit once approved by the app owner.",
+      desc: "Browse apps from other developers and leave honest, constructive feedback. Each feedback earns you a credit once approved by the app owner.",
     },
     {
       number: "03",
@@ -197,11 +197,6 @@ export function HowItWorks({ white, links }) {
 function Features() {
   const features = [
     {
-      icon: "⚖️",
-      title: "Balanced credit system",
-      desc: "Give one feedback, earn one credit. Spend a credit to receive feedback. Simple and fair for everyone.",
-    },
-    {
       icon: "🎯",
       title: "Targeted feedback requests",
       desc: "Specify what you want feedback on — UX, onboarding, pricing, features. Get answers to your actual questions.",
@@ -212,6 +207,16 @@ function Features() {
       desc: "Credits are only awarded once you approve the feedback you receive. No incentive to spam — reviewers earn only when their feedback is genuinely useful.",
     },
     {
+      icon: "⚡",
+      title: "Fast turnaround",
+      desc: "Reviewers are given 24 hours to submit their feedback, ensuring quick feedback cycles for faster shipping.",
+    },
+    {
+      icon: "⚖️",
+      title: "Balanced credit system",
+      desc: "Give one feedback, earn one credit. Spend a credit to receive feedback. Simple and fair for everyone.",
+    },
+    {
       icon: "🙋",
       title: "Get your first users",
       desc: "Every reviewer who tries your app is a real user. Guaranteed eyes on your product from day one — some of them might stick around and become your first paying customers.",
@@ -220,11 +225,6 @@ function Features() {
       icon: "🎉",
       title: "It's completely free!",
       desc: "No subscriptions, no paywalls, no credit card required. NitPickr is 100% free — just sign up and start getting feedback today.",
-    },
-    {
-      icon: "⚡",
-      title: "Fast turnaround",
-      desc: "Reviewers are given 24 hours to submit their feedback, ensuring quick feedback cycles for faster shipping.",
     },
     // {
     //   icon: '🌍',
@@ -238,7 +238,7 @@ function Features() {
       <div className="section-label">Features</div>
       <h2 className="section-title">Everything you need to improve your app</h2>
       <p className="section-sub">
-        Built by indie developers, for indie developers.
+        Built by developers, for developers.
       </p>
       <div className="features-grid">
         {features.map((f, i) => (
@@ -364,31 +364,23 @@ export function Footer() {
           <a href="/" className="logo">
             <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
           </a>
-          <p>Real feedback from real indie developers.</p>
+          <p>Real feedback from real developers.</p>
         </div>
         <div className="footer-links">
           <div className="footer-col">
             <h4>Product</h4>
-            <a href="#">How it works</a>
-            <a href="#">Features</a>
-            <a href="#">Pricing</a>
+            <a href="/how-it-works">How it works</a>
+            <a href="#features">Features</a>
           </div>
           <div className="footer-col">
-            <h4>Community</h4>
-            <a href="#">Browse apps</a>
-            <a href="#">Leaderboard</a>
-            <a href="#">Blog</a>
-          </div>
-          <div className="footer-col">
-            <h4>Company</h4>
-            <a href="#">About</a>
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
+            <h4>Account</h4>
+            <a href="/login">Log in</a>
+            <a href="/signup">Sign up</a>
           </div>
         </div>
       </div>
       <div className="footer-bottom">
-        <p>© 2026 NitPickr. Made with ♥ for indie developers.</p>
+        <p>© 2026 NitPickr.</p>
       </div>
     </footer>
   );
