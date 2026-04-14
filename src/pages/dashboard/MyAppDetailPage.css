@@ -383,6 +383,12 @@
   cursor: not-allowed;
 }
 
+@media (max-width: 900px) {
+  .header-actions {
+    flex-basis: 100%;
+  }
+}
+
 @media (max-width: 640px) {
   .edit-field-row {
     flex-direction: column;
