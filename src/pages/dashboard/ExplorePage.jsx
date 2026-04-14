@@ -240,10 +240,10 @@ function AppCard({ app, onReview }) {
           <span className="app-footer-label">CREDITS</span>
           <span className="app-footer-value">{app.credits}</span>
         </div>
-        <div className="app-footer-stat">
+        {/* <div className="app-footer-stat">
           <span className="app-footer-label">FEEDBACK</span>
           <span className="app-footer-value">{app.approved_count}</span>
-        </div>
+        </div> */}
         <button className="app-review-btn" onClick={onReview}>
           Leave feedback →
         </button>
