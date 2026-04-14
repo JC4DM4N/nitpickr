@@ -4,12 +4,57 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/nitpickr_icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>NitPickr</title>
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://nitpickr.dev/twitter-card.png" />
+
+    <title>NitPickr — Real Feedback from Real Developers</title>
+    <meta name="description" content="NitPickr is a free developer feedback platform. Submit your app, give feedback on other developers' projects, and earn credits to receive honest, actionable feedback in return. No subscriptions, no credit card required." />
+    <meta name="keywords" content="developer feedback, indie developer, app feedback, user testing, peer review, indie hacker, startup feedback, UX feedback, beta testing, product feedback" />
+    <link rel="canonical" href="https://nitpickr.dev/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NitPickr" />
+    <meta property="og:url" content="https://nitpickr.dev/" />
+    <meta property="og:title" content="NitPickr — Real Feedback from Real Developers" />
+    <meta property="og:description" content="A free, credit-based feedback community for indie developers. Submit your app, review others, and get honest feedback in return. No paywalls, no subscriptions." />
     <meta property="og:image" content="https://nitpickr.dev/twitter-card.png" />
-    <meta property="og:title" content="Real feedback from real developers" />
-    <meta property="og:description" content="Post your app. Give feedback on others. Get honest, actionable feedback in return." />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NitPickr — Real Feedback from Real Developers" />
+    <meta name="twitter:description" content="A free, credit-based feedback community for indie developers. Submit your app, review others, and get honest feedback in return." />
+    <meta name="twitter:image" content="https://nitpickr.dev/twitter-card.png" />
+
+    <!-- Structured data for Google / AI search -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "NitPickr",
+      "url": "https://nitpickr.dev",
+      "description": "NitPickr is a free, credit-based developer feedback platform where indie developers submit their apps and exchange honest, actionable feedback with each other. Give feedback on other apps to earn credits, then spend those credits to receive feedback on your own project. No subscriptions or credit card required.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Submit your app for peer review",
+        "Credit-based feedback economy — give one feedback, earn one credit",
+        "Targeted feedback requests: UX, onboarding, pricing, features",
+        "Quality-ensured reviews — credits awarded only after you approve the feedback",
+        "24-hour feedback turnaround",
+        "Reach real users from day one",
+        "Completely free — no credit card, no paid plans"
+      ],
+      "audience": {
+        "@type": "Audience",
+        "audienceType": "Indie developers, solo founders, and small teams building web and mobile apps"
+      }
+    }
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-N9H4HKK941"></script>
     <script>
@@ -22,5 +67,32 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Fallback content for crawlers and bots that do not execute JavaScript -->
+    <noscript>
+      <main style="font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px;">
+        <h1>NitPickr — Real Feedback from Real Developers</h1>
+        <p>NitPickr is a <strong>free developer feedback platform</strong> built for indie developers, solo founders, and small teams. Submit your app, give feedback on others, and earn credits to receive honest, actionable feedback in return.</p>
+
+        <h2>How it works</h2>
+        <ol>
+          <li><strong>Submit your app</strong> — Add your app with a link, description, and what kind of feedback you're looking for.</li>
+          <li><strong>Give feedback to others</strong> — Browse apps from other developers and leave honest, constructive feedback. Each approved feedback earns you one credit.</li>
+          <li><strong>Receive feedback</strong> — Spend your credits to receive feedback on your own app. Credits are only spent once you approve the reviewer's feedback.</li>
+        </ol>
+
+        <h2>Features</h2>
+        <ul>
+          <li>Targeted feedback requests — specify exactly what you want reviewed: UX, onboarding, pricing, or features.</li>
+          <li>Quality-ensured feedback — credits are only awarded after you approve the review, so there's no incentive to spam.</li>
+          <li>Fast turnaround — reviewers have 24 hours to submit feedback, keeping cycles short.</li>
+          <li>Balanced credit system — give one feedback, earn one credit. Simple and fair.</li>
+          <li>Real users from day one — every reviewer who tries your app is a genuine potential user.</li>
+          <li>Completely free — no subscriptions, no paywalls, no credit card required.</li>
+        </ul>
+
+        <p>Works for apps at any stage: early prototype, beta, or already live. <a href="https://nitpickr.dev/signup">Sign up free at nitpickr.dev</a>.</p>
+      </main>
+    </noscript>
   </body>
 </html>
