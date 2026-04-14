@@ -113,7 +113,7 @@ def get_review(
         .order_by(models.ReviewScreenshot.created_at)
         .all()
     ]
-    return _to_detail(review, app, screenshots)
+    return _to_detail(review, app, screenshots, current_user.username)
 
 
 # ── Update review ─────────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ def update_review(
         .order_by(models.ReviewScreenshot.created_at)
         .all()
     ]
-    return _to_detail(review, app, screenshots)
+    return _to_detail(review, app, screenshots, current_user.username)
 
 
 # ── Delete review ─────────────────────────────────────────────────────────────
@@ -273,7 +273,7 @@ def _to_out(review: models.Review, app: models.App) -> schemas.ReviewOut:
     )
 
 
-def _to_detail(review: models.Review, app: models.App, screenshots: list) -> schemas.ReviewDetail:
+def _to_detail(review: models.Review, app: models.App, screenshots: list, reviewer_username: str) -> schemas.ReviewDetail:
     return schemas.ReviewDetail(
         id=review.id,
         app_id=review.app_id,
@@ -294,4 +294,5 @@ def _to_detail(review: models.Review, app: models.App, screenshots: list) -> sch
         app_request=app.request,
         feedback=review.feedback,
         screenshots=[{"filename": f, "url": r2.presign(f)} for f in screenshots],
+        reviewer_username=reviewer_username,
     )

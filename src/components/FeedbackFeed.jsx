@@ -27,7 +27,16 @@ export function FeedbackFeed({ reviews, onOpenReview }) {
           <div className="feed-item-header">
             <div className="feed-avatar">{r.reviewer_username[0].toUpperCase()}</div>
             <div className="feed-meta">
-              <span className="feed-username">{r.reviewer_username}</span>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span className="feed-username">{r.reviewer_username}</span>
+                <a
+                  className="feed-profile-link"
+                  href={`/${r.reviewer_username}`}
+                  onClick={e => e.stopPropagation()}
+                >
+                  Profile →
+                </a>
+              </div>
               <span className="feed-date">
                 {new Date(r.created_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
               </span>

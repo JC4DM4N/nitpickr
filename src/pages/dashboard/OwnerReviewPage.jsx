@@ -72,6 +72,14 @@ export default function OwnerReviewPage() {
           name={detail.app_name}
           stage={detail.app_stage}
           url={detail.app_url}
+          actions={
+            <a
+              className="header-action-btn edit-app-btn"
+              href={`/${detail.reviewer_username}`}
+            >
+              See {detail.reviewer_username}'s apps →
+            </a>
+          }
         >
           <ReviewStatusBadge
             is_submitted={detail.is_submitted}

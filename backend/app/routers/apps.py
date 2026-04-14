@@ -172,7 +172,7 @@ def approve_review(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db))
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
 
 
 @router.post("/{app_id}/reviews/{review_id}/request-changes", response_model=schemas.ReviewDetail)
@@ -199,7 +199,7 @@ def request_changes(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db))
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
 
 
 @router.post("/{app_id}/reviews/{review_id}/reject", response_model=schemas.ReviewDetail)
@@ -226,7 +226,7 @@ def reject_review(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db))
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
 
 
 def _get_owner_review(app_id, review_id, current_user, db):
@@ -274,6 +274,7 @@ def get_app_review_detail(
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
 
+    reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
     screenshots = [
         s.filename for s in
         db.query(models.ReviewScreenshot)
@@ -282,7 +283,7 @@ def get_app_review_detail(
         .all()
     ]
     from .reviews import _to_detail
-    return _to_detail(review, app, screenshots)
+    return _to_detail(review, app, screenshots, reviewer.username)
 
 
 @router.get("/{app_id}/reviews", response_model=List[schemas.AppReviewFeedItem])
