@@ -24,11 +24,11 @@
   border-bottom: 1px solid var(--border);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   .nav {
     background: rgba(22, 23, 29, 0.85);
-  }
-}
+      }
+} */
 
 .nav-inner {
   max-width: 1100px;
@@ -376,11 +376,6 @@
   background: #fff;
 }
 
-@media (prefers-color-scheme: dark) {
-  .section-alt {
-    background: rgba(255,255,255,0.04);
-  }
-}
 
 .section-label {
   display: inline-block;
