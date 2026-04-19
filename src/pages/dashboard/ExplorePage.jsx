@@ -57,12 +57,13 @@ export default function ExplorePage() {
         );
         const allReviewedIds = new Set(myReviews.map((r) => r.app_id));
         setApps(
-          allApps.filter((a) => {
-            if (a.owner_id === user.id) return false;
-            if (activeReviewedIds.has(a.id)) return false;
-            if (!a.is_multi_review && allReviewedIds.has(a.id)) return false;
-            return true;
-          }),
+          allApps
+            .filter((a) => {
+              if (activeReviewedIds.has(a.id)) return false;
+              if (!a.is_multi_review && allReviewedIds.has(a.id)) return false;
+              return true;
+            })
+            .map((a) => ({ ...a, _isOwn: a.owner_id === user.id })),
         );
         setLoading(false);
       })
@@ -190,7 +191,7 @@ export default function ExplorePage() {
                   <AppCard
                     key={app.id}
                     app={app}
-                    onReview={() => setReviewApp(app)}
+                    onReview={() => !app._isOwn && setReviewApp(app)}
                   />
                 ))}
               {!loading && !error && filtered.length === 0 && (
@@ -207,8 +208,11 @@ export default function ExplorePage() {
 function AppCard({ app, onReview }) {
   const navigate = useNavigate();
   const stage = STAGE_STYLES[app.stage];
+  const inactive = app._isOwn;
   return (
-    <div className="app-card">
+    <div className="app-card-wrap">
+      {app._isOwn && <div className="app-own-banner"><span className="app-own-badge">Your app</span></div>}
+      <div className={`app-card${inactive ? ' app-card--inactive' : ''}`}>
       <div className="app-card-header">
         <div className="app-icon" style={{ background: app.color }}>
           {app.initials}
@@ -252,10 +256,11 @@ function AppCard({ app, onReview }) {
           >
             Profile →
           </button>
-          <button className="app-review-btn" onClick={onReview}>
+          <button className="app-review-btn" onClick={onReview} disabled={inactive}>
             Leave feedback →
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
