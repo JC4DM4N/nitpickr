@@ -139,6 +139,12 @@ def update_review(
 
     if payload.feedback is not None:
         review.feedback = payload.feedback
+    if payload.tested_platform is not None:
+        review.tested_platform = payload.tested_platform
+    if payload.test_duration is not None:
+        review.test_duration = payload.test_duration
+    if payload.created_account is not None:
+        review.created_account = payload.created_account
     if payload.is_submitted is not None:
         review.is_submitted = payload.is_submitted
         if payload.is_submitted:
@@ -295,4 +301,7 @@ def _to_detail(review: models.Review, app: models.App, screenshots: list, review
         feedback=review.feedback,
         screenshots=[{"filename": f, "url": r2.presign(f)} for f in screenshots],
         reviewer_username=reviewer_username,
+        tested_platform=review.tested_platform,
+        test_duration=review.test_duration,
+        created_account=review.created_account,
     )

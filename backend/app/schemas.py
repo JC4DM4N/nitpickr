@@ -86,11 +86,17 @@ class ReviewDetail(BaseModel):
     feedback: str | None
     screenshots: list[dict]
     reviewer_username: str
+    tested_platform: str | None
+    test_duration: str | None
+    created_account: bool | None
 
 
 class ReviewPatch(BaseModel):
     feedback: str | None = None
     is_submitted: bool | None = None
+    tested_platform: str | None = None
+    test_duration: str | None = None
+    created_account: bool | None = None
 
 
 class OwnerActionPayload(BaseModel):

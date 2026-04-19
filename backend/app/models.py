@@ -49,6 +49,9 @@ class Review(Base):
     created_date       = Column(DateTime(timezone=True), server_default=func.now())
     reviewer_deadline  = Column(DateTime(timezone=True), nullable=True)
     owner_deadline     = Column(DateTime(timezone=True), nullable=True)
+    tested_platform  = Column(String(10), nullable=True)
+    test_duration    = Column(Text, nullable=True)
+    created_account  = Column(Boolean, nullable=True)
 
 
 class Notification(Base):

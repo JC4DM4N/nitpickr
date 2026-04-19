@@ -12,6 +12,9 @@ export default function ReviewAppPage() {
   const navigate = useNavigate()
   const [detail, setDetail] = useState(null)
   const [feedback, setFeedback] = useState('')
+  const [testedPlatform, setTestedPlatform] = useState('')
+  const [testDuration, setTestDuration] = useState('')
+  const [createdAccount, setCreatedAccount] = useState('')
   const [screenshots, setScreenshots] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -29,6 +32,9 @@ export default function ReviewAppPage() {
       .then(data => {
         setDetail(data)
         setFeedback(data.feedback || '')
+        setTestedPlatform(data.tested_platform || '')
+        setTestDuration(data.test_duration || '')
+        setCreatedAccount(data.created_account === null ? '' : String(data.created_account))
         setScreenshots(data.screenshots || [])  // [{filename, url}]
         setLoading(false)
       })
@@ -46,7 +52,13 @@ export default function ReviewAppPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ feedback, is_submitted: true }),
+        body: JSON.stringify({
+          feedback,
+          is_submitted: true,
+          tested_platform: testedPlatform || null,
+          test_duration: testDuration || null,
+          created_account: createdAccount === '' ? null : createdAccount === 'true',
+        }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -191,7 +203,56 @@ export default function ReviewAppPage() {
           />
 
           <section className="review-section">
-            <p className="review-section-label">YOUR FEEDBACK</p>
+            <p className="review-section-label">FEEDBACK</p>
+            <div className="rubric-fields">
+              <div className="rubric-field">
+                <label className="rubric-label">What platform did you test on?</label>
+                <div className="rubric-options">
+                  {['mobile', 'web'].map(opt => (
+                    <button
+                      key={opt}
+                      type="button"
+                      className={`rubric-option${testedPlatform === opt ? ' selected' : ''}`}
+                      onClick={() => !detail.is_submitted && !detail.is_complete && !detail.is_rejected && setTestedPlatform(opt)}
+                      disabled={detail.is_submitted || detail.is_complete || detail.is_rejected}
+                    >
+                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="rubric-field">
+                <label className="rubric-label">How long did you test the app for?</label>
+                <input
+                  className="rubric-input"
+                  type="text"
+                  placeholder="e.g. 20 minutes"
+                  value={testDuration}
+                  onChange={e => setTestDuration(e.target.value)}
+                  disabled={detail.is_submitted || detail.is_complete || detail.is_rejected}
+                />
+              </div>
+              <div className="rubric-field">
+                <label className="rubric-label">Did you create an account?</label>
+                <div className="rubric-options">
+                  {[['true', 'Yes'], ['false', 'No']].map(([val, label]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={`rubric-option${createdAccount === val ? ' selected' : ''}`}
+                      onClick={() => !detail.is_submitted && !detail.is_complete && !detail.is_rejected && setCreatedAccount(val)}
+                      disabled={detail.is_submitted || detail.is_complete || detail.is_rejected}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="review-section">
+            <p className="rubric-label">Your Feedback</p>
             <textarea
               className="review-feedback-input"
               placeholder="Write your honest, constructive feedback here…"
@@ -276,7 +337,7 @@ export default function ReviewAppPage() {
           <button
             className="review-submit-btn"
             onClick={handleSubmit}
-            disabled={saving || detail.is_complete || detail.is_submitted || detail.is_rejected || !feedback.trim()}
+            disabled={saving || detail.is_complete || detail.is_submitted || detail.is_rejected || !feedback.trim() || !testedPlatform || !testDuration.trim() || createdAccount === ''}
           >
             {saving ? 'Submitting…'
               : detail.is_complete ? 'Approved'

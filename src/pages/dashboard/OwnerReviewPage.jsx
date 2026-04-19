@@ -108,8 +108,35 @@ export default function OwnerReviewPage() {
               isOwnerView
             />
 
+            <p className="review-section-label">REVIEWER'S FEEDBACK</p>
+
+            {(detail.tested_platform || detail.test_duration || detail.created_account !== null ) && (
+              <section className="review-section">
+                {/* <p className="review-section-label">FEEDBACK</p> */}
+                <div className="rubric-summary">
+                  {detail.tested_platform && (
+                    <div className="rubric-summary-item">
+                      <span className="rubric-summary-label">Platform</span>
+                      <span className="rubric-summary-value">{detail.tested_platform.charAt(0).toUpperCase() + detail.tested_platform.slice(1)}</span>
+                    </div>
+                  )}
+                  {detail.test_duration && (
+                    <div className="rubric-summary-item">
+                      <span className="rubric-summary-label">Time spent</span>
+                      <span className="rubric-summary-value">{detail.test_duration}</span>
+                    </div>
+                  )}
+                  {detail.created_account !== null && (
+                    <div className="rubric-summary-item">
+                      <span className="rubric-summary-label">Created account</span>
+                      <span className="rubric-summary-value">{detail.created_account ? 'Yes' : 'No'}</span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             <section className="review-section">
-              <p className="review-section-label">REVIEWER'S FEEDBACK</p>
               <textarea
                 className="review-feedback-input"
                 value={detail.feedback || ''}
