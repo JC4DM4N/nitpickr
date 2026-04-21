@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     owner_message TEXT,
     created_date       TIMESTAMPTZ DEFAULT NOW(),
     reviewer_deadline  TIMESTAMPTZ,          -- reviewer must submit within 24 h
-    owner_deadline     TIMESTAMPTZ,          -- owner must approve within 7 days
+    owner_deadline     TIMESTAMPTZ,          -- owner must approve within 2 days
     tested_platform    VARCHAR(10),
     test_duration      TEXT,
     created_account    BOOLEAN

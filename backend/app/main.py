@@ -81,13 +81,13 @@ def _expire_reviews():
                     reviewer.credits += app.credits
                     create_notification(
                         db, reviewer.id, "owner_deadline_expired",
-                        f"Your review of {app.name} was auto-approved after 7 days — credit earned.",
+                        f"Your review of {app.name} was auto-approved after 48 hours — credit earned.",
                         app_id=app.id, review_id=review.id,
                         action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
                     )
                     create_notification(
                         db, owner.id, "owner_deadline_expired",
-                        f"Your 7-day window to approve the review of {app.name} passed — it was auto-approved.",
+                        f"Your 48 hour window to approve the review of {app.name} passed — it was auto-approved.",
                         app_id=app.id, review_id=review.id,
                         action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}/reviews/{review.id}",
                     )
