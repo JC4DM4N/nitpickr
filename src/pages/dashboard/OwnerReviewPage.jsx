@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import './OwnerReviewPage.css'
@@ -17,19 +17,37 @@ export default function OwnerReviewPage() {
   const navigate = useNavigate()
   const [detail, setDetail] = useState(null)
   const [expandedImg, setExpandedImg] = useState(null)
-  const [modal, setModal] = useState(null) // 'approve' | 'request-changes' | 'reject'
+  const [modal, setModal] = useState(null) // 'approve' | 'reject'
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const [messages, setMessages] = useState([])
+  const [msgInput, setMsgInput] = useState('')
+  const [sendingMsg, setSendingMsg] = useState(false)
+  const [msgError, setMsgError] = useState(null)
+  const chatBottomRef = useRef(null)
+
   useEffect(() => {
     const token = localStorage.getItem('token')
-    authFetch(`/apps/${appId}/reviews/${reviewId}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => { setDetail(data); setLoading(false) })
+    Promise.all([
+      authFetch(`/apps/${appId}/reviews/${reviewId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).then(r => r.json()),
+      authFetch(`/apps/${appId}/reviews/${reviewId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).then(r => r.json()),
+    ])
+      .then(([reviewData, msgData]) => {
+        setDetail(reviewData)
+        setMessages(Array.isArray(msgData) ? msgData : [])
+        setLoading(false)
+      })
       .catch(() => { setError('Failed to load review'); setLoading(false) })
   }, [appId, reviewId])
+
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   async function handleAction(action, message) {
     const token = localStorage.getItem('token')
@@ -46,10 +64,42 @@ export default function OwnerReviewPage() {
     setModal(null)
   }
 
+  async function handleSendMessage() {
+    if (!msgInput.trim()) return
+    setSendingMsg(true)
+    setMsgError(null)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await authFetch(`/apps/${appId}/reviews/${reviewId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ body: msgInput.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setMsgError(data.detail || 'Failed to send message')
+        return
+      }
+      setMessages(prev => [...prev, data])
+      setMsgInput('')
+      // Refresh detail so deadline banners update immediately
+      const token2 = localStorage.getItem('token')
+      const updated = await authFetch(`/apps/${appId}/reviews/${reviewId}`, {
+        headers: { 'Authorization': `Bearer ${token2}` },
+      }).then(r => r.json())
+      setDetail(updated)
+    } catch {
+      setMsgError('Could not connect to server')
+    } finally {
+      setSendingMsg(false)
+    }
+  }
+
   if (loading) return <div className="review-app-loading">Loading…</div>
   if (error) return <div className="review-app-loading">{error}</div>
 
-  const canAct = detail.is_submitted && !detail.is_complete && !detail.is_rejected
+  const canAct = detail.is_submitted && !detail.is_complete && !detail.is_rejected && !detail.is_expired
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
 
   return (
     <>
@@ -85,20 +135,32 @@ export default function OwnerReviewPage() {
             is_submitted={detail.is_submitted}
             is_complete={detail.is_complete}
             is_rejected={detail.is_rejected}
+            is_expired={detail.is_expired}
             review_requested={detail.review_requested}
           />
         </AppPageHeader>
 
+        {canAct && (
+          <div className="review-app-actions review-app-actions--top">
+            <button className="owner-reject-btn" onClick={() => setModal('reject')}>
+              Reject review
+            </button>
+            <button className="owner-approve-btn" onClick={() => setModal('approve')}>
+              Approve review →
+            </button>
+          </div>
+        )}
+
         <div className="review-app-body">
           <div className="review-app-main">
 
-            {!detail.is_submitted && !detail.is_complete && !detail.is_rejected && (
-              <ReviewerDeadlineBanner deadline={detail.reviewer_deadline} isOwnerView />
+            {!detail.is_complete && !detail.is_rejected && (
+              <>
+                <ReviewerDeadlineBanner deadline={detail.reviewer_deadline} isOwnerView />
+                <OwnerDeadlineBanner deadline={detail.owner_deadline} isOwnerView />
+              </>
             )}
-            {canAct && (
-              <OwnerDeadlineBanner deadline={detail.owner_deadline} isOwnerView />
-            )}
-            
+
             <FeedbackRequestSection value={detail.app_request} />
 
             <OwnerMessageBanner
@@ -112,7 +174,6 @@ export default function OwnerReviewPage() {
 
             {(detail.tested_platform || detail.test_duration || detail.created_account !== null ) && (
               <section className="review-section">
-                {/* <p className="review-section-label">FEEDBACK</p> */}
                 <div className="rubric-summary">
                   {detail.tested_platform && (
                     <div className="rubric-summary-item">
@@ -146,19 +207,52 @@ export default function OwnerReviewPage() {
               />
             </section>
 
-            {canAct && (
-              <div className="review-app-actions">
-                <button className="owner-reject-btn" onClick={() => setModal('reject')}>
-                  Reject review
-                </button>
-                <button className="owner-request-btn" onClick={() => setModal('request-changes')}>
-                  Request changes
-                </button>
-                <button className="owner-approve-btn" onClick={() => setModal('approve')}>
-                  Approve review →
-                </button>
-              </div>
+            {/* Conversation thread */}
+            {detail.is_submitted && (
+              <section className="review-section chat-section">
+                <p className="review-section-label">CONVERSATION</p>
+                {messages.length > 0 && (
+                  <div className="chat-messages">
+                    {messages.map(msg => {
+                      const isMe = msg.sender_username === currentUser.username
+                      return (
+                        <div key={msg.id} className={`chat-bubble-wrap${isMe ? ' chat-bubble-wrap--me' : ''}`}>
+                          {!isMe && <span className="chat-sender">{msg.sender_username}</span>}
+                          <div className={`chat-bubble${isMe ? ' chat-bubble--me' : ''}`}>
+                            {msg.body}
+                          </div>
+                          <span className="chat-time">{new Date(msg.created_at).toLocaleString()}</span>
+                        </div>
+                      )
+                    })}
+                    <div ref={chatBottomRef} />
+                  </div>
+                )}
+                {canAct && (
+                  <div className="chat-input-row">
+                    <textarea
+                      className="chat-input"
+                      placeholder="Ask a question or request changes…"
+                      value={msgInput}
+                      onChange={e => setMsgInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage() }
+                      }}
+                      rows={2}
+                    />
+                    <button
+                      className="chat-send-btn"
+                      onClick={handleSendMessage}
+                      disabled={sendingMsg || !msgInput.trim()}
+                    >
+                      {sendingMsg ? '…' : 'Send'}
+                    </button>
+                  </div>
+                )}
+                {msgError && <p className="review-app-error">{msgError}</p>}
+              </section>
             )}
+
           </div>
 
           <aside className="review-app-sidebar">

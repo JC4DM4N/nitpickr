@@ -36,10 +36,11 @@ def create_review(
         models.Review.reviewer_id == current_user.id,
     )
     if app.is_multi_review:
-        # Block only if there is an active (non-complete, non-rejected) review
+        # Block only if there is an active (non-complete, non-rejected, non-expired) review
         existing = existing_q.filter(
             models.Review.is_complete == False,
             models.Review.is_rejected == False,
+            models.Review.is_expired == False,
         ).first()
     else:
         existing = existing_q.first()
@@ -150,6 +151,7 @@ def update_review(
         if payload.is_submitted:
             review.reviewer_deadline = None
             review.owner_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+            # review.owner_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
             owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
             if review.review_requested:
                 msg = f"{current_user.username} resubmitted their review for {app.name}"
@@ -257,7 +259,89 @@ def delete_screenshot(
     db.commit()
 
 
+# ── Messages (reviewer) ───────────────────────────────────────────────────────
+
+@router.get("/{review_id}/messages", response_model=List[schemas.MessageOut])
+def get_review_messages(
+    review_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    if review.reviewer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return _get_messages(review_id, db)
+
+
+@router.post("/{review_id}/messages", response_model=schemas.MessageOut, status_code=status.HTTP_201_CREATED)
+def post_review_message(
+    review_id: int,
+    payload: schemas.MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    if review.reviewer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if not review.is_submitted or review.is_complete or review.is_rejected:
+        raise HTTPException(status_code=400, detail="Cannot message on this review")
+
+    msg = models.Message(review_id=review_id, sender_id=current_user.id, body=payload.body.strip())
+    db.add(msg)
+
+    # Reviewer replied → only pass the deadline to the owner if it was currently the reviewer's turn
+    if review.reviewer_deadline is not None:
+        review.owner_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+        # review.owner_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
+        review.reviewer_deadline = None
+
+    app = db.query(models.App).filter(models.App.id == review.app_id).first()
+    owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+    create_notification(
+        db, owner.id, "review_message_owner",
+        f"{current_user.username} sent a message about their review of {app.name}",
+        app_id=app.id, review_id=review.id,
+        action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}/reviews/{review.id}",
+    )
+
+    db.commit()
+    db.refresh(msg)
+    return schemas.MessageOut(
+        id=msg.id,
+        review_id=msg.review_id,
+        sender_id=msg.sender_id,
+        sender_username=current_user.username,
+        body=msg.body,
+        created_at=msg.created_at,
+    )
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _get_messages(review_id: int, db: Session) -> list:
+    rows = (
+        db.query(models.Message, models.User)
+        .join(models.User, models.Message.sender_id == models.User.id)
+        .filter(models.Message.review_id == review_id)
+        .order_by(models.Message.created_at)
+        .all()
+    )
+    return [
+        schemas.MessageOut(
+            id=msg.id,
+            review_id=msg.review_id,
+            sender_id=msg.sender_id,
+            sender_username=user.username,
+            body=msg.body,
+            created_at=msg.created_at,
+        )
+        for msg, user in rows
+    ]
+
 
 def _to_out(review: models.Review, app: models.App) -> schemas.ReviewOut:
     return schemas.ReviewOut(
@@ -267,6 +351,7 @@ def _to_out(review: models.Review, app: models.App) -> schemas.ReviewOut:
         is_submitted=review.is_submitted,
         is_complete=review.is_complete,
         is_rejected=review.is_rejected,
+        is_expired=review.is_expired,
         review_requested=review.review_requested,
         created_date=review.created_date,
         reviewer_deadline=review.reviewer_deadline,
@@ -286,6 +371,7 @@ def _to_detail(review: models.Review, app: models.App, screenshots: list, review
         is_submitted=review.is_submitted,
         is_complete=review.is_complete,
         is_rejected=review.is_rejected,
+        is_expired=review.is_expired,
         review_requested=review.review_requested,
         owner_message=review.owner_message,
         created_date=review.created_date,

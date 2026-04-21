@@ -1,8 +1,5 @@
 /* ── Deadline banners ── */
 .deadline-banner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 13px;
@@ -10,6 +7,7 @@
   color: #78350f;
   border: 1px solid #fde68a;
   margin-bottom: 16px;
+  line-height: 1.5;
 }
 
 .deadline-banner--urgent {
@@ -26,7 +24,7 @@
 
 .deadline-banner-icon {
   font-size: 15px;
-  flex-shrink: 0;
+  margin-right: 6px;
 }
 
 .review-app-loading {
@@ -144,6 +142,16 @@
 .review-status-badge.in-progress {
   background: #ede9fe;
   color: #5b21b6;
+}
+
+.review-status-badge.changes-requested {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.review-status-badge.expired {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 /* ── Owner message banner ── */
@@ -432,6 +440,14 @@
   padding-top: 4px;
 }
 
+.review-app-actions--top {
+  padding: 16px 40px;
+  border-bottom: 1px solid #e8e6e0;
+  background: #fff;
+  grid-column: unset;
+  grid-row: unset;
+}
+
 .review-delete-btn {
   padding: 10px 18px;
   border: 1.5px solid #fecaca;
@@ -656,4 +672,119 @@
   font-size: 14px;
   color: var(--text-h);
   font-weight: 500;
+}
+
+/* ── Chat / Conversation ── */
+.chat-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 2px;
+}
+
+.chat-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  max-width: 80%;
+}
+
+.chat-bubble-wrap--me {
+  align-items: flex-end;
+  align-self: flex-end;
+}
+
+.chat-sender {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-left: 4px;
+}
+
+.chat-bubble {
+  background: #4b5563;
+  border: 1px solid #374151;
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #fff;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-bubble--me {
+  background: #0f0e0b;
+  color: #fff;
+  border-color: #0f0e0b;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-time {
+  font-size: 11px;
+  color: #9ca3af;
+  padding: 0 4px;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-h);
+  background: var(--bg);
+  outline: none;
+  resize: none;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+}
+
+.chat-input:focus {
+  border-color: var(--accent);
+}
+
+.chat-send-btn {
+  padding: 10px 18px;
+  background: #0f0e0b;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--mono);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.12s;
+  flex-shrink: 0;
+  height: fit-content;
+}
+
+.chat-send-btn:hover {
+  opacity: 0.8;
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

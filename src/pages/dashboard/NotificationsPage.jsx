@@ -16,9 +16,9 @@ const TYPE_ICONS = {
 }
 
 // Notifications sent to the app owner — should open the owner review view
-const OWNER_REVIEW_TYPES = new Set(['review_started', 'review_submitted', 'review_resubmitted'])
+const OWNER_REVIEW_TYPES = new Set(['review_started', 'review_submitted', 'review_resubmitted', 'review_message_owner', 'reviewer_deadline_expired_owner'])
 
-const DEAD_END_TYPES = new Set(['reviewer_deadline_expired', 'owner_deadline_expired'])
+const DEAD_END_TYPES = new Set([])
 
 export default function NotificationsPage() {
   const navigate = useNavigate()

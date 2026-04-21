@@ -51,10 +51,12 @@ export default function UserProfilePage() {
         if (!isOwnProfile) {
           const activeReviewedIds = new Set(
             myReviews
-              .filter((r) => !r.is_complete && !r.is_rejected)
+              .filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired)
               .map((r) => r.app_id),
           );
-          const allReviewedIds = new Set(myReviews.map((r) => r.app_id));
+          const allReviewedIds = new Set(
+            myReviews.filter((r) => !r.is_expired).map((r) => r.app_id),
+          );
           appsData = appsData.filter((a) => {
             if (activeReviewedIds.has(a.id)) return false;
             if (!a.is_multi_review && allReviewedIds.has(a.id)) return false;

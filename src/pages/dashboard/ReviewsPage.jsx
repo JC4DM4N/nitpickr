@@ -69,8 +69,8 @@ export default function ReviewsPage() {
                       </span>
                     </td>
                     <td>
-                      <span className={`review-status-badge ${r.is_rejected ? 'rejected' : r.is_complete ? 'complete' : r.is_submitted ? 'awaiting' : 'in-progress'}`}>
-                        {r.is_rejected ? 'Rejected' : r.is_complete ? 'Approved' : r.is_submitted ? 'Awaiting approval' : r.review_requested ? 'Review Requested' : 'In progress'}
+                      <span className={`review-status-badge ${r.is_expired ? 'expired' : r.is_rejected ? 'rejected' : r.is_complete ? 'complete' : (r.is_submitted && r.owner_deadline) ? 'awaiting' : (r.is_submitted && r.reviewer_deadline) ? 'changes-requested' : r.is_submitted ? 'awaiting' : 'in-progress'}`}>
+                        {r.is_expired ? 'Expired' : r.is_rejected ? 'Rejected' : r.is_complete ? 'Approved' : (r.is_submitted && r.reviewer_deadline) ? 'Changes requested' : r.is_submitted ? 'Awaiting approval' : r.review_requested ? 'Review Requested' : 'In progress'}
                       </span>
                       {timeLeft && (
                         <span className={`reviews-time-left${isUrgent ? ' reviews-time-left--urgent' : ''}`}>

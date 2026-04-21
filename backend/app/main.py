@@ -16,15 +16,16 @@ models.Base.metadata.create_all(bind=engine)
 
 def _expire_reviews():
     """
-    Runs every 5 minutes.
-    1. Reviewer deadline expired (not submitted) → delete review, return escrow credits, notify owner.
-    2. Owner deadline expired (submitted, not actioned) → auto-approve, transfer credits, notify reviewer.
+    Runs every minute.
+    1. Reviewer deadline expired (not submitted) → mark expired, return escrow credits.
+    2. Reviewer deadline expired (submitted, in conversation) → mark expired, return escrow credits.
+    3. Owner deadline expired (submitted, not actioned) → auto-approve, transfer credits.
     """
     db = SessionLocal()
     try:
         now = datetime.now(timezone.utc)
 
-        # ── Expired reviewer deadlines ────────────────────────────────────────
+        # ── Expired reviewer deadlines (not yet submitted) ────────────────────
         expired_reviewer = (
             db.query(models.Review)
             .filter(
@@ -33,6 +34,7 @@ def _expire_reviews():
                 models.Review.is_submitted == False,
                 models.Review.is_complete == False,
                 models.Review.is_rejected == False,
+                models.Review.is_expired == False,
             )
             .all()
         )
@@ -45,7 +47,7 @@ def _expire_reviews():
                     owner.escrow_credits -= app.credits
                     owner.credits += app.credits
                     create_notification(
-                        db, owner.id, "reviewer_deadline_expired",
+                        db, owner.id, "reviewer_deadline_expired_owner",
                         f"A reviewer did not submit their review of {app.name} in time — your credit has been returned.",
                         app_id=app.id,
                         action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}",
@@ -53,11 +55,49 @@ def _expire_reviews():
                 if reviewer:
                     create_notification(
                         db, reviewer.id, "reviewer_deadline_expired",
-                        f"Your review of {app.name} was removed because the 24-hour deadline passed without submission.",
-                        app_id=app.id,
-                        action_url=f"{loops.FRONTEND_URL}/reviews",
+                        f"Your review of {app.name} expired because the deadline passed without submission.",
+                        app_id=app.id, review_id=review.id,
+                        action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
                     )
-            db.delete(review)
+            review.is_expired = True
+            review.reviewer_deadline = None
+
+        # ── Expired reviewer deadlines (submitted, mid-conversation) ──────────
+        expired_conversation = (
+            db.query(models.Review)
+            .filter(
+                models.Review.reviewer_deadline.isnot(None),
+                models.Review.reviewer_deadline < now,
+                models.Review.is_submitted == True,
+                models.Review.is_complete == False,
+                models.Review.is_rejected == False,
+                models.Review.is_expired == False,
+            )
+            .all()
+        )
+        for review in expired_conversation:
+            app = db.query(models.App).filter(models.App.id == review.app_id).first()
+            reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
+            if app:
+                owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+                if owner:
+                    owner.escrow_credits -= app.credits
+                    owner.credits += app.credits
+                    create_notification(
+                        db, owner.id, "reviewer_deadline_expired_owner",
+                        f"The reviewer did not reply in time on their review of {app.name} — your credit has been returned.",
+                        app_id=app.id, review_id=review.id,
+                        action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}/reviews/{review.id}",
+                    )
+                if reviewer:
+                    create_notification(
+                        db, reviewer.id, "reviewer_deadline_expired",
+                        f"Your review of {app.name} expired because you did not reply in time.",
+                        app_id=app.id, review_id=review.id,
+                        action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
+                    )
+            review.is_expired = True
+            review.reviewer_deadline = None
 
         # ── Expired owner deadlines (auto-approve) ────────────────────────────
         expired_owner = (
@@ -68,6 +108,7 @@ def _expire_reviews():
                 models.Review.is_submitted == True,
                 models.Review.is_complete == False,
                 models.Review.is_rejected == False,
+                models.Review.is_expired == False,
             )
             .all()
         )
@@ -104,7 +145,7 @@ scheduler = BackgroundScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    scheduler.add_job(_expire_reviews, "interval", minutes=5, id="expire_reviews")
+    scheduler.add_job(_expire_reviews, "interval", minutes=1, id="expire_reviews")
     scheduler.start()
     yield
     scheduler.shutdown()

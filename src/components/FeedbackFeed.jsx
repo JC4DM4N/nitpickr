@@ -11,7 +11,7 @@ export function FeedbackFeed({ reviews, onOpenReview }) {
   return (
     <div className="feedback-feed">
       {reviews.map(r => {
-        const timeLeft = r.is_rejected || r.is_complete
+        const timeLeft = r.is_rejected || r.is_complete || r.is_expired
           ? null
           : r.is_submitted
             ? formatTimeRemaining(r.owner_deadline)
@@ -47,7 +47,9 @@ export function FeedbackFeed({ reviews, onOpenReview }) {
                 is_submitted={r.is_submitted}
                 is_complete={r.is_complete}
                 is_rejected={r.is_rejected}
+                is_expired={r.is_expired}
                 review_requested={r.review_requested}
+                changes_requested={r.is_submitted && !!r.reviewer_deadline}
               />
               {timeLeft && (
                 <span className="feed-time-left">

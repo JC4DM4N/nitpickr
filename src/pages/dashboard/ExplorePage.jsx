@@ -52,10 +52,12 @@ export default function ExplorePage() {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const activeReviewedIds = new Set(
           myReviews
-            .filter((r) => !r.is_complete && !r.is_rejected)
+            .filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired)
             .map((r) => r.app_id),
         );
-        const allReviewedIds = new Set(myReviews.map((r) => r.app_id));
+        const allReviewedIds = new Set(
+          myReviews.filter((r) => !r.is_expired).map((r) => r.app_id),
+        );
         setApps(
           allApps
             .filter((a) => {

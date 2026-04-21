@@ -54,6 +54,7 @@ class ReviewOut(BaseModel):
     is_submitted: bool
     is_complete: bool
     is_rejected: bool
+    is_expired: bool
     review_requested: bool
     created_date: datetime
     reviewer_deadline: datetime | None
@@ -71,6 +72,7 @@ class ReviewDetail(BaseModel):
     is_submitted: bool
     is_complete: bool
     is_rejected: bool
+    is_expired: bool
     review_requested: bool
     owner_message: str | None
     created_date: datetime
@@ -154,6 +156,19 @@ class UserPatch(BaseModel):
     twitter_username: str | None = None
 
 
+class MessageOut(BaseModel):
+    id: int
+    review_id: int
+    sender_id: int
+    sender_username: str
+    body: str
+    created_at: datetime
+
+
+class MessageCreate(BaseModel):
+    body: str
+
+
 class AppReviewFeedItem(BaseModel):
     id: int
     reviewer_username: str
@@ -161,6 +176,7 @@ class AppReviewFeedItem(BaseModel):
     is_submitted: bool
     is_complete: bool
     is_rejected: bool
+    is_expired: bool
     review_requested: bool
     created_date: datetime
     reviewer_deadline: datetime | None

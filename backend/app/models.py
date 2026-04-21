@@ -53,6 +53,7 @@ class Review(Base):
     tested_platform  = Column(String(10), nullable=True)
     test_duration    = Column(Text, nullable=True)
     created_account  = Column(Boolean, nullable=True)
+    is_expired       = Column(Boolean, nullable=False, default=False)
 
 
 class Notification(Base):
@@ -65,6 +66,16 @@ class Notification(Base):
     app_id    = Column(Integer, ForeignKey("apps.id",     ondelete="CASCADE"), nullable=True)
     review_id = Column(Integer, ForeignKey("reviews.id",  ondelete="CASCADE"), nullable=True)
     is_read   = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id        = Column(Integer, primary_key=True, index=True)
+    review_id = Column(Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    body      = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

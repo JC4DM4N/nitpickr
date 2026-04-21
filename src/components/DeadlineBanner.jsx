@@ -18,8 +18,8 @@ export function ReviewerDeadlineBanner({ deadline, isOwnerView = false }) {
     <div className={`deadline-banner${isUrgent ? ' deadline-banner--urgent' : ''}`}>
       <span className="deadline-banner-icon">⏱</span>
       {isOwnerView
-        ? <>The reviewer has <strong>{t}</strong> to respond.</>
-        : <>You have <strong>{t}</strong> remaining to submit this review.</>
+        ? <>The reviewer has <strong>{t}</strong> to respond. After this time, the review will auto-expire, and your credit will be returned.</>
+        : <>You have <strong>{t}</strong> remaining to respond. After this time, the review will auto-expire.</>
       }
     </div>
   )
@@ -41,8 +41,8 @@ export function OwnerDeadlineBanner({ deadline, isOwnerView = false }) {
     <div className="deadline-banner deadline-banner--owner">
       <span className="deadline-banner-icon">⏳</span>
       {isOwnerView
-        ? <>You have <strong>{t}</strong> to approve this review — it will auto-approve after 2 days.</>
-        : <>The owner has <strong>{t}</strong> to approve this review — it will auto-approve after 2 days.</>
+        ? <>You have <strong>{t}</strong> to respond to this review — after this time, the review will be auto-approved.</>
+        : <>The owner has <strong>{t}</strong> to respond to this review — after this time, the review will be auto-approved.</>
       }
     </div>
   )

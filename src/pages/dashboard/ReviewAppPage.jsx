@@ -21,25 +21,70 @@ export default function ReviewAppPage() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const [expandedImg, setExpandedImg] = useState(null)
+  const [messages, setMessages] = useState([])
+  const [msgInput, setMsgInput] = useState('')
+  const [sendingMsg, setSendingMsg] = useState(false)
+  const [msgError, setMsgError] = useState(null)
   const fileInputRef = useRef(null)
+  const chatBottomRef = useRef(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    authFetch(`/reviews/${reviewId}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then(data => {
+    Promise.all([
+      authFetch(`/reviews/${reviewId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).then(r => { if (!r.ok) throw new Error(); return r.json() }),
+      authFetch(`/reviews/${reviewId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).then(r => r.json()),
+    ])
+      .then(([data, msgData]) => {
         setDetail(data)
         setFeedback(data.feedback || '')
         setTestedPlatform(data.tested_platform || '')
         setTestDuration(data.test_duration || '')
         setCreatedAccount(data.created_account === null ? '' : String(data.created_account))
-        setScreenshots(data.screenshots || [])  // [{filename, url}]
+        setScreenshots(data.screenshots || [])
+        setMessages(Array.isArray(msgData) ? msgData : [])
         setLoading(false)
       })
       .catch(() => { setError('Failed to load review'); setLoading(false) })
   }, [reviewId])
+
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  async function handleSendMessage() {
+    if (!msgInput.trim()) return
+    setSendingMsg(true)
+    setMsgError(null)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await authFetch(`/reviews/${reviewId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ body: msgInput.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setMsgError(data.detail || 'Failed to send message')
+        return
+      }
+      setMessages(prev => [...prev, data])
+      setMsgInput('')
+      // Refresh detail so deadline banners update immediately
+      const token2 = localStorage.getItem('token')
+      const updated = await authFetch(`/reviews/${reviewId}`, {
+        headers: { 'Authorization': `Bearer ${token2}` },
+      }).then(r => r.json())
+      setDetail(updated)
+    } catch {
+      setMsgError('Could not connect to server')
+    } finally {
+      setSendingMsg(false)
+    }
+  }
 
   async function handleSubmit() {
     setSaving(true)
@@ -153,12 +198,13 @@ export default function ReviewAppPage() {
               <span className="app-stage-badge" style={stage}>
                 {detail.app_stage}
               </span>
+              {detail.is_expired   && <span className="review-status-badge expired">Expired</span>}
               {detail.is_rejected  && <span className="review-status-badge rejected">Rejected</span>}
               {detail.is_complete  && <span className="review-status-badge complete">Approved</span>}
-              {detail.is_submitted && !detail.is_complete && !detail.is_rejected && (
+              {detail.is_submitted && !detail.is_complete && !detail.is_rejected && !detail.is_expired && (
                 <span className="review-status-badge awaiting">Awaiting approval</span>
               )}
-              {!detail.is_submitted && !detail.is_complete && !detail.is_rejected && detail.review_requested && (
+              {!detail.is_submitted && !detail.is_complete && !detail.is_rejected && !detail.is_expired && detail.review_requested && (
                 <span className="review-status-badge in-progress">Review Requested</span>
               )}
             </div>
@@ -176,14 +222,35 @@ export default function ReviewAppPage() {
         </div>
       </div>
 
+      {!detail.is_expired && (
+        <div className="review-app-actions review-app-actions--top">
+          {!detail.is_complete && (
+            <button className="review-delete-btn" onClick={handleDelete}>
+              Delete review
+            </button>
+          )}
+          <button
+            className="review-submit-btn"
+            onClick={handleSubmit}
+            disabled={saving || detail.is_complete || detail.is_submitted || detail.is_rejected || !feedback.trim() || !testedPlatform || !testDuration.trim() || createdAccount === ''}
+          >
+            {saving ? 'Submitting…'
+              : detail.is_complete ? 'Approved'
+              : detail.is_rejected ? 'Rejected'
+              : detail.is_submitted ? 'Awaiting approval'
+              : 'Submit review →'}
+          </button>
+        </div>
+      )}
+
       <div className="review-app-body">
         <div className="review-app-main">
 
-          {!detail.is_complete && !detail.is_rejected && !detail.is_submitted && (
-            <ReviewerDeadlineBanner deadline={detail.reviewer_deadline} />
-          )}
-          {!detail.is_complete && !detail.is_rejected && detail.is_submitted && (
-            <OwnerDeadlineBanner deadline={detail.owner_deadline} />
+          {!detail.is_complete && !detail.is_rejected && (
+            <>
+              <ReviewerDeadlineBanner deadline={detail.reviewer_deadline} />
+              <OwnerDeadlineBanner deadline={detail.owner_deadline} />
+            </>
           )}
           
           <section className="review-section">
@@ -262,6 +329,53 @@ export default function ReviewAppPage() {
             />
           </section>
 
+          {/* Conversation thread */}
+          {detail.is_submitted && (
+            <section className="review-section chat-section">
+              <p className="review-section-label">CONVERSATION</p>
+              {messages.length > 0 && (
+                <div className="chat-messages">
+                  {messages.map(msg => {
+                    const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+                    const isMe = msg.sender_username === currentUser.username
+                    return (
+                      <div key={msg.id} className={`chat-bubble-wrap${isMe ? ' chat-bubble-wrap--me' : ''}`}>
+                        {!isMe && <span className="chat-sender">{msg.sender_username}</span>}
+                        <div className={`chat-bubble${isMe ? ' chat-bubble--me' : ''}`}>
+                          {msg.body}
+                        </div>
+                        <span className="chat-time">{new Date(msg.created_at).toLocaleString()}</span>
+                      </div>
+                    )
+                  })}
+                  <div ref={chatBottomRef} />
+                </div>
+              )}
+              {!detail.is_complete && !detail.is_rejected && !detail.is_expired && (
+                <div className="chat-input-row">
+                  <textarea
+                    className="chat-input"
+                    placeholder="Reply to the app owner…"
+                    value={msgInput}
+                    onChange={e => setMsgInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage() }
+                    }}
+                    rows={2}
+                  />
+                  <button
+                    className="chat-send-btn"
+                    onClick={handleSendMessage}
+                    disabled={sendingMsg || !msgInput.trim()}
+                  >
+                    {sendingMsg ? '…' : 'Send'}
+                  </button>
+                </div>
+              )}
+              {msgError && <p className="review-app-error">{msgError}</p>}
+            </section>
+          )}
+
           {error && <p className="review-app-error">{error}</p>}
         </div>
 
@@ -328,24 +442,6 @@ export default function ReviewAppPage() {
           </aside>
         )}
 
-        <div className="review-app-actions">
-          {!detail.is_complete && (
-            <button className="review-delete-btn" onClick={handleDelete}>
-              Delete review
-            </button>
-          )}
-          <button
-            className="review-submit-btn"
-            onClick={handleSubmit}
-            disabled={saving || detail.is_complete || detail.is_submitted || detail.is_rejected || !feedback.trim() || !testedPlatform || !testDuration.trim() || createdAccount === ''}
-          >
-            {saving ? 'Submitting…'
-              : detail.is_complete ? 'Approved'
-              : detail.is_rejected ? 'Rejected'
-              : detail.is_submitted ? 'Awaiting approval'
-              : 'Submit review →'}
-          </button>
-        </div>
       </div>
     </div>
   )

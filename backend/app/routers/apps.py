@@ -300,6 +300,59 @@ def get_app_review_detail(
     return _to_detail(review, app, screenshots, reviewer.username)
 
 
+@router.get("/{app_id}/reviews/{review_id}/messages", response_model=List[schemas.MessageOut])
+def get_app_review_messages(
+    app_id: int,
+    review_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    app, review = _get_owner_review(app_id, review_id, current_user, db)
+    from .reviews import _get_messages
+    return _get_messages(review_id, db)
+
+
+@router.post("/{app_id}/reviews/{review_id}/messages", response_model=schemas.MessageOut, status_code=201)
+def post_app_review_message(
+    app_id: int,
+    review_id: int,
+    payload: schemas.MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    app, review = _get_owner_review(app_id, review_id, current_user, db)
+    if not review.is_submitted or review.is_complete or review.is_rejected:
+        raise HTTPException(status_code=400, detail="Cannot message on this review")
+
+    msg = models.Message(review_id=review_id, sender_id=current_user.id, body=payload.body.strip())
+    db.add(msg)
+
+    # Owner messaged → only pass the deadline to the reviewer if it was currently the owner's turn
+    if review.owner_deadline is not None:
+        review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+        # review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
+        review.owner_deadline = None
+
+    reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
+    create_notification(
+        db, reviewer.id, "review_message",
+        f"{current_user.username} sent you a message about your review of {app.name}",
+        app_id=app.id, review_id=review.id,
+        action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
+    )
+
+    db.commit()
+    db.refresh(msg)
+    return schemas.MessageOut(
+        id=msg.id,
+        review_id=msg.review_id,
+        sender_id=msg.sender_id,
+        sender_username=current_user.username,
+        body=msg.body,
+        created_at=msg.created_at,
+    )
+
+
 @router.get("/{app_id}/reviews", response_model=List[schemas.AppReviewFeedItem])
 def get_app_reviews(
     app_id: int,
@@ -327,6 +380,7 @@ def get_app_reviews(
             is_submitted=review.is_submitted,
             is_complete=review.is_complete,
             is_rejected=review.is_rejected,
+            is_expired=review.is_expired,
             review_requested=review.review_requested,
             created_date=review.created_date,
             reviewer_deadline=review.reviewer_deadline,
