@@ -41,8 +41,8 @@ export function OwnerDeadlineBanner({ deadline, isOwnerView = false }) {
     <div className="deadline-banner deadline-banner--owner">
       <span className="deadline-banner-icon">⏳</span>
       {isOwnerView
-        ? <>You have <strong>{t}</strong> to approve this review — it will auto-approve after 7 days.</>
-        : <>The owner has <strong>{t}</strong> to approve this review — it will auto-approve after 7 days.</>
+        ? <>You have <strong>{t}</strong> to approve this review — it will auto-approve after 2 days.</>
+        : <>The owner has <strong>{t}</strong> to approve this review — it will auto-approve after 2 days.</>
       }
     </div>
   )
