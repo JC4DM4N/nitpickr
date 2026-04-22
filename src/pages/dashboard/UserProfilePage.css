@@ -184,6 +184,11 @@
 
   .profile-hero-identity {
     max-width: 100%;
+    margin-left: 0;
+  }
+
+  .profile-meta-row {
+    justify-content: center;
   }
 
   .share-box {
@@ -378,6 +383,7 @@
 .profile-meta-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   margin-top: 8px;
 }
