@@ -4,7 +4,7 @@ export const STAGE_STYLES = {
   'Live':       { background: '#d1fae5', color: '#065f46' },
 }
 
-export const CATEGORIES = ['Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce']
+export const CATEGORIES = ['Productivity', 'SaaS Tools', 'Developer Tools', 'Design', 'Mobile', 'E-commerce', 'Game']
 
 export const STAGES = ['Pre-launch', 'Beta', 'Live']
 
