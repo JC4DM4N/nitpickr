@@ -233,7 +233,7 @@ def delete_review(
     if review.reviewer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    if not review.is_complete and not review.is_rejected:
+    if not review.is_complete and not review.is_rejected and not review.is_exchange:
         app = db.query(models.App).filter(models.App.id == review.app_id).first()
         owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
         owner.escrow_credits -= app.credits
@@ -431,4 +431,5 @@ def _to_detail(review: models.Review, app: models.App, screenshots: list, review
         tested_platform=review.tested_platform,
         test_duration=review.test_duration,
         created_account=review.created_account,
+        is_exchange=review.is_exchange,
     )

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .database import engine, SessionLocal
 from . import models
-from .routers import users, auth, apps, reviews, notifications
+from .routers import users, auth, apps, reviews, notifications, exchanges
 from .routers.notifications import create_notification
 from . import loops
 
@@ -35,6 +35,7 @@ def _expire_reviews():
                 models.Review.is_complete == False,
                 models.Review.is_rejected == False,
                 models.Review.is_expired == False,
+                models.Review.is_exchange == False,
             )
             .all()
         )
@@ -72,6 +73,7 @@ def _expire_reviews():
                 models.Review.is_complete == False,
                 models.Review.is_rejected == False,
                 models.Review.is_expired == False,
+                models.Review.is_exchange == False,
             )
             .all()
         )
@@ -109,6 +111,7 @@ def _expire_reviews():
                 models.Review.is_complete == False,
                 models.Review.is_rejected == False,
                 models.Review.is_expired == False,
+                models.Review.is_exchange == False,
             )
             .all()
         )
@@ -140,12 +143,108 @@ def _expire_reviews():
         db.close()
 
 
+def _expire_exchanges():
+    """
+    Runs every minute.
+    1. Pending exchanges past expires_at → mark expired, notify both parties.
+    2. Accepted exchange reviews past reviewer_deadline → mark expired, compensate the other party.
+    """
+    db = SessionLocal()
+    try:
+        now = datetime.now(timezone.utc)
+
+        # ── Expire pending requests ───────────────────────────────────────────
+        expired_pending = (
+            db.query(models.FeedbackExchange)
+            .filter(
+                models.FeedbackExchange.status == "pending",
+                models.FeedbackExchange.expires_at < now,
+            )
+            .all()
+        )
+        for exchange in expired_pending:
+            exchange.status = "expired"
+            requester = db.query(models.User).filter(models.User.id == exchange.requester_id).first()
+            requestee = db.query(models.User).filter(models.User.id == exchange.requestee_id).first()
+            if requester:
+                create_notification(
+                    db, requester.id, "exchange_expired",
+                    f"Your feedback exchange request to {requestee.username if requestee else 'the user'} expired without a response.",
+                    action_url=f"{loops.FRONTEND_URL}/exchanges",
+                )
+            if requestee:
+                create_notification(
+                    db, requestee.id, "exchange_expired",
+                    f"A feedback exchange request from {requester.username if requester else 'a user'} expired.",
+                    action_url=f"{loops.FRONTEND_URL}/exchanges",
+                )
+
+        # ── Expire accepted exchange reviews (reviewer missed deadline) ───────
+        expired_exchange_reviews = (
+            db.query(models.Review)
+            .filter(
+                models.Review.is_exchange == True,
+                models.Review.is_expired == False,
+                models.Review.is_complete == False,
+                models.Review.is_rejected == False,
+                models.Review.is_submitted == False,
+                models.Review.reviewer_deadline.isnot(None),
+                models.Review.reviewer_deadline < now,
+            )
+            .all()
+        )
+        for review in expired_exchange_reviews:
+            review.is_expired = True
+            review.reviewer_deadline = None
+
+            app = db.query(models.App).filter(models.App.id == review.app_id).first()
+            failing_reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
+
+            # Find the other review in this exchange to identify the other party
+            exchange = db.query(models.FeedbackExchange).filter(
+                models.FeedbackExchange.id == review.exchange_id
+            ).first() if review.exchange_id else None
+
+            if exchange:
+                other_review_id = (
+                    exchange.review_of_requestee
+                    if exchange.review_of_requester == review.id
+                    else exchange.review_of_requester
+                )
+                other_review = db.query(models.Review).filter(models.Review.id == other_review_id).first()
+                other_party = db.query(models.User).filter(
+                    models.User.id == other_review.reviewer_id
+                ).first() if other_review else None
+
+                if other_party:
+                    other_party.credits += 1
+                    create_notification(
+                        db, other_party.id, "exchange_compensated",
+                        f"{failing_reviewer.username if failing_reviewer else 'The other user'} did not submit their review in time — you've been awarded 1 credit.",
+                        action_url=f"{loops.FRONTEND_URL}/exchanges",
+                    )
+                if failing_reviewer:
+                    # Net zero: deduct only if they have credits
+                    if failing_reviewer.credits > 0:
+                        failing_reviewer.credits -= 1
+                    create_notification(
+                        db, failing_reviewer.id, "exchange_expired",
+                        f"Your exchange review of {app.name if app else 'an app'} expired — you did not submit in time.",
+                        action_url=f"{loops.FRONTEND_URL}/exchanges",
+                    )
+
+        db.commit()
+    finally:
+        db.close()
+
+
 scheduler = BackgroundScheduler()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    scheduler.add_job(_expire_reviews, "interval", minutes=1, id="expire_reviews")
+    scheduler.add_job(_expire_reviews,   "interval", minutes=1, id="expire_reviews")
+    scheduler.add_job(_expire_exchanges, "interval", minutes=1, id="expire_exchanges")
     scheduler.start()
     yield
     scheduler.shutdown()
@@ -169,6 +268,7 @@ app.include_router(users.router)
 app.include_router(apps.router)
 app.include_router(reviews.router)
 app.include_router(notifications.router)
+app.include_router(exchanges.router)
 
 
 @app.get("/health")

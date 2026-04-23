@@ -1,6 +1,14 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Enum
 from sqlalchemy.sql import func
 from .database import Base
+import enum
+
+
+class ExchangeStatus(str, enum.Enum):
+    pending  = "pending"
+    accepted = "accepted"
+    rejected = "rejected"
+    expired  = "expired"
 
 
 class User(Base):
@@ -54,6 +62,24 @@ class Review(Base):
     test_duration    = Column(Text, nullable=True)
     created_account  = Column(Boolean, nullable=True)
     is_expired       = Column(Boolean, nullable=False, default=False)
+    is_exchange      = Column(Boolean, nullable=False, default=False)
+    exchange_id      = Column(Integer, ForeignKey("feedback_exchanges.id", ondelete="SET NULL"), nullable=True)
+
+
+class FeedbackExchange(Base):
+    __tablename__ = "feedback_exchanges"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    requester_id        = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    requestee_id        = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    requester_app_id    = Column(Integer, ForeignKey("apps.id",  ondelete="CASCADE"), nullable=False)
+    requestee_app_id    = Column(Integer, ForeignKey("apps.id",  ondelete="SET NULL"), nullable=True)
+    review_of_requester = Column(Integer, ForeignKey("reviews.id", ondelete="SET NULL"), nullable=True)
+    review_of_requestee = Column(Integer, ForeignKey("reviews.id", ondelete="SET NULL"), nullable=True)
+    status              = Column(String(20), nullable=False, default="pending")
+    message             = Column(Text, nullable=True)
+    created_at          = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at          = Column(DateTime(timezone=True), nullable=False)
 
 
 class Notification(Base):

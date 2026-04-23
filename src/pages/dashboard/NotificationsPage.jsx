@@ -13,10 +13,24 @@ const TYPE_ICONS = {
   changes_requested:         '↩️',
   reviewer_deadline_expired: '⏱',
   owner_deadline_expired:    '⏳',
+  exchange_requested:        '🔄',
+  exchange_accepted:         '🤝',
+  exchange_rejected:         '🔄',
+  exchange_expired:          '⏱',
+  exchange_compensated:      '⚡',
 }
 
 // Notifications sent to the app owner — should open the owner review view
 const OWNER_REVIEW_TYPES = new Set(['review_started', 'review_submitted', 'review_resubmitted', 'review_message_owner', 'reviewer_deadline_expired_owner'])
+
+// Exchange notification type → exchanges tab to open
+const EXCHANGE_TAB = {
+  exchange_requested:   'received',
+  exchange_accepted:    'active',
+  exchange_rejected:    'sent',
+  exchange_expired:     'sent',
+  exchange_compensated: 'active',
+}
 
 const DEAD_END_TYPES = new Set([])
 
@@ -60,7 +74,9 @@ export default function NotificationsPage() {
       setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, is_read: true } : x))
       onRead()
     }
-    if (n.review_id && OWNER_REVIEW_TYPES.has(n.type)) {
+    if (n.type in EXCHANGE_TAB) {
+      navigate('/exchanges', { state: { tab: EXCHANGE_TAB[n.type] } })
+    } else if (n.review_id && OWNER_REVIEW_TYPES.has(n.type)) {
       navigate(`/my-apps/${n.app_id}/reviews/${n.review_id}`)
     } else if (n.review_id) {
       navigate(`/reviews/${n.review_id}`)
@@ -94,8 +110,8 @@ export default function NotificationsPage() {
             {notifications.map(n => (
               <div
                 key={n.id}
-                className={`notif-item${n.is_read ? '' : ' notif-item--unread'}${(n.review_id || n.app_id) && !DEAD_END_TYPES.has(n.type) ? ' notif-item--clickable' : ''}`}
-                onClick={() => (n.review_id || n.app_id) && handleClick(n)}
+                className={`notif-item${n.is_read ? '' : ' notif-item--unread'}${((n.review_id || n.app_id || n.type in EXCHANGE_TAB) && !DEAD_END_TYPES.has(n.type)) ? ' notif-item--clickable' : ''}`}
+                onClick={() => (n.review_id || n.app_id || n.type in EXCHANGE_TAB) && handleClick(n)}
               >
                 <span className="notif-icon">{TYPE_ICONS[n.type] ?? '🔔'}</span>
                 <div className="notif-content">

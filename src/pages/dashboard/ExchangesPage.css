@@ -1,0 +1,289 @@
+.exchanges-page {
+  min-height: 100%;
+}
+
+.exchanges-header {
+  background: #fff;
+  border-bottom: 1px solid #e8e6e0;
+  padding: 40px 48px 32px;
+}
+
+.exchanges-title {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #0f0e0b;
+  margin: 0;
+}
+
+.exchanges-body {
+  padding: 28px 32px;
+}
+
+.exchanges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exchange-card {
+  background: #fff;
+  border: 1px solid #e8e6e0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.exchange-card-apps {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.exchange-app-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exchange-app-tbd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exchange-arrow {
+  font-size: 18px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.exchange-app-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.exchange-app-icon--tbd {
+  background: #e5e7eb;
+  color: #9ca3af;
+}
+
+.exchange-app-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f0e0b;
+}
+
+.exchange-app-by {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.exchange-card-message {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0;
+  padding: 10px 14px;
+  background: #fafaf8;
+  border-radius: 8px;
+  border: 1px solid #e8e6e0;
+}
+
+.exchange-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.exchange-card-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exchange-card-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.exchange-decline-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid #e8e6e0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.exchange-decline-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.exchange-accept-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #0f0e0b;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+
+.exchange-accept-btn:hover {
+  opacity: 0.85;
+}
+
+.exchange-review-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #0f0e0b;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f0e0b;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exchange-review-btn:hover {
+  background: #0f0e0b;
+  color: #fff;
+}
+
+.exchange-review-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.exchange-review-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exchange-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #e5e7eb;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 5px;
+}
+
+.reviews-tab--active .exchange-tab-count {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* Accept modal extras */
+.exchange-modal-message {
+  padding: 0 24px;
+}
+
+.exchange-message-body {
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
+  background: #fafaf8;
+  border: 1px solid #e8e6e0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0;
+}
+
+.exchange-app-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 24px 16px;
+}
+
+.exchange-app-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #e8e6e0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f0e0b;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.exchange-app-option:hover {
+  border-color: #0f0e0b;
+}
+
+.exchange-app-option.selected {
+  border-color: #0f0e0b;
+  background: #f5f4f0;
+}
+
+.exchange-app-option-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .exchanges-header {
+    padding: 20px 16px 16px;
+  }
+
+  .exchanges-body {
+    padding: 16px;
+  }
+
+  .exchange-card {
+    padding: 16px;
+  }
+
+  .exchange-card-apps {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .exchange-arrow {
+    transform: rotate(90deg);
+  }
+}

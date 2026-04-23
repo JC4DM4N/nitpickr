@@ -12,6 +12,7 @@ export default defineConfig({
       '/apps': 'http://localhost:8000',
       '/reviews': 'http://localhost:8000',
       '/notifications': 'http://localhost:8000',
+      '/exchanges': 'http://localhost:8000',
     },
   },
 })

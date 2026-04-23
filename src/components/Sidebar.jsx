@@ -24,11 +24,15 @@ function IconInfo() {
 function IconShare() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
 }
+function IconExchange() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+}
 
 const NAV = [
   { path: '/explore',       label: 'Explore',       Icon: IconExplore },
   { path: '/my-apps',       label: 'My Apps',       Icon: IconApps },
   { path: '/reviews',       label: 'Reviews',       Icon: IconReviews },
+  { path: '/exchanges',     label: 'Exchanges',     Icon: IconExchange },
   { path: '/notifications', label: 'Notifications', Icon: IconBell },
   { path: '/credits',       label: 'Credits',       Icon: IconCredits },
   { path: '/how-it-works',  label: 'How it works',  Icon: IconInfo },

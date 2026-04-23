@@ -387,3 +387,32 @@
   gap: 12px;
   margin-top: 8px;
 }
+
+.profile-exchange-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-exchange-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1.5px solid #0f0e0b;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f0e0b;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.profile-exchange-btn:hover:not(:disabled) {
+  background: #0f0e0b;
+  color: #fff;
+}
+
+.profile-exchange-btn:disabled {
+  border-color: #e8e6e0;
+  color: #9ca3af;
+  cursor: default;
+}

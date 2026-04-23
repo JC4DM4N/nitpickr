@@ -19,6 +19,10 @@ export default function UserProfilePage() {
   const isOwnProfile =
     currentUser.username?.toLowerCase() === username?.toLowerCase();
 
+  const [exchangeModal, setExchangeModal] = useState(false);
+  const [exchange, setExchange] = useState(undefined); // undefined=loading, null=none, obj=exists
+  const [myApps, setMyApps] = useState([]);
+
   const [editing, setEditing] = useState(false);
   const [editUsername, setEditUsername] = useState("");
   const [editTwitter, setEditTwitter] = useState("");
@@ -38,9 +42,19 @@ export default function UserProfilePage() {
         }).then((r) => r.json()),
       );
     }
+    if (token && !isOwnProfile) {
+      fetches.push(
+        authFetch(`/exchanges/between/${username}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then((r) => r.json()),
+      );
+      fetches.push(
+        authFetch(`/apps/by-owner/${currentUser.username}`).then((r) => r.json()),
+      );
+    }
 
     Promise.all(fetches)
-      .then(([profileData, appsData, myReviews = []]) => {
+      .then(([profileData, appsData, myReviews = [], exchangeData, myAppsData]) => {
         if (profileData.detail) {
           setError("User not found");
           setLoading(false);
@@ -62,6 +76,9 @@ export default function UserProfilePage() {
             if (!a.is_multi_review && allReviewedIds.has(a.id)) return false;
             return true;
           });
+          // exchangeData may be null (no active exchange) or an object
+          setExchange(exchangeData ?? null);
+          setMyApps(Array.isArray(myAppsData) ? myAppsData : []);
         }
 
         setApps(appsData);
@@ -131,6 +148,27 @@ export default function UserProfilePage() {
     setReviewApp(app);
   }
 
+  function handleExchangeClick() {
+    if (!isLoggedIn) {
+      setExchangeModal('login');
+      return;
+    }
+    if (myApps.length === 0) {
+      setExchangeModal('no-apps');
+      return;
+    }
+    setExchangeModal('request');
+  }
+
+  const profileHasApps = apps.length > 0 || loading;
+  const showExchangeBtn = !isOwnProfile && !loading && profileHasApps;
+
+  function exchangeButtonLabel() {
+    if (!exchange) return 'Request feedback exchange';
+    if (exchange.requester_id === currentUser.id) return 'Request submitted';
+    return 'Accept / Decline request';
+  }
+
   return (
     <>
       {reviewApp && (
@@ -141,6 +179,20 @@ export default function UserProfilePage() {
             setApps((prev) => prev.filter((a) => a.id !== appId));
             setReviewApp(null);
             navigate(`/reviews/${reviewId}`);
+          }}
+        />
+      )}
+      {exchangeModal && (
+        <ExchangeModal
+          mode={exchangeModal}
+          username={username}
+          myApps={myApps}
+          onClose={() => setExchangeModal(false)}
+          onLogin={() => navigate('/login')}
+          onSignup={() => navigate('/signup')}
+          onExchangeCreated={() => {
+            setExchangeModal(false);
+            setExchange({ requester_id: currentUser.id });
           }}
         />
       )}
@@ -179,6 +231,19 @@ export default function UserProfilePage() {
                   </a>
                 )}
               </div>
+              {showExchangeBtn && (
+                <div className="profile-exchange-row">
+                  <button
+                    className="profile-exchange-btn"
+                    onClick={exchange && exchange.requestee_id === currentUser.id
+                      ? () => navigate('/exchanges')
+                      : handleExchangeClick}
+                    disabled={!!exchange && exchange.requester_id === currentUser.id}
+                  >
+                    {exchangeButtonLabel()}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -347,6 +412,113 @@ function AppCard({ app, isOwnApp, isLoggedIn, hasCredits, ownerUsername, onRevie
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ExchangeModal({ mode, username, myApps, onClose, onLogin, onSignup, onExchangeCreated }) {
+  const [selectedAppId, setSelectedAppId] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleSubmit() {
+    if (!selectedAppId) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await authFetch('/exchanges/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          requestee_username: username,
+          requester_app_id: parseInt(selectedAppId),
+          message: message.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.detail || 'Failed to send request'); return; }
+      onExchangeCreated();
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (mode === 'login') {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-card" onClick={e => e.stopPropagation()}>
+          <button className="modal-close" onClick={onClose}>✕</button>
+          <div className="modal-header"><div className="modal-title">Sign in to request an exchange</div></div>
+          <div className="modal-actions">
+            <button className="modal-btn-cancel" onClick={onSignup}>Create account</button>
+            <button className="modal-btn-start" onClick={onLogin}>Sign in →</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'no-apps') {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-card" onClick={e => e.stopPropagation()}>
+          <button className="modal-close" onClick={onClose}>✕</button>
+          <div className="modal-header"><div className="modal-title">You have no apps for {username} to review</div></div>
+          <p style={{ padding: '0 24px 16px', color: '#6b7280', fontSize: 14 }}>
+            Submit an app first, then you can request a feedback exchange.
+          </p>
+          <div className="modal-actions">
+            <button className="modal-btn-cancel" onClick={onClose}>Cancel</button>
+            <button className="modal-btn-start" onClick={() => { onClose(); window.location.href = '/my-apps/new'; }}>Submit an app →</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-header">
+          <div className="modal-title">Request a feedback exchange with <strong>{username}</strong></div>
+        </div>
+        <p className="modal-section-label" style={{ padding: '0 24px' }}>WHICH OF YOUR APPS SHOULD {username.toUpperCase()} REVIEW?</p>
+        <div className="exchange-app-options" style={{ padding: '8px 24px 4px' }}>
+          {myApps.map(app => (
+            <button
+              key={app.id}
+              className={`exchange-app-option${selectedAppId === String(app.id) ? ' selected' : ''}`}
+              onClick={() => setSelectedAppId(String(app.id))}
+            >
+              <div className="exchange-app-option-icon" style={{ background: app.color }}>{app.initials}</div>
+              <span>{app.name}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{ padding: '8px 24px 0' }}>
+          <p className="modal-section-label">MESSAGE (OPTIONAL)</p>
+          <textarea
+            className="review-feedback-input"
+            placeholder={`Say hi to ${username}…`}
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            rows={3}
+            style={{ marginBottom: 0 }}
+          />
+        </div>
+        {error && <p className="modal-error">{error}</p>}
+        <div className="modal-actions">
+          <button className="modal-btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="modal-btn-start" onClick={handleSubmit} disabled={submitting || !selectedAppId}>
+            {submitting ? 'Sending…' : 'Send request →'}
+          </button>
+        </div>
       </div>
     </div>
   );

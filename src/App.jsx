@@ -18,6 +18,7 @@ import CreditsPage from './pages/dashboard/CreditsPage'
 import SubmitAppPage from './pages/dashboard/SubmitAppPage'
 import NotificationsPage from './pages/dashboard/NotificationsPage'
 import UserProfilePage from './pages/dashboard/UserProfilePage'
+import ExchangesPage from './pages/dashboard/ExchangesPage'
 
 function getStoredUser() {
   try {
@@ -86,6 +87,7 @@ function App() {
             <Route path="/my-apps/:appId/reviews/:reviewId"        element={<OwnerReviewPage />} />
             <Route path="/reviews"       element={<ReviewsPage />} />
             <Route path="/reviews/:reviewId"                       element={<ReviewAppPage />} />
+            <Route path="/exchanges"     element={<ExchangesPage />} />
             <Route path="/credits"       element={<CreditsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/how-it-works"  element={<DashboardHowItWorksPage />} />

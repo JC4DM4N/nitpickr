@@ -175,8 +175,9 @@ def approve_review(
     review.is_complete = True
     review.owner_message = payload.message
     review.owner_deadline = None
-    current_user.escrow_credits -= app.credits
-    reviewer.credits += app.credits
+    if not review.is_exchange:
+        current_user.escrow_credits -= app.credits
+        reviewer.credits += app.credits
     create_notification(
         db, reviewer.id, "review_approved",
         f"{current_user.username} approved your review of {app.name}",
@@ -229,8 +230,9 @@ def reject_review(
     review.is_rejected = True
     review.owner_message = payload.message
     review.owner_deadline = None
-    current_user.escrow_credits -= app.credits
-    current_user.credits += app.credits
+    if not review.is_exchange:
+        current_user.escrow_credits -= app.credits
+        current_user.credits += app.credits
     create_notification(
         db, reviewer.id, "review_rejected",
         f"{current_user.username} rejected your review of {app.name}",

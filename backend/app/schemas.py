@@ -91,6 +91,7 @@ class ReviewDetail(BaseModel):
     tested_platform: str | None
     test_duration: str | None
     created_account: bool | None
+    is_exchange: bool
 
 
 class ReviewPatch(BaseModel):
@@ -181,6 +182,49 @@ class AppReviewFeedItem(BaseModel):
     created_date: datetime
     reviewer_deadline: datetime | None
     owner_deadline: datetime | None
+
+
+class ExchangeOut(BaseModel):
+    id: int
+    requester_id: int
+    requestee_id: int
+    requester_username: str
+    requestee_username: str
+    requester_app_id: int
+    requester_app_name: str
+    requester_app_initials: str
+    requester_app_color: str
+    requestee_app_id: int | None
+    requestee_app_name: str | None
+    requestee_app_initials: str | None
+    requestee_app_color: str | None
+    review_of_requester: int | None
+    review_of_requestee: int | None
+    # Status fields for each review (populated when accepted)
+    ror_is_submitted: bool | None
+    ror_is_complete: bool | None
+    ror_is_rejected: bool | None
+    ror_is_expired: bool | None
+    ror_review_requested: bool | None
+    rod_is_submitted: bool | None
+    rod_is_complete: bool | None
+    rod_is_rejected: bool | None
+    rod_is_expired: bool | None
+    rod_review_requested: bool | None
+    status: str
+    message: str | None
+    created_at: datetime
+    expires_at: datetime
+
+
+class ExchangeCreate(BaseModel):
+    requestee_username: str
+    requester_app_id: int
+    message: str | None = None
+
+
+class ExchangeAccept(BaseModel):
+    requestee_app_id: int
 
 
 class ReviewReceived(BaseModel):
