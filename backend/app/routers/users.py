@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 import bcrypt as bcryptlib
 
@@ -65,6 +66,35 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[schemas.UserOut])
 def list_users(db: Session = Depends(get_db)):
     return db.query(models.User).all()
+
+
+@router.get("/explore", response_model=List[schemas.UserCard])
+def explore_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+
+    app_counts = dict(
+        db.query(models.App.owner_id, func.count(models.App.id))
+        .group_by(models.App.owner_id)
+        .all()
+    )
+    reviews_given = dict(
+        db.query(models.Review.reviewer_id, func.count(models.Review.id))
+        .filter(models.Review.is_complete == True)
+        .group_by(models.Review.reviewer_id)
+        .all()
+    )
+
+    return [
+        schemas.UserCard(
+            id=u.id,
+            username=u.username,
+            app_count=app_counts.get(u.id, 0),
+            reviews_given=reviews_given.get(u.id, 0),
+            reviewer_rating=None,
+        )
+        for u in users
+        if app_counts.get(u.id, 0) > 0  # only show users with at least one app
+    ]
 
 
 @router.get("/by-username/{username}", response_model=schemas.UserProfile)

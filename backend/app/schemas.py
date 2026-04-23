@@ -145,6 +145,14 @@ class NotificationOut(BaseModel):
     created_at: datetime
 
 
+class UserCard(BaseModel):
+    id: int
+    username: str
+    app_count: int
+    reviews_given: int
+    reviewer_rating: float | None
+
+
 class UserProfile(BaseModel):
     id: int
     username: str

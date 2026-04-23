@@ -199,6 +199,123 @@
   gap: 14px;
 }
 
+/* ── Explore main tabs ── */
+.explore-main-tabs {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.explore-main-tab {
+  padding: 8px 20px;
+  border: 1.5px solid #e8e6e0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.explore-main-tab:hover {
+  border-color: #0f0e0b;
+  color: #0f0e0b;
+}
+
+.explore-main-tab--active {
+  background: #0f0e0b;
+  color: #fff;
+  border-color: #0f0e0b;
+}
+
+.explore-main-tab--active:hover {
+  color: #fff;
+  border-color: #0f0e0b;
+}
+
+/* ── User grid & cards ── */
+.user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+}
+
+.user-card {
+  background: #fff;
+  border: 1px solid #e8e6e0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow 0.15s, transform 0.15s;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 320px;
+
+}
+
+.user-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  transform: translateY(-2px);
+}
+
+.user-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-card-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0f0e0b;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-card-username {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f0e0b;
+  letter-spacing: -0.2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-card-profile-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.user-card-stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid #f0ede6;
+}
+
+.user-card-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 @media (max-width: 860px) {
   .explore-body { flex-direction: column; padding: 20px; }
   .explore-filters { width: 100%; position: static; }
@@ -301,6 +418,12 @@
     padding: 24px 20px;
     border-radius: 16px 16px 12px 12px;
     max-height: 85vh;
+  }
+
+  .user-card {
+    padding: 14px;
+    max-width: none;
+
   }
 }
 
