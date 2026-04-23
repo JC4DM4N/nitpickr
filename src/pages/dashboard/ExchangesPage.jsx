@@ -193,8 +193,8 @@ export default function ExchangesPage() {
               } : null
 
               return (
-                <div>
                 <div key={ex.id} className="exchange-card">
+                  <div className="exchange-card-main">
                   <div className="exchange-card-apps">
                     <div className="exchange-app-pill">
                       <div className="exchange-app-icon" style={{ background: ex.requester_app_color }}>{ex.requester_app_initials}</div>
@@ -274,10 +274,10 @@ export default function ExchangesPage() {
                       )}
                     </div>
                   </div>
-                </div>
-                {ex.message && (tab === 'sent' || tab === 'received') && (
-                  <p className="exchange-card-message">"{ex.message}"</p>
-                )}
+                  </div>
+                  {ex.message && (tab === 'sent' || tab === 'received') && (
+                    <p className="exchange-card-message">"{ex.message}"</p>
+                  )}
                 </div>
 
               )
