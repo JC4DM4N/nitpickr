@@ -195,6 +195,7 @@
   background: #0f0e0b;
   color: #fff;
   border: none;
+  font-size: 13px !important;
 }
 
 .visit-app-btn:hover {
