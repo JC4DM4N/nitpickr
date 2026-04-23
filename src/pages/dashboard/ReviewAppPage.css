@@ -240,6 +240,7 @@
   .review-app-main  { order: 1; }
   .review-app-actions { order: 2; }
   .review-app-sidebar { order: 3; width: 100%; }
+  .review-app-actions--top { order: 0; }
   .review-app-header {
     padding: 20px 24px 24px;
   }
@@ -291,6 +292,7 @@
   .review-app-main    { order: 1; }
   .review-app-sidebar { order: 2; }
   .review-app-actions { order: 3; }
+  .review-app-actions--top { order: 0; padding: 12px 16px; }
 
   .review-app-name {
     font-size: 20px;
@@ -471,7 +473,7 @@
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--mono);
