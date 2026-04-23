@@ -233,6 +233,33 @@ def reject_review(
     if not review.is_exchange:
         current_user.escrow_credits -= app.credits
         current_user.credits += app.credits
+    else:
+        # Cancel the exchange and handle the sibling review
+        exchange = db.query(models.FeedbackExchange).filter(
+            models.FeedbackExchange.id == review.exchange_id
+        ).first()
+        if exchange:
+            exchange.status = "rejected"
+            other_review_id = (
+                exchange.review_of_requestee if review.id == exchange.review_of_requester
+                else exchange.review_of_requester
+            )
+            if other_review_id:
+                other_review = db.query(models.Review).filter(
+                    models.Review.id == other_review_id
+                ).first()
+                if other_review and not other_review.is_expired and not other_review.is_rejected:
+                    if other_review.is_complete:
+                        # Other side already accepted: rejecter earns a credit,
+                        # funded by the reviewer whose review was rejected (if they have any)
+                        current_user.credits += 1
+                        if reviewer.credits > 0:
+                            reviewer.credits -= 1
+                    else:
+                        # Other side still in progress: expire it, no credit exchange
+                        other_review.is_expired = True
+                        other_review.reviewer_deadline = None
+                        other_review.owner_deadline = None
     create_notification(
         db, reviewer.id, "review_rejected",
         f"{current_user.username} rejected your review of {app.name}",

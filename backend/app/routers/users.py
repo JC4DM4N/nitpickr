@@ -25,6 +25,7 @@ def get_my_credits(
         .filter(
             models.Review.reviewer_id == current_user.id,
             models.Review.is_complete == True,
+            models.Review.is_exchange == False,
         )
         .all()
     )
@@ -37,6 +38,7 @@ def get_my_credits(
         .filter(
             models.App.owner_id == current_user.id,
             models.Review.is_complete == True,
+            models.Review.is_exchange == False,
         )
         .all()
     )
