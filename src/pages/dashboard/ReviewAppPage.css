@@ -437,6 +437,62 @@
   color: #16a34a;
 }
 
+/* ── Validation modal ── */
+.validation-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.validation-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 32px;
+  max-width: 380px;
+  width: calc(100% - 48px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.validation-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f0e0b;
+  margin: 0;
+}
+
+.validation-modal-body {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.validation-modal-dismiss {
+  margin-top: 6px;
+  align-self: flex-end;
+  padding: 8px 20px;
+  background: #0f0e0b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.validation-modal-dismiss:hover {
+  opacity: 0.8;
+}
+
 /* ── Error ── */
 .review-app-error {
   font-size: 13px;
@@ -660,6 +716,35 @@
 .rubric-input:disabled {
   opacity: 0.7;
   cursor: default;
+}
+
+.rubric-label--error {
+  color: #dc2626;
+}
+
+.rubric-error-hint {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.rubric-options--error .rubric-option:not(.selected) {
+  border-color: #fecaca;
+}
+
+.rubric-input--error {
+  border-color: #fca5a5;
+}
+
+.rubric-input--error:focus {
+  border-color: #dc2626;
+}
+
+.review-feedback-input--error {
+  border-color: #fca5a5;
+}
+
+.review-feedback-input--error:focus {
+  border-color: #dc2626;
 }
 
 /* ── Rubric summary (owner view) ── */

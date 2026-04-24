@@ -20,6 +20,8 @@ export default function ReviewAppPage() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
+  const [showValidation, setShowValidation] = useState(false)
+  const [showValidationModal, setShowValidationModal] = useState(false)
   const [expandedImg, setExpandedImg] = useState(null)
   const [messages, setMessages] = useState([])
   const [msgInput, setMsgInput] = useState('')
@@ -87,6 +89,12 @@ export default function ReviewAppPage() {
   }
 
   async function handleSubmit() {
+    const invalid = feedback.trim().length < 200 || !testedPlatform || !testDuration.trim() || createdAccount === ''
+    if (invalid) {
+      setShowValidation(true)
+      setShowValidationModal(true)
+      return
+    }
     setSaving(true)
     setError(null)
     try {
@@ -186,6 +194,15 @@ export default function ReviewAppPage() {
   return (
     <div className="review-app-page">
       <ImageLightbox src={expandedImg} onClose={() => setExpandedImg(null)} />
+      {showValidationModal && (
+        <div className="validation-modal-overlay" onClick={() => setShowValidationModal(false)}>
+          <div className="validation-modal" onClick={e => e.stopPropagation()}>
+            <p className="validation-modal-title">Submission failed</p>
+            <p className="validation-modal-body">Please fill in all required fields before submitting.</p>
+            <button className="validation-modal-dismiss" onClick={() => setShowValidationModal(false)}>Dismiss</button>
+          </div>
+        </div>
+      )}
       <div className="review-app-header">
         <button className="review-app-back" onClick={() => navigate('/reviews')}>← Back to reviews</button>
         <div className="review-app-title-row">
@@ -232,7 +249,7 @@ export default function ReviewAppPage() {
           <button
             className="review-submit-btn"
             onClick={handleSubmit}
-            disabled={saving || detail.is_complete || detail.is_submitted || detail.is_rejected || feedback.trim().length < 200 || !testedPlatform || !testDuration.trim() || createdAccount === ''}
+            disabled={saving}
           >
             {saving ? 'Submitting…'
               : detail.is_complete ? 'Approved'
@@ -273,8 +290,8 @@ export default function ReviewAppPage() {
             <p className="review-section-label">FEEDBACK</p>
             <div className="rubric-fields">
               <div className="rubric-field">
-                <label className="rubric-label">What platform did you test on?</label>
-                <div className="rubric-options">
+                <label className={`rubric-label${showValidation && !testedPlatform ? ' rubric-label--error' : ''}`}>What platform did you test on?{showValidation && !testedPlatform && <span className="rubric-error-hint"> — required</span>}</label>
+                <div className={`rubric-options${showValidation && !testedPlatform ? ' rubric-options--error' : ''}`}>
                   {['mobile', 'web'].map(opt => (
                     <button
                       key={opt}
@@ -289,9 +306,9 @@ export default function ReviewAppPage() {
                 </div>
               </div>
               <div className="rubric-field">
-                <label className="rubric-label">How long did you test the app for?</label>
+                <label className={`rubric-label${showValidation && !testDuration.trim() ? ' rubric-label--error' : ''}`}>How long did you test the app for?{showValidation && !testDuration.trim() && <span className="rubric-error-hint"> — required</span>}</label>
                 <input
-                  className="rubric-input"
+                  className={`rubric-input${showValidation && !testDuration.trim() ? ' rubric-input--error' : ''}`}
                   type="text"
                   placeholder="e.g. 20 minutes"
                   value={testDuration}
@@ -300,8 +317,8 @@ export default function ReviewAppPage() {
                 />
               </div>
               <div className="rubric-field">
-                <label className="rubric-label">Did you create an account?</label>
-                <div className="rubric-options">
+                <label className={`rubric-label${showValidation && createdAccount === '' ? ' rubric-label--error' : ''}`}>Did you create an account?{showValidation && createdAccount === '' && <span className="rubric-error-hint"> — required</span>}</label>
+                <div className={`rubric-options${showValidation && createdAccount === '' ? ' rubric-options--error' : ''}`}>
                   {[['true', 'Yes'], ['false', 'No']].map(([val, label]) => (
                     <button
                       key={val}
@@ -319,9 +336,9 @@ export default function ReviewAppPage() {
           </section>
 
           <section className="review-section">
-            <p className="rubric-label">Your Feedback</p>
+            <p className={`rubric-label${showValidation && feedback.trim().length < 200 ? ' rubric-label--error' : ''}`}>Your Feedback{showValidation && feedback.trim().length < 200 && <span className="rubric-error-hint"> — minimum 200 characters</span>}</p>
             <textarea
-              className="review-feedback-input"
+              className={`review-feedback-input${showValidation && feedback.trim().length < 200 ? ' review-feedback-input--error' : ''}`}
               placeholder="Write your honest, constructive feedback here…"
               value={feedback}
               onChange={e => setFeedback(e.target.value)}
