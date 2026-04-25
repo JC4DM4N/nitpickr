@@ -129,6 +129,10 @@
   align-items: center;
 }
 
+.exchange-profile-btn:hover {
+  background: #fafaf8;
+}
+
 .exchange-decline-btn {
   padding: 7px 14px;
   border-radius: 8px;

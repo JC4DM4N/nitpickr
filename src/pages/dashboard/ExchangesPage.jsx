@@ -236,6 +236,14 @@ export default function ExchangesPage() {
                     </div>
 
                     <div className="exchange-card-actions">
+                      {(tab === 'sent' || tab === 'received') && (
+                        <button
+                          className="exchange-review-btn"
+                          onClick={() => navigate(`/${ex.requester_id === currentUser.id ? ex.requestee_username : ex.requester_username}`)}
+                        >
+                          {ex.requester_id === currentUser.id ? ex.requestee_username : ex.requester_username} →
+                        </button>
+                      )}
                       {isPendingReceived && (
                         <>
                           <button className="exchange-decline-btn" onClick={() => handleReject(ex)}>Decline</button>
