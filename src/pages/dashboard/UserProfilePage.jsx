@@ -68,14 +68,12 @@ export default function UserProfilePage() {
               .filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired)
               .map((r) => r.app_id),
           );
-          const allReviewedIds = new Set(
-            myReviews.filter((r) => !r.is_expired).map((r) => r.app_id),
+          const completedReviewedIds = new Set(
+            myReviews.filter((r) => r.is_complete).map((r) => r.app_id),
           );
-          appsData = appsData.filter((a) => {
-            if (activeReviewedIds.has(a.id)) return false;
-            if (!a.is_multi_review && allReviewedIds.has(a.id)) return false;
-            return true;
-          });
+          appsData = appsData
+            .filter((a) => !activeReviewedIds.has(a.id))
+            .map((a) => ({ ...a, _alreadyReviewed: completedReviewedIds.has(a.id) }));
           // exchangeData may be null (no active exchange) or an object
           setExchange(exchangeData ?? null);
           setMyApps(Array.isArray(myAppsData) ? myAppsData : []);
@@ -358,6 +356,8 @@ function ShareBox({ username }) {
 function AppCard({ app, isOwnApp, isLoggedIn, hasCredits, ownerUsername, onReview }) {
   const stage = STAGE_STYLES[app.stage];
   return (
+    <div className="app-card-wrap">
+      {!isOwnApp && app._alreadyReviewed && <div className="app-own-banner"><span className="app-already-reviewed-badge">Already reviewed</span></div>}
     <div className="app-card">
       <div className="app-card-header">
         <div className="app-icon" style={{ background: app.color }}>
@@ -413,6 +413,7 @@ function AppCard({ app, isOwnApp, isLoggedIn, hasCredits, ownerUsername, onRevie
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

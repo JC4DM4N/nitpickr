@@ -50,15 +50,11 @@ export default function ExplorePage() {
         if (creditsData.available === 0) setShowNoCreditsModal(true);
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const activeReviewedIds = new Set(myReviews.filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired).map((r) => r.app_id));
-        const allReviewedIds = new Set(myReviews.filter((r) => !r.is_expired).map((r) => r.app_id));
+        const completedReviewedIds = new Set(myReviews.filter((r) => r.is_complete).map((r) => r.app_id));
         setApps(
           allApps
-            .filter((a) => {
-              if (activeReviewedIds.has(a.id)) return false;
-              if (!a.is_multi_review && allReviewedIds.has(a.id)) return false;
-              return true;
-            })
-            .map((a) => ({ ...a, _isOwn: a.owner_id === user.id })),
+            .filter((a) => !activeReviewedIds.has(a.id))
+            .map((a) => ({ ...a, _isOwn: a.owner_id === user.id, _alreadyReviewed: completedReviewedIds.has(a.id) })),
         );
         setAppsLoading(false);
       })
@@ -271,6 +267,7 @@ function AppCard({ app, onReview }) {
   return (
     <div className="app-card-wrap">
       {app._isOwn && <div className="app-own-banner"><span className="app-own-badge">Your app</span></div>}
+      {!app._isOwn && app._alreadyReviewed && <div className="app-own-banner"><span className="app-already-reviewed-badge">Already reviewed</span></div>}
       <div className={`app-card${inactive ? ' app-card--inactive' : ''}`}>
         <div className="app-card-header">
           <div className="app-icon" style={{ background: app.color }}>{app.initials}</div>

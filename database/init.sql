@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS apps (
     request     TEXT       NOT NULL,
     credits         INTEGER      NOT NULL DEFAULT 1,
     is_hidden       BOOLEAN      NOT NULL DEFAULT FALSE,
-    is_multi_review BOOLEAN      NOT NULL DEFAULT FALSE,
+    is_multi_review BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
