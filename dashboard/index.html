@@ -192,6 +192,14 @@
     </div>
 
     <div class="card">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px">
+        <div class="card-title" style="margin-bottom:0">Total Users</div>
+        <div id="cumulative-users-total" style="font-size:1.1rem;font-weight:700;color:#818cf8"></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-users-cumulative"></canvas></div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Active Reviews</div>
       <div class="table-scroll">
         <table>
@@ -228,7 +236,7 @@
       </div>
     </div>
 
-    <div class="card" style="grid-column: 1 / -1">
+    <div class="card">
       <div class="card-title">Apps</div>
       <div class="table-scroll">
         <table>
@@ -351,6 +359,40 @@
       // Charts
       if (Array.isArray(users) && users.length) {
         makeChart('chart-users', users.map(r => fmt(r.day)), users.map(r => r.count), '#818cf8');
+
+        // Cumulative users chart
+        let running = 0;
+        const cumulative = users.map(r => { running += parseInt(r.count); return running; });
+        const total = running;
+        document.getElementById('cumulative-users-total').textContent = total;
+        new Chart(document.getElementById('chart-users-cumulative'), {
+          type: 'line',
+          data: {
+            labels: users.map(r => fmt(r.day)),
+            datasets: [{
+              data: cumulative,
+              borderColor: '#818cf8',
+              backgroundColor: '#818cf820',
+              borderWidth: 2,
+              pointRadius: 2,
+              fill: true,
+              tension: 0.3,
+            }],
+          },
+          options: {
+            ...CHART_DEFAULTS,
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              ...CHART_DEFAULTS.plugins,
+              tooltip: {
+                callbacks: {
+                  label: ctx => ' ' + ctx.parsed.y + ' users',
+                },
+              },
+            },
+          },
+        });
       }
       if (Array.isArray(reviews) && reviews.length) {
         makeChart('chart-reviews', reviews.map(r => fmt(r.day)), reviews.map(r => r.count), '#34d399');

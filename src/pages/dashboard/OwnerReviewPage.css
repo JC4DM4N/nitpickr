@@ -5,11 +5,10 @@
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--mono);
-  white-space: nowrap;
   transition: opacity 0.12s;
 }
 
@@ -33,7 +32,6 @@
   cursor: pointer;
   font-family: var(--mono);
   transition: background 0.12s;
-  white-space: nowrap;
 }
 
 .owner-request-btn:hover {
@@ -51,7 +49,6 @@
   cursor: pointer;
   font-family: var(--mono);
   transition: background 0.12s;
-  white-space: nowrap;
 }
 
 .owner-reject-btn:hover {
@@ -62,6 +59,20 @@
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+@media (max-width: 640px) {
+  .review-app-actions {
+    flex-wrap: nowrap;
+  }
+
+  .owner-approve-btn,
+  .owner-reject-btn,
+  .owner-request-btn {
+    flex: 1;
+    text-align: center;
+    line-height: 1.3;
+  }
 }
 
 /* ── Screenshot lightbox ── */
