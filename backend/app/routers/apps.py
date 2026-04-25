@@ -187,7 +187,7 @@ def approve_review(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username, current_user.username)
 
 
 @router.post("/{app_id}/reviews/{review_id}/request-changes", response_model=schemas.ReviewDetail)
@@ -214,7 +214,7 @@ def request_changes(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username, current_user.username)
 
 
 @router.post("/{app_id}/reviews/{review_id}/reject", response_model=schemas.ReviewDetail)
@@ -269,7 +269,7 @@ def reject_review(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username, current_user.username)
 
 
 def _get_owner_review(app_id, review_id, current_user, db):
@@ -326,7 +326,7 @@ def get_app_review_detail(
         .all()
     ]
     from .reviews import _to_detail
-    return _to_detail(review, app, screenshots, reviewer.username)
+    return _to_detail(review, app, screenshots, reviewer.username, current_user.username)
 
 
 @router.get("/{app_id}/reviews/{review_id}/messages", response_model=List[schemas.MessageOut])

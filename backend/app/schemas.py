@@ -88,6 +88,7 @@ class ReviewDetail(BaseModel):
     feedback: str | None
     screenshots: list[dict]
     reviewer_username: str
+    owner_username: str
     tested_platform: str | None
     test_duration: str | None
     created_account: bool | None

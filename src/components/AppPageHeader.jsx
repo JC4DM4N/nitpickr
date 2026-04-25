@@ -16,14 +16,12 @@ export function AppPageHeader({ backLabel, onBack, color, initials, name, stage,
         </div>
         <div className="header-actions">
           {actions}
-          <a
-            href={url.startsWith('http') ? url : `https://${url}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
             className="header-action-btn visit-app-btn"
+            onClick={() => window.open(url.startsWith('http') ? url : `https://${url}`, '_blank', 'noopener,noreferrer')}
           >
             Visit app ↗
-          </a>
+          </button>
         </div>
       </div>
     </div>

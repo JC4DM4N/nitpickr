@@ -202,6 +202,19 @@
   opacity: 0.8;
 }
 
+.owner-profile-btn {
+  flex-shrink: 0;
+  background: #fff;
+  color: #0f0e0b;
+  border: 1.5px solid #0f0e0b;
+  font-size: 13px !important;
+  cursor: pointer;
+}
+
+.owner-profile-btn:hover {
+  background: #f5f4f0;
+}
+
 /* ── Body ── */
 .review-app-body {
   display: grid;

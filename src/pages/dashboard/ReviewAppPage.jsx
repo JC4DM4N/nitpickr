@@ -227,14 +227,18 @@ export default function ReviewAppPage() {
             </div>
           </div>
           <div className="header-actions">
-            <a
-              href={detail.app_url.startsWith('http') ? detail.app_url : `https://${detail.app_url}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              className="header-action-btn owner-profile-btn"
+              onClick={() => navigate(`/${detail.owner_username}`)}
+            >
+              See {detail.owner_username}'s apps →
+            </button>
+            <button
               className="header-action-btn visit-app-btn"
+              onClick={() => window.open(detail.app_url.startsWith('http') ? detail.app_url : `https://${detail.app_url}`, '_blank', 'noopener,noreferrer')}
             >
               Visit app ↗
-            </a>
+            </button>
           </div>
         </div>
       </div>
