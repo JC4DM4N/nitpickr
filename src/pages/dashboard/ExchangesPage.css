@@ -44,6 +44,20 @@
   gap: 12px;
 }
 
+.exchange-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.exchange-card-profile-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
 .exchange-card-apps {
   display: flex;
   align-items: center;
@@ -288,13 +302,31 @@
     padding: 16px;
   }
 
-  .exchange-card-apps {
+  .exchange-card-main {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .exchange-card-top {
+    justify-content: space-between;
+  }
+
+  .exchange-card-apps {
+    justify-content: space-between;
+    flex: 1;
     gap: 8px;
   }
 
-  .exchange-arrow {
-    transform: rotate(90deg);
+  .exchange-card-actions {
+    flex-wrap: wrap;
+  }
+
+  .exchange-review-links {
+    align-items: flex-start;
+  }
+
+  .exchange-review-link-row {
+    flex-wrap: wrap;
   }
 }
