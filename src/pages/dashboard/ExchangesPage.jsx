@@ -37,6 +37,7 @@ export default function ExchangesPage() {
   const [acceptAppId, setAcceptAppId] = useState("");
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState(null);
+  const [declineModal, setDeclineModal] = useState(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -156,6 +157,32 @@ export default function ExchangesPage() {
 
   return (
     <div className="exchanges-page">
+      {declineModal && (
+        <div className="modal-overlay" onClick={() => setDeclineModal(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setDeclineModal(null)}>✕</button>
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">Decline exchange request?</div>
+              </div>
+            </div>
+            <div className="modal-header">
+              <div className="modal-subtitle">
+                <p>
+                  Are you sure you want to decline this feedback exchange request from <strong>{declineModal.requester_username}</strong>?
+                  They will be notified that you declined.
+                </p>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="modal-btn-cancel" onClick={() => setDeclineModal(null)}>Cancel</button>
+              <button className="modal-btn-start" style={{ background: '#dc2626' }} onClick={() => { handleReject(declineModal); setDeclineModal(null); }}>
+                Decline →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {acceptModal && (
         <div className="modal-overlay" onClick={() => setAcceptModal(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -172,6 +199,15 @@ export default function ExchangesPage() {
                   {acceptModal.requester_username} will review{" "}
                   <strong>{acceptModal.requester_app_name}</strong>
                 </div>
+              </div>
+            </div>
+            <div className="modal-header">
+              <div className="modal-subtitle">
+                <p>
+                  You are about to begin a direct feedback exchange with <strong>{acceptModal.requester_username}</strong>.
+                  They will review one of your apps, and you will review <strong>{acceptModal.requester_app_name}</strong> in return.
+                  Once accepted, you will both have 48 hours to submit your feedback.
+                </p>
               </div>
             </div>
             {acceptModal.message && (
@@ -209,7 +245,7 @@ export default function ExchangesPage() {
                   setAcceptAppId("");
                 }}
               >
-                Decline
+                Cancel
               </button>
               <button
                 className="modal-btn-start"
@@ -224,7 +260,7 @@ export default function ExchangesPage() {
       )}
 
       <div className="exchanges-header">
-        <h1 className="exchanges-title">Exchanges</h1>
+        <h1 className="exchanges-title">Feedback Exchanges</h1>
       </div>
       <div className="exchanges-body">
         <div className="reviews-tabs">
@@ -369,7 +405,7 @@ export default function ExchangesPage() {
                           <>
                             <button
                               className="exchange-decline-btn"
-                              onClick={() => handleReject(ex)}
+                              onClick={() => setDeclineModal(ex)}
                             >
                               Decline
                             </button>
