@@ -11,6 +11,7 @@ export default function LandingPage() {
       <Nav onLogin={onLogin} onSignUp={onSignUp ?? onGetStarted} />
       <Hero onGetStarted={onGetStarted} />
       <HowItWorks />
+      <HowItWorksExchanges />
       <Features />
       {/* <Testimonials /> */}
       <CTA onGetStarted={onGetStarted} />
@@ -27,7 +28,7 @@ export function Nav({ onLogin, onSignUp }) {
           <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
         </a>
         <div className="nav-links">
-          <a href="/how-it-works">How it works</a>
+          <a href="#how-it-works">How it works</a>
           <a href="#features">Features</a>
         </div>
         <div className="nav-actions">
@@ -180,6 +181,58 @@ export function HowItWorks({ white, links }) {
               key={i}
               className={`step${link ? ' step--clickable' : ''}`}
               onClick={link ? () => navigate(link) : undefined}
+            >
+              <div className="step-number">{step.number}</div>
+              <div className="step-icon">{step.icon}</div>
+              <h3>{step.title}</h3>
+              <p>{step.desc}</p>
+              {i < steps.length - 1 && <div className="step-connector" />}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export function HowItWorksExchanges({ white, links }) {
+  const navigate = useNavigate();
+  const steps = [
+    {
+      number: "01",
+      icon: "🤝",
+      title: "Find a developer",
+      desc: "Browse other developers on the Explore page and find someone whose app you'd like to try.",
+    },
+    {
+      number: "02",
+      icon: "📨",
+      title: "Request an exchange",
+      desc: "Send a feedback exchange request, selecting which of your apps you'd like them to review in return.",
+    },
+    {
+      number: "03",
+      icon: "⇄",
+      title: "Both review each other",
+      desc: "Once accepted, you both have 48 hours to submit your feedback. No credits needed — it's a direct swap.",
+    },
+  ];
+
+  return (
+    <section id="exchanges" className={`section${white ? '' : ' how-it-works-section'}`}>
+      <div className="section-label">Feedback exchanges</div>
+      <h2 className="section-title">Skip the credits. Go direct.</h2>
+      <p className="section-sub">
+        Feedback exchanges let you swap reviews one-to-one with another developer — no credits required.
+      </p>
+      <div className="steps">
+        {steps.map((step, i) => {
+          const link = links?.[i];
+          return (
+            <div
+              key={i}
+              className={`step${link ? ' step--clickable' : ''}`}
+              onClick={link ? () => navigate(typeof link === 'string' ? link : link.to, link?.state ? { state: link.state } : undefined) : undefined}
             >
               <div className="step-number">{step.number}</div>
               <div className="step-icon">{step.icon}</div>
@@ -369,7 +422,7 @@ export function Footer() {
         <div className="footer-links">
           <div className="footer-col">
             <h4>Product</h4>
-            <a href="/how-it-works">How it works</a>
+            <a href="#how-it-works">How it works</a>
             <a href="#features">Features</a>
           </div>
           <div className="footer-col">
