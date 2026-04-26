@@ -207,12 +207,12 @@ export default function UserProfilePage() {
                   Share this page so others can discover and review your apps.
                 </p>
               )}
-              {!isOwnProfile && !loading && !hasCredits && (
+              {/* {!isOwnProfile && !loading && !hasCredits && (
                 <p className="profile-no-credits-banner">
                   {username} has no credits available — you cannot start new reviews
                   for their apps right now.
                 </p>
-              )}
+              )} */}
               <div className="profile-meta-row">
                 {isOwnProfile && !editing && (
                   <button className="profile-edit-btn" onClick={startEditing}>Edit profile</button>
