@@ -195,6 +195,7 @@ def _expire_exchanges():
         )
         for review in expired_exchange_reviews:
             review.is_expired = True
+            review.is_exchange = False
             review.reviewer_deadline = None
 
             app = db.query(models.App).filter(models.App.id == review.app_id).first()

@@ -227,10 +227,12 @@ def reject_review(
 ):
     app, review = _get_owner_review(app_id, review_id, current_user, db)
     reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
+    was_exchange = review.is_exchange
     review.is_rejected = True
+    review.is_exchange = False
     review.owner_message = payload.message
     review.owner_deadline = None
-    if not review.is_exchange:
+    if not was_exchange:
         current_user.escrow_credits -= app.credits
         current_user.credits += app.credits
     else:
@@ -249,6 +251,7 @@ def reject_review(
                     models.Review.id == other_review_id
                 ).first()
                 if other_review and not other_review.is_expired and not other_review.is_rejected:
+                    other_review.is_exchange = False
                     if other_review.is_complete:
                         # Other side already accepted: rejecter earns a credit,
                         # funded by the reviewer whose review was rejected (if they have any)
