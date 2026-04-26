@@ -93,6 +93,8 @@ class ReviewDetail(BaseModel):
     test_duration: str | None
     created_account: bool | None
     is_exchange: bool
+    sibling_is_complete: bool | None = None
+    sibling_app_name: str | None = None
 
 
 class ReviewPatch(BaseModel):

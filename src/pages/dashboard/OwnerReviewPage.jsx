@@ -110,6 +110,13 @@ export default function OwnerReviewPage() {
           action={modal}
           onConfirm={msg => handleAction(modal, msg)}
           onClose={() => setModal(null)}
+          description={modal === 'reject' ? (
+            !detail.is_exchange
+              ? 'You are about to reject this review. Your credit will be removed from escrow and returned to your account.'
+              : detail.sibling_is_complete
+                ? `You are about to reject this review. As your review of ${detail.sibling_app_name} has already been accepted, your account will be awarded 1 credit.`
+                : 'You are about to reject this review. The feedback exchange will be cancelled.'
+          ) : undefined}
         />
       )}
 

@@ -407,7 +407,15 @@ def _to_out(review: models.Review, app: models.App) -> schemas.ReviewOut:
     )
 
 
-def _to_detail(review: models.Review, app: models.App, screenshots: list, reviewer_username: str, owner_username: str) -> schemas.ReviewDetail:
+def _to_detail(
+    review: models.Review,
+    app: models.App,
+    screenshots: list,
+    reviewer_username: str,
+    owner_username: str,
+    sibling_is_complete: bool | None = None,
+    sibling_app_name: str | None = None,
+) -> schemas.ReviewDetail:
     return schemas.ReviewDetail(
         id=review.id,
         app_id=review.app_id,
@@ -435,4 +443,6 @@ def _to_detail(review: models.Review, app: models.App, screenshots: list, review
         test_duration=review.test_duration,
         created_account=review.created_account,
         is_exchange=review.is_exchange,
+        sibling_is_complete=sibling_is_complete,
+        sibling_app_name=sibling_app_name,
     )

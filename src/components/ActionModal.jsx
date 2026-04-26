@@ -22,7 +22,7 @@ const MODAL_CONFIG = {
   },
 }
 
-export function ActionModal({ action, onConfirm, onClose }) {
+export function ActionModal({ action, onConfirm, onClose, description }) {
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
@@ -45,6 +45,7 @@ export function ActionModal({ action, onConfirm, onClose }) {
       <div className="modal-card" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
         <p className="modal-title">{config.title}</p>
+        {description && <p className="modal-description" style={{ padding: '0 0 12px', color: '#6b7280', fontSize: 14, lineHeight: 1.5 }}>{description}</p>}
         <textarea
           className="modal-action-input"
           placeholder={config.placeholder}

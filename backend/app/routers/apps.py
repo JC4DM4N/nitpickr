@@ -300,6 +300,28 @@ def _get_screenshots(review_id, db):
     ]
 
 
+def _get_sibling_info(review: models.Review, db) -> tuple:
+    """Return (sibling_is_complete, sibling_app_name) for exchange reviews, else (None, None)."""
+    if not review.is_exchange or not review.exchange_id:
+        return None, None
+    exchange = db.query(models.FeedbackExchange).filter(
+        models.FeedbackExchange.id == review.exchange_id
+    ).first()
+    if not exchange:
+        return None, None
+    sibling_id = (
+        exchange.review_of_requestee if exchange.review_of_requester == review.id
+        else exchange.review_of_requester
+    )
+    if not sibling_id:
+        return None, None
+    sibling = db.query(models.Review).filter(models.Review.id == sibling_id).first()
+    if not sibling:
+        return None, None
+    sibling_app = db.query(models.App).filter(models.App.id == sibling.app_id).first()
+    return sibling.is_complete, (sibling_app.name if sibling_app else None)
+
+
 @router.get("/{app_id}/reviews/{review_id}", response_model=schemas.ReviewDetail)
 def get_app_review_detail(
     app_id: int,
@@ -328,8 +350,10 @@ def get_app_review_detail(
         .order_by(models.ReviewScreenshot.created_at)
         .all()
     ]
+    sibling_is_complete, sibling_app_name = _get_sibling_info(review, db)
     from .reviews import _to_detail
-    return _to_detail(review, app, screenshots, reviewer.username, current_user.username)
+    return _to_detail(review, app, screenshots, reviewer.username, current_user.username,
+                      sibling_is_complete=sibling_is_complete, sibling_app_name=sibling_app_name)
 
 
 @router.get("/{app_id}/reviews/{review_id}/messages", response_model=List[schemas.MessageOut])
