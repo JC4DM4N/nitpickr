@@ -8,6 +8,27 @@
   padding: 40px 48px 32px;
 }
 
+.exchanges-explore-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.exchanges-explore-link:hover {
+  opacity: 0.75;
+}
+
+.exchanges-sub {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 6px 0 0;
+}
+
 .exchanges-title {
   font-size: clamp(24px, 3vw, 36px);
   font-weight: 800;

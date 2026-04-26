@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./ExplorePage.css";
 import { STAGE_STYLES, CATEGORIES, STAGES } from "../../constants";
 import { authFetch } from "../../utils/authFetch";
@@ -18,7 +18,8 @@ function IconSearch() {
 
 export default function ExplorePage() {
   const navigate = useNavigate();
-  const [mainTab, setMainTab] = useState("apps");
+  const location = useLocation();
+  const [mainTab, setMainTab] = useState(location.state?.tab ?? "apps");
 
   // ── Apps state ─────────────────────────────────────────────────────────────
   const [apps, setApps] = useState([]);
@@ -69,6 +70,10 @@ export default function ExplorePage() {
       .then((data) => { setUsers(Array.isArray(data) ? data : []); setUsersLoading(false); setUsersLoaded(true); })
       .catch(() => { setUsersError("Failed to load users"); setUsersLoading(false); });
   }
+
+  useEffect(() => {
+    if (mainTab === "users") loadUsers();
+  }, []);
 
   function handleTabChange(tab) {
     setMainTab(tab);

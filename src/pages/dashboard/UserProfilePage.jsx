@@ -493,7 +493,8 @@ function ExchangeModal({ mode, username, myApps, onClose, onLogin, onSignup, onE
           <div className="modal-subtitle">
             <p>
             You are about to offer to give feedback on one of <strong>{username}</strong>'s apps in exchange for 
-            feedback on one of your own. If they accept, you will both have 48 hours to submit your feedback.
+            feedback on one of your own. If they accept, you will both have 48 hours to submit your feedback on each
+            others apps.
             </p>
             <br/>
             <p>

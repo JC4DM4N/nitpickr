@@ -261,6 +261,7 @@ export default function ExchangesPage() {
 
       <div className="exchanges-header">
         <h1 className="exchanges-title">Feedback Exchanges</h1>
+        <p className="exchanges-sub">Direct feedback-for-feedback exchanges with other developers</p>
       </div>
       <div className="exchanges-body">
         <div className="reviews-tabs">
@@ -279,7 +280,12 @@ export default function ExchangesPage() {
         {loading && <p className="reviews-empty">Loading…</p>}
         {error && <p className="reviews-empty">{error}</p>}
         {!loading && !error && list.length === 0 && (
-          <p className="reviews-empty">{emptyMsg[tab]}</p>
+          <p className="reviews-empty">
+            {emptyMsg[tab]}<br />
+            <button className="exchanges-explore-link" onClick={() => navigate('/explore', { state: { tab: 'users' } })}>
+              Explore other users and request a feedback exchange with them →
+            </button>
+          </p>
         )}
 
         {!loading && !error && list.length > 0 && (
