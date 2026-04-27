@@ -323,7 +323,7 @@ export default function UserProfilePage() {
 
 function ShareBox({ username }) {
   const profileUrl = `https://nitpickr.dev/${username}`
-  const shareMessage = `Hey! I just submitted my apps on NitPickr. Leave some feedback and I'll review your app in return.\n\nCheck it out: ${profileUrl}`
+  const shareMessage = `I just submitted my apps on NitPickr. I will give feedback on your app if you give feedback on mine.\n\nRequest an exchange here: ${profileUrl}`
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [copiedMsg, setCopiedMsg] = useState(false)
 
