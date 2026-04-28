@@ -132,6 +132,7 @@ export default function ExplorePage() {
         <div className="explore-hero">
           <h1 className="explore-title">Explore</h1>
           <p className="explore-sub">Give honest feedback. Earn credits. Get better feedback on your own apps.</p>
+          <button className="btn-submit-app btn-submit-app--mobile" onClick={() => navigate("/my-apps/new")}>+ Submit your app</button>
           <div className="explore-search-row">
             <div className="explore-search">
               <IconSearch />
@@ -142,11 +143,14 @@ export default function ExplorePage() {
                 onChange={(e) => mainTab === "apps" ? setSearch(e.target.value) : setUserSearch(e.target.value)}
               />
             </div>
-            <button className="btn-submit-app" onClick={() => navigate("/my-apps/new")}>+ Submit your app</button>
           </div>
           <div className="explore-main-tabs">
-            <button className={`explore-main-tab${mainTab === "apps" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("apps")}>Apps</button>
-            <button className={`explore-main-tab${mainTab === "users" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("users")}>Users</button>
+            <button className="btn-submit-app btn-submit-app--desktop" onClick={() => navigate("/my-apps/new")}>+ Submit your app</button>
+            <div className="explore-tabs-group">
+              <button className={`explore-main-tab${mainTab === "apps" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("apps")}>Apps</button>
+              <button className={`explore-main-tab${mainTab === "users" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("users")}>Users</button>
+            </div>
+            <div className="explore-tabs-spacer" />
           </div>
         </div>
 

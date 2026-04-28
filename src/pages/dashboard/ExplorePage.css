@@ -201,10 +201,29 @@
 
 /* ── Explore main tabs ── */
 .explore-main-tabs {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
   margin-top: 24px;
+}
+
+.explore-tabs-group {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.explore-tabs-spacer {
+  display: block;
+}
+
+.btn-submit-app--desktop {
+  justify-self: start;
+}
+
+.btn-submit-app--mobile {
+  display: none;
 }
 
 .explore-main-tab {
@@ -343,12 +362,31 @@
 
   .explore-search {
     width: 100%;
+    margin-bottom: 20px;
   }
 
   .btn-submit-app {
     width: 100%;
     justify-content: center;
     height: 44px;
+  }
+
+  .btn-submit-app--mobile {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    height: 44px;
+    margin-bottom: 20px;
+  }
+
+  .btn-submit-app--desktop {
+    display: none;
+  }
+
+  .explore-main-tabs {
+    display: flex;
+    justify-content: center;
+    margin-top: 0;
   }
 
   .explore-body {
