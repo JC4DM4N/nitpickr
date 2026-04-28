@@ -131,12 +131,13 @@ def list_my_apps(
 
 @router.get("/", response_model=List[schemas.AppOut])
 def list_apps(db: Session = Depends(get_db)):
-    # Join latest review date per app, sort nulls first then oldest review first
+    # Join latest completed review date per app, sort nulls first then oldest review first
     latest_review = (
         db.query(
             models.Review.app_id,
             func.max(models.Review.created_date).label("last_reviewed"),
         )
+        .filter(models.Review.is_complete == True)
         .group_by(models.Review.app_id)
         .subquery()
     )
