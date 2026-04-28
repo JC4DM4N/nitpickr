@@ -66,12 +66,17 @@ app.get('/api/active-reviews', async (req, res) => {
         r.review_requested,
         r.feedback,
         r.owner_message,
-        a.request AS app_request
+        a.request AS app_request,
+        COALESCE(
+          (SELECT json_agg(json_build_object('sender', u_s.username, 'body', m.body, 'created_at', m.created_at) ORDER BY m.created_at ASC)
+           FROM messages m JOIN users u_s ON m.sender_id = u_s.id WHERE m.review_id = r.id),
+          '[]'::json
+        ) AS messages
       FROM reviews r
       JOIN apps a ON r.app_id = a.id
       JOIN users u_reviewer ON r.reviewer_id = u_reviewer.id
       JOIN users u_owner ON a.owner_id = u_owner.id
-      WHERE r.is_complete = FALSE AND r.is_rejected = FALSE
+      WHERE r.is_complete = FALSE AND r.is_rejected = FALSE AND r.is_expired = FALSE
       ORDER BY r.created_date DESC
     `);
     res.json(result.rows);
@@ -95,12 +100,51 @@ app.get('/api/completed-reviews', async (req, res) => {
         r.review_requested,
         r.feedback,
         r.owner_message,
-        a.request AS app_request
+        a.request AS app_request,
+        COALESCE(
+          (SELECT json_agg(json_build_object('sender', u_s.username, 'body', m.body, 'created_at', m.created_at) ORDER BY m.created_at ASC)
+           FROM messages m JOIN users u_s ON m.sender_id = u_s.id WHERE m.review_id = r.id),
+          '[]'::json
+        ) AS messages
       FROM reviews r
       JOIN apps a ON r.app_id = a.id
       JOIN users u_reviewer ON r.reviewer_id = u_reviewer.id
       JOIN users u_owner ON a.owner_id = u_owner.id
       WHERE r.is_complete = TRUE
+      ORDER BY r.created_date DESC
+      LIMIT 100
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/failed-reviews', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        r.id,
+        a.name AS app_name,
+        u_reviewer.username AS reviewer,
+        u_owner.username AS app_owner,
+        r.created_date,
+        r.is_rejected,
+        r.is_expired,
+        r.feedback,
+        r.owner_message,
+        a.request AS app_request,
+        COALESCE(
+          (SELECT json_agg(json_build_object('sender', u_s.username, 'body', m.body, 'created_at', m.created_at) ORDER BY m.created_at ASC)
+           FROM messages m JOIN users u_s ON m.sender_id = u_s.id WHERE m.review_id = r.id),
+          '[]'::json
+        ) AS messages
+      FROM reviews r
+      JOIN apps a ON r.app_id = a.id
+      JOIN users u_reviewer ON r.reviewer_id = u_reviewer.id
+      JOIN users u_owner ON a.owner_id = u_owner.id
+      WHERE r.is_rejected = TRUE OR r.is_expired = TRUE
       ORDER BY r.created_date DESC
       LIMIT 100
     `);
