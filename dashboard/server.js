@@ -204,6 +204,34 @@ app.get('/api/credits-in-circulation', async (_req, res) => {
   }
 });
 
+app.get('/api/feedback-exchanges', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        fe.id,
+        fe.status,
+        fe.created_at,
+        fe.expires_at,
+        fe.message,
+        u_requester.username AS requester,
+        u_requestee.username AS requestee,
+        a_requester.name     AS requester_app,
+        a_requestee.name     AS requestee_app
+      FROM feedback_exchanges fe
+      JOIN users u_requester ON fe.requester_id = u_requester.id
+      JOIN users u_requestee ON fe.requestee_id = u_requestee.id
+      JOIN apps  a_requester ON fe.requester_app_id = a_requester.id
+      LEFT JOIN apps a_requestee ON fe.requestee_app_id = a_requestee.id
+      ORDER BY fe.created_at DESC
+      LIMIT 200
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Dashboard running at http://localhost:${PORT}`);
 });

@@ -258,6 +258,25 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Feedback Exchanges</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Requester</th>
+              <th>Requestee</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Deadline</th>
+            </tr>
+          </thead>
+          <tbody id="table-exchanges"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Apps</div>
       <div class="table-scroll">
         <table>
@@ -354,7 +373,7 @@
     }
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -363,6 +382,7 @@
         fetch('/api/credits-in-circulation').then(r => r.json()),
         fetch('/api/app-count').then(r => r.json()),
         fetch('/api/apps').then(r => r.json()),
+        fetch('/api/feedback-exchanges').then(r => r.json()),
       ]);
 
       // Stats
@@ -372,6 +392,40 @@
       document.getElementById('stat-completed').textContent = Array.isArray(completed) ? completed.length : '—';
       document.getElementById('stat-credits').textContent = credits.total ?? '—';
       document.getElementById('stat-apps').textContent = appCount.total ?? '—';
+
+      // Feedback exchanges table
+      const tbExchanges = document.getElementById('table-exchanges');
+      if (!Array.isArray(exchanges) || exchanges.error) {
+        tbExchanges.innerHTML = `<tr><td colspan="6" class="error">${exchanges.error || 'Error loading'}</td></tr>`;
+      } else if (exchanges.length === 0) {
+        tbExchanges.innerHTML = '<tr><td colspan="6" style="color:#64748b;padding:12px 10px">No feedback exchanges</td></tr>';
+      } else {
+        const exchangeStatusBadge = s => {
+          switch ((s || '').toLowerCase()) {
+            case 'complete':   return '<span class="badge badge-green">Complete</span>';
+            case 'active':     return '<span class="badge badge-blue">Active</span>';
+            case 'pending':    return '<span class="badge badge-yellow">Pending</span>';
+            case 'expired':    return '<span class="badge badge-grey">Expired</span>';
+            case 'cancelled':  return '<span class="badge badge-red">Cancelled</span>';
+            default:           return `<span class="badge badge-grey">${s || '—'}</span>`;
+          }
+        };
+        tbExchanges.innerHTML = exchanges.map(e => {
+          const detail =
+            field('Requester App', e.requester_app || '—') +
+            field('Requestee App', e.requestee_app || '—') +
+            field('Message', e.message, true);
+          return `<tr class="data-row">
+            <td>${e.id}</td>
+            <td>${e.requester}</td>
+            <td>${e.requestee}</td>
+            <td>${exchangeStatusBadge(e.status)}</td>
+            <td>${fmt(e.created_at)}</td>
+            <td>${e.expires_at ? fmt(e.expires_at) : '—'}</td>
+          </tr>${expandRow(6, detail)}`;
+        }).join('');
+        attachToggle(tbExchanges);
+      }
 
       // Apps table
       const tbApps = document.getElementById('table-apps');
