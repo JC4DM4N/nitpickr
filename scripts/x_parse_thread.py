@@ -1,23 +1,17 @@
 #!/usr/bin/env python3
 """
-Parse a saved X thread HTML page and extract replies, automatically
-excluding the original poster.
-
-Usage:
-    python x_parse_thread.py data/thread.html
-    python x_parse_thread.py data/thread.html --out data/thread.json
-    python x_parse_thread.py data/thread.html --exclude someuser  # manual override
+Parse data/thread.html and write extracted replies to data/thread.json,
+automatically excluding the original poster.
 
 How to get the HTML:
     Open the thread in your browser, scroll to the bottom to load all replies,
-    then File → Save Page As → "Webpage, HTML Only".
+    then File → Save Page As → "Webpage, HTML Only" → save as data/thread.html.
 
-Output: JSON list of dicts with keys: username, tweet, href
+Output: JSON list of dicts with keys: username, name, tweet, href, thread_href
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import sys
@@ -86,22 +80,18 @@ def parse_thread(html: str, exclude: str = "") -> tuple[list[dict], str]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Parse a saved X thread HTML page.")
-    parser.add_argument("html_file", type=Path, help="Path to saved HTML file")
-    parser.add_argument("--out", type=Path, default=None, help="Output JSON path (default: same name as input)")
-    parser.add_argument("--exclude", default="", help="Override the auto-detected original poster username")
-    args = parser.parse_args()
+    data_dir   = Path(__file__).parent / "data"
+    html_file  = data_dir / "thread.html"
+    out_file   = data_dir / "thread.json"
 
-    if not args.html_file.exists():
-        sys.exit(f"File not found: {args.html_file}")
+    if not html_file.exists():
+        sys.exit(f"File not found: {html_file}")
 
-    html = args.html_file.read_text(encoding="utf-8")
-    replies, op = parse_thread(html, exclude=args.exclude)
+    html = html_file.read_text(encoding="utf-8")
+    replies, op = parse_thread(html)
 
-    out_path = args.out or args.html_file.with_suffix(".json")
-    out_path.write_text(json.dumps(replies, indent=2, ensure_ascii=False))
-
-    print(f"Extracted {len(replies)} repl{'y' if len(replies) == 1 else 'ies'} → {out_path}")
+    out_file.write_text(json.dumps(replies, indent=2, ensure_ascii=False))
+    print(f"Extracted {len(replies)} repl{'y' if len(replies) == 1 else 'ies'} → {out_file}")
 
 
 if __name__ == "__main__":

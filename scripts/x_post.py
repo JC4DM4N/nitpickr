@@ -61,6 +61,8 @@ def main() -> None:
 
     print(f"X Reply Poster — {len(pending)} pending draft(s)\n")
 
+    sent_this_session = 0
+
     for draft in pending:
         href           = draft.get("reply_to_href", "")
         username       = draft.get("reply_to_username", "")
@@ -99,10 +101,11 @@ def main() -> None:
         drafts, sent = move_to_sent(draft, drafts, sent, sent_text=selected_text)
         save_json(DRAFTS_FILE, drafts)
         save_json(SENT_FILE, sent)
+        sent_this_session += 1
         print(f"Copied ({'plain' if choice == '1' else 'tailored'}) — Chrome opened. Paste and post manually.")
 
     remaining = sum(1 for d in drafts if d.get("status") == "draft")
-    print(f"\nDone. {remaining} draft(s) remaining.")
+    print(f"\nDone. {sent_this_session} sent this session · {remaining} draft(s) remaining.")
 
 
 if __name__ == "__main__":

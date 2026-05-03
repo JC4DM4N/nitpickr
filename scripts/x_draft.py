@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 """
-Reads a replies JSON file (from x_parse_thread.py), filters out anyone already
-replied to or already drafted, classifies remaining replies with an LLM, and
-appends draft replies to drafts.json.
-
-Usage:
-    python x_draft.py --replies data/thread.json --tweets-js data/tweets.js
-    python x_draft.py --replies data/thread.json  # tweets-js optional if set in .env
+Reads data/thread.json, filters out anyone already replied to or drafted,
+classifies remaining replies with an LLM, and appends drafts to data/drafts.json.
 
 Workflow:
     1. x_parse_thread.py  →  data/thread.json   (parse saved HTML)
-    2. x_draft.py         →  drafts.json         (this script)
-    3. x_post.py          →  posts replies       (interactive review + post)
+    2. x_draft.py         →  data/drafts.json    (this script)
+    3. x_post.py          →  interactive review  (manual posting)
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import os
 import sys
@@ -38,7 +32,9 @@ DRAFT_REPLY = (
     "Completely free to use too!"
 )
 
-DRAFTS_FILE = Path(__file__).parent / "data/drafts.json"
+DATA_DIR    = Path(__file__).parent / "data"
+DRAFTS_FILE = DATA_DIR / "drafts.json"
+SENT_FILE   = DATA_DIR / "sent.json"
 
 
 # ── LLM classifier ────────────────────────────────────────────────────────────
@@ -143,32 +139,30 @@ def save_drafts(drafts: list) -> None:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--replies", type=Path, required=True,
-                        help="Path to replies JSON from x_parse_thread.py")
-    parser.add_argument("--tweets-js", type=Path,
-                        default=None,
-                        help="Path to tweets.js from your X data archive")
-    args = parser.parse_args()
+    replies_file = DATA_DIR / "thread.json"
+    tweets_js    = DATA_DIR / "tweets.js"
 
-    if not args.replies.exists():
-        sys.exit(f"Replies file not found: {args.replies}")
+    if not replies_file.exists():
+        sys.exit(f"Replies file not found: {replies_file}")
 
-    replies = json.loads(args.replies.read_text(encoding="utf-8"))
+    replies = json.loads(replies_file.read_text(encoding="utf-8"))
     print(f"X Reply Drafter — nitpickr.dev\n")
-    print(f"Loaded {len(replies)} replies from {args.replies}")
+    print(f"Loaded {len(replies)} replies from {replies_file}")
 
     # Build sets for skip checks
     replied_usernames: set[str] = set()
-    if args.tweets_js:
-        if not args.tweets_js.exists():
-            sys.exit(f"tweets.js not found: {args.tweets_js}")
-        replied_usernames = load_replied_usernames(args.tweets_js)
+    if tweets_js.exists():
+        replied_usernames |= load_replied_usernames(tweets_js)
         print(f"Loaded {len(replied_usernames)} usernames from tweet history")
 
     existing_drafts = load_drafts()
     drafted_hrefs = {d.get("reply_to_href") for d in existing_drafts}
-    drafted_usernames = {d.get("reply_to_username", "").lower() for d in existing_drafts}
+    replied_usernames |= {d.get("reply_to_username", "").lower() for d in existing_drafts}
+
+    if SENT_FILE.exists():
+        sent = json.loads(SENT_FILE.read_text(encoding="utf-8"))
+        replied_usernames |= {d.get("reply_to_username", "").lower() for d in sent}
+
     print(f"Loaded {len(existing_drafts)} existing draft(s)\n")
 
     new_drafts: list = []
@@ -188,7 +182,7 @@ def main() -> None:
             skipped["already_replied"] += 1
             continue
 
-        if href in drafted_hrefs or username.lower() in drafted_usernames:
+        if href in drafted_hrefs:
             skipped["already_drafted"] += 1
             continue
 
@@ -212,7 +206,7 @@ def main() -> None:
         }
         new_drafts.append(draft)
         drafted_hrefs.add(href)
-        drafted_usernames.add(username.lower())
+        replied_usernames.add(username.lower())
 
     print(f"\nSkipped: {skipped['already_replied']} already replied · "
           f"{skipped['already_drafted']} already drafted · "
