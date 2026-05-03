@@ -95,20 +95,22 @@ def main() -> None:
 
     client = get_client()
     posted_count = 0
-    drafts_by_id = {d["id"]: d for d in drafts}
+    # Key drafts by reply_to_href (unique per tweet)
+    drafts_by_href = {d["reply_to_href"]: d for d in drafts}
 
     for draft in pending:
         if posted_count >= args.limit:
             print(f"\nSession limit of {args.limit} reached. Run again later.")
             break
 
+        href = draft["reply_to_href"]
+        tweet_id = href.split("/status/")[-1].split("/")[0]
+
         print("─" * 60)
         print(f"Reply to:  @{draft['reply_to_username']} ({draft['reply_to_name']})")
         print(f"Their post: {draft['original_text']}")
         print(f"\nDraft reply:\n{draft['draft_text']}\n")
-
-        tweet_url = f"https://x.com/i/web/status/{draft['reply_to_tweet_id']}"
-        print(f"Thread:    {tweet_url}")
+        print(f"Thread:    {href}")
         print()
 
         choice = prompt("Action", "y/s/d/q")
@@ -122,8 +124,8 @@ def main() -> None:
             continue
 
         if choice == "d":
-            del drafts_by_id[draft["id"]]
-            save_drafts(list(drafts_by_id.values()))
+            del drafts_by_href[href]
+            save_drafts(list(drafts_by_href.values()))
             print("Discarded.")
             continue
 
@@ -131,18 +133,18 @@ def main() -> None:
         try:
             response = client.create_tweet(
                 text=draft["draft_text"],
-                in_reply_to_tweet_id=draft["reply_to_tweet_id"],
+                in_reply_to_tweet_id=tweet_id,
             )
             posted_id = response.data["id"]
-            del drafts_by_id[draft["id"]]
-            save_drafts(list(drafts_by_id.values()))
+            del drafts_by_href[href]
+            save_drafts(list(drafts_by_href.values()))
             posted_count += 1
             print(f"Posted! https://x.com/i/web/status/{posted_id}")
         except tweepy.errors.TweepyException as e:
             print(f"Error posting: {e}")
             continue
 
-        remaining = [d for d in pending if d["id"] in drafts_by_id]
+        remaining = [d for d in pending if d["reply_to_href"] in drafts_by_href]
         if remaining and posted_count < args.limit:
             print(f"Waiting {POST_DELAY_SEC}s before next post...")
             time.sleep(POST_DELAY_SEC)
