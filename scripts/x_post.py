@@ -1,155 +1,108 @@
 #!/usr/bin/env python3
 """
-Interactively post draft replies saved by x.py.
+Interactively review draft replies and open them for manual posting.
 
 Usage:
-    python x_post.py           # review all pending drafts
-    python x_post.py --limit 3 # review at most 3 drafts this session
+    python x_post.py
 
 Controls:
-    y  — post this reply
-    s  — skip (keep as draft for next time)
-    d  — discard (remove from drafts.json permanently)
-    q  — quit
+    1 — copy draft_text to clipboard and open tweet in Chrome
+    2 — copy draft_text_tailored to clipboard and open tweet in Chrome
+    3 — pass (remove from drafts without sending)
+    q — quit
 """
 
-import argparse
-import os
+import json
+import subprocess
 import sys
-import time
+from datetime import datetime, timezone
 from pathlib import Path
 
-import tweepy
-from dotenv import load_dotenv
-
-load_dotenv(Path(__file__).parent / ".env")
-
-DRAFTS_FILE = Path(__file__).parent / "drafts.json"
-SESSION_LIMIT = 25       # warn if you try to post more than this in one go
-POST_DELAY_SEC = 5     # seconds to wait between posts
+DATA_DIR   = Path(__file__).parent / "data"
+DRAFTS_FILE = DATA_DIR / "drafts.json"
+SENT_FILE   = DATA_DIR / "sent.json"
 
 
-def get_client() -> tweepy.Client:
-    required = {
-        "X_API_KEY": os.environ.get("X_API_KEY"),
-        "X_API_KEY_SECRET": os.environ.get("X_API_KEY_SECRET"),
-        "X_ACCESS_TOKEN": os.environ.get("X_ACCESS_TOKEN"),
-        "X_ACCESS_TOKEN_SECRET": os.environ.get("X_ACCESS_TOKEN_SECRET"),
-    }
-    missing = [k for k, v in required.items() if not v]
-    if missing:
-        sys.exit(
-            f"Error: missing env vars: {', '.join(missing)}\n"
-            "Copy scripts/.env.example to scripts/.env and fill in all four OAuth keys."
-        )
-    return tweepy.Client(
-        consumer_key=required["X_API_KEY"],
-        consumer_secret=required["X_API_KEY_SECRET"],
-        access_token=required["X_ACCESS_TOKEN"],
-        access_token_secret=required["X_ACCESS_TOKEN_SECRET"],
-        wait_on_rate_limit=True,
-    )
+def load_json(path: Path) -> list:
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return []
 
 
-def load_drafts() -> list:
-    import json
-    if not DRAFTS_FILE.exists():
-        sys.exit(f"No drafts file found at {DRAFTS_FILE}. Run x.py first.")
-    return json.loads(DRAFTS_FILE.read_text())
+def save_json(path: Path, data: list) -> None:
+    path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
 
 
-def save_drafts(drafts: list) -> None:
-    import json
-    DRAFTS_FILE.write_text(json.dumps(drafts, indent=2, default=str))
+def copy_to_clipboard(text: str) -> None:
+    subprocess.run(["pbcopy"], input=text.encode(), check=True)
 
 
-def prompt(label: str, options: str) -> str:
-    while True:
-        choice = input(f"{label} [{options}]: ").strip().lower()
-        if choice in list(options.replace("/", "")):
-            return choice
-        print(f"  Please enter one of: {options}")
+def open_in_chrome(url: str) -> None:
+    subprocess.run(["open", "-a", "Google Chrome", url], check=True)
+
+
+def move_to_sent(draft: dict, drafts: list, sent: list, sent_text: str | None) -> tuple[list, list]:
+    updated_drafts = [d for d in drafts if d.get("reply_to_href") != draft["reply_to_href"]]
+    if sent_text is not None:
+        entry = {**draft, "sent_at": datetime.now(timezone.utc).isoformat(), "sent_text": sent_text}
+        sent.append(entry)
+    return updated_drafts, sent
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Post drafted X replies interactively.")
-    parser.add_argument("--limit", type=int, default=SESSION_LIMIT,
-                        help=f"Max replies to post this session (default: {SESSION_LIMIT})")
-    args = parser.parse_args()
+    DATA_DIR.mkdir(exist_ok=True)
+    drafts = load_json(DRAFTS_FILE)
+    sent   = load_json(SENT_FILE)
 
-    drafts = load_drafts()
     pending = [d for d in drafts if d.get("status") == "draft"]
-
     if not pending:
-        print("No pending drafts. Run x.py to find new replies.")
+        print("No pending drafts.")
         return
 
     print(f"X Reply Poster — {len(pending)} pending draft(s)\n")
 
-    if len(pending) > SESSION_LIMIT:
-        print(
-            f"Warning: you have {len(pending)} drafts. Posting more than ~{SESSION_LIMIT} "
-            "identical replies in one session risks spam detection.\n"
-            f"This session is capped at --limit {args.limit}. Run again tomorrow for the rest.\n"
-        )
-
-    client = get_client()
-    posted_count = 0
-    # Key drafts by reply_to_href (unique per tweet)
-    drafts_by_href = {d["reply_to_href"]: d for d in drafts}
-
     for draft in pending:
-        if posted_count >= args.limit:
-            print(f"\nSession limit of {args.limit} reached. Run again later.")
-            break
+        href           = draft.get("reply_to_href", "")
+        username       = draft.get("reply_to_username", "")
+        name           = draft.get("reply_to_name", username)
+        original       = draft.get("original_text", "")
+        text_plain     = draft.get("draft_text", "")
+        text_tailored  = draft.get("draft_text_tailored") or text_plain
 
-        href = draft["reply_to_href"]
-        tweet_id = href.split("/status/")[-1].split("/")[0]
-
-        print("─" * 60)
-        print(f"Reply to:  @{draft['reply_to_username']} ({draft['reply_to_name']})")
-        print(f"Their post: {draft['original_text']}")
-        print(f"\nDraft reply:\n{draft['draft_text']}\n")
-        print(f"Thread:    {href}")
+        print("─" * 64)
+        print(f"@{username} ({name})")
+        print(f"\nTheir post:\n{original}\n")
+        print(f"1 — draft_text:\n{text_plain}\n")
+        print(f"2 — draft_text_tailored:\n{text_tailored}\n")
+        print(f"URL: {href}")
         print()
 
-        choice = prompt("Action", "y/s/d/q")
+        while True:
+            choice = input("Action [1/2/3/q]: ").strip().lower()
+            if choice in ("1", "2", "3", "q"):
+                break
+            print("  Enter 1, 2, 3, or q.")
 
         if choice == "q":
             print("Quitting.")
             break
 
-        if choice == "s":
-            print("Skipped.")
+        if choice == "3":
+            drafts, sent = move_to_sent(draft, drafts, sent, sent_text=None)
+            save_json(DRAFTS_FILE, drafts)
+            print("Passed.")
             continue
 
-        if choice == "d":
-            del drafts_by_href[href]
-            save_drafts(list(drafts_by_href.values()))
-            print("Discarded.")
-            continue
+        selected_text = text_plain if choice == "1" else text_tailored
+        copy_to_clipboard(selected_text)
+        open_in_chrome(href)
+        drafts, sent = move_to_sent(draft, drafts, sent, sent_text=selected_text)
+        save_json(DRAFTS_FILE, drafts)
+        save_json(SENT_FILE, sent)
+        print(f"Copied ({'plain' if choice == '1' else 'tailored'}) — Chrome opened. Paste and post manually.")
 
-        # choice == "y" — post it
-        try:
-            response = client.create_tweet(
-                text=draft["draft_text"],
-                in_reply_to_tweet_id=tweet_id,
-            )
-            posted_id = response.data["id"]
-            del drafts_by_href[href]
-            save_drafts(list(drafts_by_href.values()))
-            posted_count += 1
-            print(f"Posted! https://x.com/i/web/status/{posted_id}")
-        except tweepy.errors.TweepyException as e:
-            print(f"Error posting: {e}")
-            continue
-
-        remaining = [d for d in pending if d["reply_to_href"] in drafts_by_href]
-        if remaining and posted_count < args.limit:
-            print(f"Waiting {POST_DELAY_SEC}s before next post...")
-            time.sleep(POST_DELAY_SEC)
-
-    print(f"\nDone. Posted {posted_count} reply/replies this session.")
+    remaining = sum(1 for d in drafts if d.get("status") == "draft")
+    print(f"\nDone. {remaining} draft(s) remaining.")
 
 
 if __name__ == "__main__":
