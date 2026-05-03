@@ -1,6 +1,11 @@
 # Environment
 .env
 backend/.env
+scripts/.env
+
+# X reply drafter output
+scripts/data/
+scripts/.token.json
 
 # Logs
 logs
