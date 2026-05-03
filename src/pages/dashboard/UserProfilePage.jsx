@@ -214,9 +214,6 @@ export default function UserProfilePage() {
                 </p>
               )} */}
               <div className="profile-meta-row">
-                {isOwnProfile && !editing && (
-                  <button className="profile-edit-btn" onClick={startEditing}>Edit profile</button>
-                )}
                 {profile?.twitter_username && (
                   <a
                     className="profile-twitter-link"
@@ -228,7 +225,19 @@ export default function UserProfilePage() {
                     @{profile.twitter_username}
                   </a>
                 )}
+                {profile?.reviewer_rating != null && (
+                  <span className="profile-rating-badge">
+                    {profile.reviewer_rating}
+                    <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+                    reviewer rating
+                  </span>
+                )}
               </div>
+              {isOwnProfile && !editing && (
+                <div className="profile-edit-row">
+                  <button className="profile-edit-btn" onClick={startEditing}>Edit profile</button>
+                </div>
+              )}
               {showExchangeBtn && (
                 <div className="profile-exchange-row">
                   <button

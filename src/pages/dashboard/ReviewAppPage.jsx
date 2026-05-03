@@ -224,6 +224,13 @@ export default function ReviewAppPage() {
               {!detail.is_submitted && !detail.is_complete && !detail.is_rejected && !detail.is_expired && detail.review_requested && (
                 <span className="review-status-badge in-progress">Review Requested</span>
               )}
+              {(detail.is_complete || detail.is_rejected) && detail.reviewer_rating != null && (
+                <span className="review-rating-badge">
+                  {detail.reviewer_rating}
+                  <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+                  rating
+                </span>
+              )}
             </div>
           </div>
           <div className="header-actions">

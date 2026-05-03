@@ -618,6 +618,12 @@
   letter-spacing: -0.5px;
 }
 
+.user-card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .app-stage-badge {
   font-size: 12px;
   font-weight: 600;

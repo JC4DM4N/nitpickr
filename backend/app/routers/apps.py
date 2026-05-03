@@ -176,6 +176,8 @@ def approve_review(
     review.is_complete = True
     review.owner_message = payload.message
     review.owner_deadline = None
+    if payload.reviewer_rating is not None:
+        review.reviewer_rating = payload.reviewer_rating
     if not review.is_exchange:
         current_user.escrow_credits -= app.credits
         reviewer.credits += app.credits
@@ -233,6 +235,8 @@ def reject_review(
     review.is_exchange = False
     review.owner_message = payload.message
     review.owner_deadline = None
+    if payload.reviewer_rating is not None:
+        review.reviewer_rating = payload.reviewer_rating
     if not was_exchange:
         current_user.escrow_credits -= app.credits
         current_user.credits += app.credits

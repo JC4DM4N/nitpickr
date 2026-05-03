@@ -262,8 +262,15 @@ function UserCard({ user }) {
         </div>
         <div className="user-card-stat">
           <span className="app-footer-label">REVIEWER RATING</span>
-          {/* <span className="app-footer-value">{user.reviewer_rating ?? 'N/A'}</span> */}
-          <span className="review-section-label">Coming soon</span>
+          {user.reviewer_rating != null ? (
+            <span className="app-footer-value user-card-rating">
+              {user.reviewer_rating}
+              <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+              / 5
+            </span>
+          ) : (
+            <span className="app-footer-value">—</span>
+          )}
         </div>
       </div>
     </div>

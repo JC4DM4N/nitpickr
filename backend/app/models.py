@@ -64,6 +64,7 @@ class Review(Base):
     is_expired       = Column(Boolean, nullable=False, default=False)
     is_exchange      = Column(Boolean, nullable=False, default=False)
     exchange_id      = Column(Integer, ForeignKey("feedback_exchanges.id", ondelete="SET NULL"), nullable=True)
+    reviewer_rating  = Column(Integer, nullable=True)
 
 
 class FeedbackExchange(Base):

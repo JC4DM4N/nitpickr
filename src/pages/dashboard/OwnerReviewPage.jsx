@@ -49,12 +49,12 @@ export default function OwnerReviewPage() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  async function handleAction(action, message) {
+  async function handleAction(action, message, reviewerRating) {
     const token = localStorage.getItem('token')
     const res = await authFetch(`/apps/${appId}/reviews/${reviewId}/${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, reviewer_rating: reviewerRating }),
     })
     if (!res.ok) {
       const data = await res.json()
@@ -108,7 +108,7 @@ export default function OwnerReviewPage() {
       {modal && (
         <ActionModal
           action={modal}
-          onConfirm={msg => handleAction(modal, msg)}
+          onConfirm={(msg, rating) => handleAction(modal, msg, rating)}
           onClose={() => setModal(null)}
           description={modal === 'reject' ? (
             !detail.is_exchange
@@ -137,6 +137,13 @@ export default function OwnerReviewPage() {
             is_expired={detail.is_expired}
             review_requested={detail.review_requested}
           />
+          {(detail.is_complete || detail.is_rejected) && detail.reviewer_rating != null && (
+            <span className="review-rating-badge">
+              {detail.reviewer_rating}
+              <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+              rating
+            </span>
+          )}
         </AppPageHeader>
 
         {canAct && (

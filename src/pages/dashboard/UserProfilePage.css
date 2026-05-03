@@ -2,6 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   gap: 32px;
   text-align: left;
   padding: 36px 48px;
@@ -91,8 +92,8 @@
 }
 
 .share-box {
+  flex: 1 1 300px;
   min-width: 0;
-  width: 100%;
   max-width: 660px;
   /* margin-left: auto; */
   padding: 20px 24px;
@@ -188,9 +189,6 @@
     margin-left: 0;
   }
 
-  .profile-meta-row {
-    justify-content: center;
-  }
 
   .share-box {
     width: 100%;
@@ -384,9 +382,14 @@
 .profile-meta-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 8px;
+}
+
+.profile-edit-row {
+  margin-top: 10px;
 }
 
 .profile-exchange-row {
@@ -416,4 +419,40 @@
   border-color: #e8e6e0;
   color: #9ca3af;
   cursor: default;
+}
+
+.profile-rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .explore-hero.profile-hero {
+    text-align: left;
+  }
+
+  .profile-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0px;
+  }
+
+  .explore-hero:not(.profile-hero--own) .profile-hero-identity {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .profile-exchange-row {
+    justify-content: flex-start;
+  }
 }

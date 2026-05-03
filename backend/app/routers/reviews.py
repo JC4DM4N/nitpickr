@@ -445,4 +445,5 @@ def _to_detail(
         is_exchange=review.is_exchange,
         sibling_is_complete=sibling_is_complete,
         sibling_app_name=sibling_app_name,
+        reviewer_rating=review.reviewer_rating,
     )

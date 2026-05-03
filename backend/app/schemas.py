@@ -95,6 +95,7 @@ class ReviewDetail(BaseModel):
     is_exchange: bool
     sibling_is_complete: bool | None = None
     sibling_app_name: str | None = None
+    reviewer_rating: int | None = None
 
 
 class ReviewPatch(BaseModel):
@@ -107,6 +108,7 @@ class ReviewPatch(BaseModel):
 
 class OwnerActionPayload(BaseModel):
     message: str
+    reviewer_rating: int | None = None
 
 
 class AppCreate(BaseModel):
@@ -161,6 +163,7 @@ class UserProfile(BaseModel):
     username: str
     available_credits: int
     twitter_username: str | None
+    reviewer_rating: float | None = None
 
 
 class UserPatch(BaseModel):
