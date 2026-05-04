@@ -184,21 +184,16 @@
 
   <div class="grid">
     <div class="card">
-      <div class="card-title">New Users per Day</div>
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px">
+        <div class="card-title" style="margin-bottom:0">Users</div>
+        <div id="cumulative-users-total" style="font-size:1.1rem;font-weight:700;color:#818cf8"></div>
+      </div>
       <div class="chart-wrap"><canvas id="chart-users"></canvas></div>
     </div>
 
     <div class="card">
       <div class="card-title">Completed Reviews per Day</div>
       <div class="chart-wrap"><canvas id="chart-reviews"></canvas></div>
-    </div>
-
-    <div class="card">
-      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px">
-        <div class="card-title" style="margin-bottom:0">Total Users</div>
-        <div id="cumulative-users-total" style="font-size:1.1rem;font-weight:700;color:#818cf8"></div>
-      </div>
-      <div class="chart-wrap"><canvas id="chart-users-cumulative"></canvas></div>
     </div>
 
     <div class="card">
@@ -285,13 +280,31 @@
               <th>#</th>
               <th>App</th>
               <th>Owner</th>
-              <th>Credits</th>
-              <th>Escrow</th>
               <th>Reviews Received</th>
               <th>Reviews Given</th>
             </tr>
           </thead>
           <tbody id="table-apps"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Users</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Joined</th>
+              <th>Apps</th>
+              <th>Reviews Given</th>
+              <th>Reviews Received</th>
+              <th>Credits</th>
+            </tr>
+          </thead>
+          <tbody id="table-users"></tbody>
         </table>
       </div>
     </div>
@@ -328,6 +341,19 @@
         },
         options: { ...CHART_DEFAULTS, responsive: true, maintainAspectRatio: false },
       });
+    }
+
+    function fillDates(rows) {
+      if (!rows.length) return rows;
+      const map = new Map(rows.map(r => [r.day.slice(0, 10), parseInt(r.count)]));
+      const start = new Date(rows[0].day);
+      const end = new Date();
+      const result = [];
+      for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const key = d.toISOString().slice(0, 10);
+        result.push({ day: key, count: map.get(key) ?? 0 });
+      }
+      return result;
     }
 
     function fmt(dateStr) {
@@ -373,7 +399,7 @@
     }
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -383,6 +409,7 @@
         fetch('/api/app-count').then(r => r.json()),
         fetch('/api/apps').then(r => r.json()),
         fetch('/api/feedback-exchanges').then(r => r.json()),
+        fetch('/api/users').then(r => r.json()),
       ]);
 
       // Stats
@@ -430,59 +457,97 @@
       // Apps table
       const tbApps = document.getElementById('table-apps');
       if (!Array.isArray(apps) || apps.error) {
-        tbApps.innerHTML = `<tr><td colspan="6" class="error">${apps.error || 'Error loading'}</td></tr>`;
+        tbApps.innerHTML = `<tr><td colspan="5" class="error">${apps.error || 'Error loading'}</td></tr>`;
       } else {
         tbApps.innerHTML = apps.map(a => `<tr>
           <td>${a.id}</td>
           <td>${a.app_name}</td>
           <td>${a.owner}</td>
-          <td>${a.owner_credits}</td>
-          <td>${a.owner_escrow}</td>
           <td>${a.reviews_received}</td>
           <td>${a.reviews_given}</td>
         </tr>`).join('');
       }
 
+      // Users table
+      const tbUsers = document.getElementById('table-users');
+      if (!Array.isArray(allUsers) || allUsers.error) {
+        tbUsers.innerHTML = `<tr><td colspan="7" class="error">${allUsers.error || 'Error loading'}</td></tr>`;
+      } else {
+        tbUsers.innerHTML = allUsers.map(u => `<tr>
+          <td>${u.id}</td>
+          <td>${u.username}</td>
+          <td>${fmt(u.created_at)}</td>
+          <td>${u.apps_count}</td>
+          <td>${u.reviews_given}</td>
+          <td>${u.reviews_received}</td>
+          <td>${u.credits}</td>
+        </tr>`).join('');
+      }
+
       // Charts
       if (Array.isArray(users) && users.length) {
-        makeChart('chart-users', users.map(r => fmt(r.day)), users.map(r => r.count), '#818cf8');
-
-        // Cumulative users chart
+        const filledUsers = fillDates(users);
         let running = 0;
-        const cumulative = users.map(r => { running += parseInt(r.count); return running; });
-        const total = running;
-        document.getElementById('cumulative-users-total').textContent = total;
-        new Chart(document.getElementById('chart-users-cumulative'), {
-          type: 'line',
+        const cumulative = filledUsers.map(r => { running += parseInt(r.count); return running; });
+        document.getElementById('cumulative-users-total').textContent = running;
+        new Chart(document.getElementById('chart-users'), {
           data: {
-            labels: users.map(r => fmt(r.day)),
-            datasets: [{
-              data: cumulative,
-              borderColor: '#818cf8',
-              backgroundColor: '#818cf820',
-              borderWidth: 2,
-              pointRadius: 2,
-              fill: true,
-              tension: 0.3,
-            }],
+            labels: filledUsers.map(r => fmt(r.day)),
+            datasets: [
+              {
+                type: 'bar',
+                label: 'New',
+                data: filledUsers.map(r => parseInt(r.count)),
+                backgroundColor: '#818cf899',
+                borderColor: '#818cf8',
+                borderWidth: 1,
+                borderRadius: 4,
+                yAxisID: 'y',
+              },
+              {
+                type: 'line',
+                label: 'Total',
+                data: cumulative,
+                borderColor: '#34d399',
+                backgroundColor: '#34d39920',
+                borderWidth: 2,
+                pointRadius: 2,
+                fill: false,
+                tension: 0.3,
+                yAxisID: 'y1',
+              },
+            ],
           },
           options: {
-            ...CHART_DEFAULTS,
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-              ...CHART_DEFAULTS.plugins,
-              tooltip: {
-                callbacks: {
-                  label: ctx => ' ' + ctx.parsed.y + ' users',
-                },
+            plugins: { legend: { display: true, labels: { color: '#94a3b8', font: { size: 11 } } } },
+            scales: {
+              x: {
+                ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: 10 },
+                grid: { color: '#1e2130' },
+              },
+              y: {
+                position: 'left',
+                beginAtZero: true,
+                ticks: { color: '#818cf8', font: { size: 11 }, stepSize: 1 },
+                grid: { color: '#2d3148' },
+                title: { display: true, text: 'New / day', color: '#818cf8', font: { size: 10 } },
+              },
+              y1: {
+                position: 'right',
+                beginAtZero: true,
+                ticks: { color: '#34d399', font: { size: 11 } },
+                grid: { drawOnChartArea: false },
+                title: { display: true, text: 'Total', color: '#34d399', font: { size: 10 } },
               },
             },
           },
         });
       }
       if (Array.isArray(reviews) && reviews.length) {
-        makeChart('chart-reviews', reviews.map(r => fmt(r.day)), reviews.map(r => r.count), '#34d399');
+        const filledReviews = fillDates(reviews);
+        makeChart('chart-reviews', filledReviews.map(r => fmt(r.day)), filledReviews.map(r => r.count), '#34d399');
       }
 
       // Active reviews table

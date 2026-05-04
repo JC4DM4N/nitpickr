@@ -162,16 +162,39 @@ app.get('/api/apps', async (_req, res) => {
         a.id,
         a.name AS app_name,
         u.username AS owner,
-        u.credits AS owner_credits,
-        u.escrow_credits AS owner_escrow,
         COUNT(DISTINCT r_recv.id) AS reviews_received,
         COUNT(DISTINCT r_given.id) AS reviews_given
       FROM apps a
       JOIN users u ON a.owner_id = u.id
       LEFT JOIN reviews r_recv ON r_recv.app_id = a.id
       LEFT JOIN reviews r_given ON r_given.reviewer_id = a.owner_id
-      GROUP BY a.id, a.name, u.username, u.credits, u.escrow_credits
+      GROUP BY a.id, a.name, u.username
       ORDER BY a.id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/users', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.username,
+        u.created_at,
+        u.credits,
+        COUNT(DISTINCT a.id) AS apps_count,
+        COUNT(DISTINCT r_given.id) AS reviews_given,
+        COUNT(DISTINCT r_recv.id) AS reviews_received
+      FROM users u
+      LEFT JOIN apps a ON a.owner_id = u.id
+      LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
+      LEFT JOIN reviews r_recv ON r_recv.app_id = a.id AND r_recv.is_complete = TRUE
+      GROUP BY u.id, u.username, u.created_at, u.credits
+      ORDER BY u.created_at DESC
     `);
     res.json(result.rows);
   } catch (err) {
