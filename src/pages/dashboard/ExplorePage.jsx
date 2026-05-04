@@ -30,6 +30,7 @@ export default function ExplorePage() {
   const [category, setCategory] = useState("All");
   const [reviewApp, setReviewApp] = useState(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
+  const [showFirstAppModal, setShowFirstAppModal] = useState(false);
 
   // ── Users state ────────────────────────────────────────────────────────────
   const [users, setUsers] = useState([]);
@@ -48,8 +49,13 @@ export default function ExplorePage() {
       authFetch("/users/me/credits", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
     ])
       .then(([allApps, myReviews, creditsData]) => {
-        if (creditsData.available === 0) setShowNoCreditsModal(true);
         const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const hasOwnApps = allApps.some((a) => a.owner_id === user.id);
+        if (!hasOwnApps) {
+          setShowFirstAppModal(true);
+        } else if (creditsData.available === 0) {
+          setShowNoCreditsModal(true);
+        }
         const activeReviewedIds = new Set(myReviews.filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired).map((r) => r.app_id));
         const completedReviewedIds = new Set(myReviews.filter((r) => r.is_complete).map((r) => r.app_id));
         setApps(
@@ -103,6 +109,21 @@ export default function ExplorePage() {
 
   return (
     <>
+      {showFirstAppModal && (
+        <div className="modal-overlay" onClick={() => setShowFirstAppModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
+              <div className="modal-title" style={{ fontSize: 17, fontWeight: 700, color: "#0f0e0b" }}>Submit your first app</div>
+              <p className="modal-description" style={{ margin: 0 }}>Get feedback from other developers. Submit your app and start receiving nitpicks.</p>
+            </div>
+            <div className="modal-actions">
+              <button className="modal-btn-cancel" onClick={() => setShowFirstAppModal(false)}>Dismiss</button>
+              <button className="modal-btn-cancel" onClick={() => { setShowFirstAppModal(false); navigate("/how-it-works"); }}>How it works</button>
+              <button className="modal-btn-start" onClick={() => { setShowFirstAppModal(false); navigate("/my-apps/new"); }}>Submit your app →</button>
+            </div>
+          </div>
+        </div>
+      )}
       {showNoCreditsModal && (
         <div className="modal-overlay" onClick={() => setShowNoCreditsModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
