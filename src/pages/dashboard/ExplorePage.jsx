@@ -30,7 +30,8 @@ export default function ExplorePage() {
   const [category, setCategory] = useState("All");
   const [reviewApp, setReviewApp] = useState(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
-  const [showFirstAppModal, setShowFirstAppModal] = useState(false);
+  const [onboarding, setOnboarding] = useState(null);
+  const [expandedStep, setExpandedStep] = useState(null);
 
   // ── Users state ────────────────────────────────────────────────────────────
   const [users, setUsers] = useState([]);
@@ -45,15 +46,19 @@ export default function ExplorePage() {
     const token = localStorage.getItem("token");
     Promise.all([
       authFetch("/apps/").then((r) => r.json()),
+      authFetch("/apps/mine", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
       authFetch("/reviews/me", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
       authFetch("/users/me/credits", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
     ])
-      .then(([allApps, myReviews, creditsData]) => {
+      .then(([allApps, myApps, myReviews, creditsData]) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
-        const hasOwnApps = allApps.some((a) => a.owner_id === user.id);
-        if (!hasOwnApps) {
-          setShowFirstAppModal(true);
-        } else if (creditsData.available === 0) {
+        const hasOwnApps = myApps.length > 0;
+        const hasApprovedReview = myReviews.some((r) => r.is_complete);
+        const hasPendingReview = !hasApprovedReview && myReviews.some((r) => r.is_submitted && !r.is_rejected && !r.is_expired);
+        const leftFeedback = hasApprovedReview ? "done" : hasPendingReview ? "pending" : "none";
+        setOnboarding({ submittedApp: hasOwnApps, leftFeedback });
+        const onboardingComplete = hasOwnApps && hasApprovedReview;
+        if (onboardingComplete && creditsData.available === 0) {
           setShowNoCreditsModal(true);
         }
         const activeReviewedIds = new Set(myReviews.filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired).map((r) => r.app_id));
@@ -109,21 +114,6 @@ export default function ExplorePage() {
 
   return (
     <>
-      {showFirstAppModal && (
-        <div className="modal-overlay" onClick={() => setShowFirstAppModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
-              <div className="modal-title" style={{ fontSize: 17, fontWeight: 700, color: "#0f0e0b" }}>Submit your first app</div>
-              <p className="modal-description" style={{ margin: 0 }}>Get feedback from other developers. Submit your app and start receiving feedback.</p>
-            </div>
-            <div className="modal-actions">
-              <button className="modal-btn-cancel" onClick={() => setShowFirstAppModal(false)}>Dismiss</button>
-              <button className="modal-btn-cancel" onClick={() => { setShowFirstAppModal(false); navigate("/how-it-works"); }}>How it works</button>
-              <button className="modal-btn-start" onClick={() => { setShowFirstAppModal(false); navigate("/my-apps/new"); }}>Submit your app →</button>
-            </div>
-          </div>
-        </div>
-      )}
       {showNoCreditsModal && (
         <div className="modal-overlay" onClick={() => setShowNoCreditsModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -174,6 +164,75 @@ export default function ExplorePage() {
             <div className="explore-tabs-spacer" />
           </div>
         </div>
+
+        {onboarding && !(onboarding.submittedApp && onboarding.leftFeedback === "done") && (() => {
+          const stepsComplete = (onboarding.submittedApp ? 1 : 0) + (onboarding.leftFeedback === "done" ? 1 : 0);
+          const pct = stepsComplete * 50;
+          const steps = [
+            {
+              n: 1,
+              status: onboarding.submittedApp ? "done" : "none",
+              label: "Submit your app",
+              detail: (
+                <>
+                  Add your app so other developers can discover it and leave feedback. The more detail you include, the better the nitpicks you'll get.{" "}
+                  <button className="onboarding-link" onClick={() => navigate("/my-apps/new")}>Submit your app →</button>
+                </>
+              ),
+            },
+            {
+              n: 2,
+              status: onboarding.leftFeedback,
+              label: "Leave feedback on someone's app",
+              detail: onboarding.leftFeedback === "pending"
+                ? "Your review has been submitted and is awaiting approval from the app owner. Once they approve it, this step will complete."
+                : "Pick an app from the list below and leave honest, constructive feedback. You'll earn a credit once your review is approved.",
+            },
+          ];
+          return (
+            <div className="onboarding-bar">
+              <div className="onboarding-header">
+                <span className="onboarding-title">Getting started</span>
+                <span className="onboarding-pct">{pct}% complete</span>
+              </div>
+              <div className="onboarding-track">
+                <div className="onboarding-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="onboarding-steps">
+                {steps.map((s) => (
+                  <div key={s.n} className={`onboarding-step onboarding-step--${s.status}`}>
+                    <button
+                      className="onboarding-step-header"
+                      onClick={() => setExpandedStep(expandedStep === s.n ? null : s.n)}
+                    >
+                      <span className={`onboarding-circle onboarding-circle--${s.status}`}>
+                        {s.status === "done" ? (
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        ) : s.status === "pending" ? (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                          </svg>
+                        ) : s.n}
+                      </span>
+                      <span className="onboarding-step-label">{s.label}</span>
+                      <svg
+                        className={`onboarding-chevron${expandedStep === s.n ? " onboarding-chevron--open" : ""}`}
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+                    {expandedStep === s.n && (
+                      <p className="onboarding-step-detail">{s.detail}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="explore-body">
           {/* ── Filters sidebar ── */}
