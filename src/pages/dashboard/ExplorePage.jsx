@@ -114,7 +114,7 @@ export default function ExplorePage() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
               <div className="modal-title" style={{ fontSize: 17, fontWeight: 700, color: "#0f0e0b" }}>Submit your first app</div>
-              <p className="modal-description" style={{ margin: 0 }}>Get feedback from other developers. Submit your app and start receiving nitpicks.</p>
+              <p className="modal-description" style={{ margin: 0 }}>Get feedback from other developers. Submit your app and start receiving feedback.</p>
             </div>
             <div className="modal-actions">
               <button className="modal-btn-cancel" onClick={() => setShowFirstAppModal(false)}>Dismiss</button>
