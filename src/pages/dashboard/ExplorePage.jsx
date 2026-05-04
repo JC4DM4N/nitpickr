@@ -58,7 +58,8 @@ export default function ExplorePage() {
         const leftFeedback = hasApprovedReview ? "done" : hasPendingReview ? "pending" : "none";
         setOnboarding({ submittedApp: hasOwnApps, leftFeedback });
         const onboardingComplete = hasOwnApps && hasApprovedReview;
-        if (onboardingComplete && creditsData.available === 0) {
+        const hasOngoingReview = myReviews.some((r) => !r.is_complete && !r.is_rejected && !r.is_expired);
+        if (onboardingComplete && creditsData.available === 0 && !hasOngoingReview) {
           setShowNoCreditsModal(true);
         }
         const activeReviewedIds = new Set(myReviews.filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired).map((r) => r.app_id));
