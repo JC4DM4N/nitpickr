@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
-const PORT = 3001;
+const PORT = 3002;
 
 const pool = new Pool({
   host: process.env.DB_HOST || '172.236.21.178',
