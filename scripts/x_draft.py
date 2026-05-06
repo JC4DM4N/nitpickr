@@ -48,17 +48,25 @@ CLASSIFIER_PROMPT = (
 )
 
 
+# EDITOR_PROMPT = (
+#     "You are personalising a marketing reply on X (Twitter). "
+#     "Given the author's display name, username, and tweet, write a short personalised opening line "
+#     "to replace 'Hey!' at the start of the reply. "
+#     "Use their first name where it makes sense ('Hey James!', 'Nice work James!'), "
+#     "or a compliment tied to their product if you have enough context "
+#     "('Looks awesome!', 'Really cool idea!', 'This looks super useful!'). "
+#     "Don't say things too enthusiastic like, 'looks like a game changer!'. "
+#     "If the tweet gives enough detail about what they are building, you may also append one short "
+#     "sentence that shows you read their post — but only if it flows naturally. "
+#     "Keep it concise (1–2 sentences max) and friendly. Return only the opening line, nothing else."
+# )
+
 EDITOR_PROMPT = (
     "You are personalising a marketing reply on X (Twitter). "
     "Given the author's display name, username, and tweet, write a short personalised opening line "
-    "to replace 'Hey!' at the start of the reply. "
-    "Use their first name where it makes sense ('Hey James!', 'Nice work James!'), "
-    "or a compliment tied to their product if you have enough context "
-    "('Looks awesome!', 'Really cool idea!', 'This looks super useful!'). "
-    "Don't say things too enthusiastic like, 'looks like a game changer!'. "
-    "If the tweet gives enough detail about what they are building, you may also append one short "
-    "sentence that shows you read their post — but only if it flows naturally. "
-    "Keep it concise (1–2 sentences max) and friendly. Return only the opening line, nothing else."
+    "to replace 'Hey!' at the start of the reply, with a 'Hey NAME!'. "
+    "Only use their first name where it makes sense. If you cannot determine their name, "
+    "or if their name is a company name, just return 'Hey!'"
 )
 
 
