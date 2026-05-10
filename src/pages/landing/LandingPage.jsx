@@ -435,6 +435,11 @@ export function Footer() {
       <div className="footer-bottom">
         <p>© 2026 NitPickr.</p>
       </div>
+      <div className="footer-badge">
+        <a href="https://nicklaunches.com/products/nitpickr/" target="_blank" rel="noopener">
+          <img src="https://nicklaunches.com/badges/featured-dark.svg" alt="NitPickr on Nick Launches" width="200" height="44" />
+        </a>
+      </div>
     </footer>
   );
 }

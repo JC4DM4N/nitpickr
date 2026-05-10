@@ -746,6 +746,12 @@
   color: var(--text);
 }
 
+.footer-badge {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 0 8px;
+}
+
 /* ── Mobile optimisations ── */
 @media (max-width: 640px) {
   /* Hero */
