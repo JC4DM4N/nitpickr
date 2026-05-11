@@ -286,7 +286,7 @@ export default function ExplorePage() {
             {mainTab === "apps" ? (
               <>
                 <div className="results-bar">
-                  <span className="results-count">{filteredApps.length} apps found</span>
+                  <span className="results-count">{filteredApps.length} apps currently available for review</span>
                 </div>
                 <div className="app-grid">
                   {appsLoading && <p className="no-results">Loading apps…</p>}
