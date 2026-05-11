@@ -50,8 +50,9 @@ export default function ExplorePage() {
       authFetch("/apps/mine", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
       authFetch("/reviews/me", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
       authFetch("/users/me/credits", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      authFetch("/apps/count").then((r) => r.json()),
     ])
-      .then(([allApps, myApps, myReviews, creditsData]) => {
+      .then(([allApps, myApps, myReviews, creditsData, countData]) => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const hasOwnApps = myApps.length > 0;
         const hasApprovedReview = myReviews.some((r) => r.is_complete);
@@ -65,7 +66,7 @@ export default function ExplorePage() {
         }
         const activeReviewedIds = new Set(myReviews.filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired).map((r) => r.app_id));
         const completedReviewedIds = new Set(myReviews.filter((r) => r.is_complete).map((r) => r.app_id));
-        setTotalApps(allApps.length);
+        setTotalApps(countData.count);
         setApps(
           allApps
             .filter((a) => !activeReviewedIds.has(a.id))

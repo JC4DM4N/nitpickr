@@ -120,6 +120,12 @@ def patch_app(
     return _build_app_outs([app], db)[0]
 
 
+@router.get("/count")
+def get_app_count(db: Session = Depends(get_db)):
+    count = db.query(func.count(models.App.id)).filter(models.App.is_hidden == False).scalar()
+    return {"count": count}
+
+
 @router.get("/mine", response_model=List[schemas.AppOut])
 def list_my_apps(
     db: Session = Depends(get_db),
