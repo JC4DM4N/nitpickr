@@ -1,0 +1,55 @@
+server {
+    server_name nitpickr.dev www.nitpickr.dev;
+
+    root /var/www/nitpickr/dist;
+    index index.html;
+
+    location ~ ^/reviews/[0-9]+$ {
+        if ($http_accept ~ "text/html") {
+            rewrite ^ /index.html last;
+        }
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location ~ ^/(auth|users|apps|reviews|notifications|exchanges)/ {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location ~* \.(png|jpg|jpeg|gif|ico|svg|webp)$ {
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    location / {
+        add_header Cache-Control "no-store" always;
+        try_files $uri $uri/ /index.html;
+    }
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/nitpickr.dev/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/nitpickr.dev/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    if ($host = www.nitpickr.dev) {
+        return 301 https://$host$request_uri;
+    }
+
+    if ($host = nitpickr.dev) {
+        return 301 https://$host$request_uri;
+    }
+
+    listen 80;
+    server_name nitpickr.dev www.nitpickr.dev;
+    return 404;
+}
