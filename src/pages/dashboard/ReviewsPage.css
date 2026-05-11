@@ -23,6 +23,37 @@
   margin: 0;
 }
 
+.reviews-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.reviews-tab {
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid #e8e6e0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.reviews-tab:hover {
+  border-color: #0f0e0b;
+}
+
+.reviews-tab--active {
+  background: #0f0e0b;
+  color: #fff;
+  border-color: #0f0e0b;
+}
+
+.reviews-tab--active:hover {
+  color: #fff;
+}
+
 .reviews-body {
   padding: 28px 32px;
 }

@@ -72,6 +72,47 @@ def create_review(
 
 # ── List my reviews ───────────────────────────────────────────────────────────
 
+@router.get("/received", response_model=List[schemas.ReviewReceived])
+def get_received_reviews(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    my_app_ids = [
+        a.id for a in db.query(models.App.id).filter(models.App.owner_id == current_user.id).all()
+    ]
+    if not my_app_ids:
+        return []
+    rows = (
+        db.query(models.Review, models.App, models.User)
+        .join(models.App, models.Review.app_id == models.App.id)
+        .join(models.User, models.Review.reviewer_id == models.User.id)
+        .filter(models.Review.app_id.in_(my_app_ids))
+        .order_by(models.Review.created_date.desc())
+        .all()
+    )
+    return [
+        schemas.ReviewReceived(
+            id=review.id,
+            app_id=app.id,
+            app_name=app.name,
+            app_initials=app.initials,
+            app_color=app.color,
+            app_stage=app.stage,
+            app_url=app.url,
+            reviewer_username=user.username,
+            is_submitted=review.is_submitted,
+            is_complete=review.is_complete,
+            is_rejected=review.is_rejected,
+            is_expired=review.is_expired,
+            review_requested=review.review_requested,
+            created_date=review.created_date,
+            reviewer_deadline=review.reviewer_deadline,
+            owner_deadline=review.owner_deadline,
+        )
+        for review, app, user in rows
+    ]
+
+
 @router.get("/me", response_model=List[schemas.ReviewOut])
 def get_my_reviews(
     db: Session = Depends(get_db),
@@ -114,7 +155,8 @@ def get_review(
         .order_by(models.ReviewScreenshot.created_at)
         .all()
     ]
-    return _to_detail(review, app, screenshots, current_user.username)
+    app_owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+    return _to_detail(review, app, screenshots, current_user.username, app_owner.username)
 
 
 # ── Update review ─────────────────────────────────────────────────────────────
@@ -175,7 +217,8 @@ def update_review(
         .order_by(models.ReviewScreenshot.created_at)
         .all()
     ]
-    return _to_detail(review, app, screenshots, current_user.username)
+    app_owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+    return _to_detail(review, app, screenshots, current_user.username, app_owner.username)
 
 
 # ── Delete review ─────────────────────────────────────────────────────────────
@@ -192,7 +235,7 @@ def delete_review(
     if review.reviewer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    if not review.is_complete and not review.is_rejected:
+    if not review.is_complete and not review.is_rejected and not review.is_exchange:
         app = db.query(models.App).filter(models.App.id == review.app_id).first()
         owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
         owner.escrow_credits -= app.credits
@@ -287,14 +330,14 @@ def post_review_message(
         raise HTTPException(status_code=404, detail="Review not found")
     if review.reviewer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
-    if not review.is_submitted or review.is_complete or review.is_rejected:
+    if not review.is_submitted:
         raise HTTPException(status_code=400, detail="Cannot message on this review")
 
     msg = models.Message(review_id=review_id, sender_id=current_user.id, body=payload.body.strip())
     db.add(msg)
 
     # Reviewer replied → only pass the deadline to the owner if it was currently the reviewer's turn
-    if review.reviewer_deadline is not None:
+    if not review.is_complete and not review.is_rejected and review.reviewer_deadline is not None:
         review.owner_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
         # review.owner_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
         review.reviewer_deadline = None
@@ -364,7 +407,15 @@ def _to_out(review: models.Review, app: models.App) -> schemas.ReviewOut:
     )
 
 
-def _to_detail(review: models.Review, app: models.App, screenshots: list, reviewer_username: str) -> schemas.ReviewDetail:
+def _to_detail(
+    review: models.Review,
+    app: models.App,
+    screenshots: list,
+    reviewer_username: str,
+    owner_username: str,
+    sibling_is_complete: bool | None = None,
+    sibling_app_name: str | None = None,
+) -> schemas.ReviewDetail:
     return schemas.ReviewDetail(
         id=review.id,
         app_id=review.app_id,
@@ -387,7 +438,12 @@ def _to_detail(review: models.Review, app: models.App, screenshots: list, review
         feedback=review.feedback,
         screenshots=[{"filename": f, "url": r2.presign(f)} for f in screenshots],
         reviewer_username=reviewer_username,
+        owner_username=owner_username,
         tested_platform=review.tested_platform,
         test_duration=review.test_duration,
         created_account=review.created_account,
+        is_exchange=review.is_exchange,
+        sibling_is_complete=sibling_is_complete,
+        sibling_app_name=sibling_app_name,
+        reviewer_rating=review.reviewer_rating,
     )

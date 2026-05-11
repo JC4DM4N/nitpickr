@@ -7,11 +7,12 @@ export default defineConfig({
   server: {
     historyApiFallback: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
+      '/auth': 'http://localhost:8000',
+      '/users': 'http://localhost:8000',
+      '/apps': 'http://localhost:8000',
+      '/reviews': 'http://localhost:8000',
+      '/notifications': 'http://localhost:8000',
+      '/exchanges': 'http://localhost:8000',
     },
   },
 })

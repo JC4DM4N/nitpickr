@@ -31,8 +31,23 @@ CREATE TABLE IF NOT EXISTS apps (
     request     TEXT       NOT NULL,
     credits         INTEGER      NOT NULL DEFAULT 1,
     is_hidden       BOOLEAN      NOT NULL DEFAULT FALSE,
-    is_multi_review BOOLEAN      NOT NULL DEFAULT FALSE,
+    is_multi_review BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ── Feedback exchanges ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS feedback_exchanges (
+    id                   SERIAL PRIMARY KEY,
+    requester_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    requestee_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    requester_app_id     INTEGER NOT NULL REFERENCES apps(id)  ON DELETE CASCADE,
+    requestee_app_id     INTEGER          REFERENCES apps(id)  ON DELETE SET NULL,
+    review_of_requester  INTEGER,          -- FK to reviews added after reviews table
+    review_of_requestee  INTEGER,          -- FK to reviews added after reviews table
+    status               VARCHAR(20) NOT NULL DEFAULT 'pending',
+    message              TEXT,
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at           TIMESTAMPTZ NOT NULL
 );
 
 -- ── Reviews ──────────────────────────────────────────────────────────────────
@@ -45,15 +60,22 @@ CREATE TABLE IF NOT EXISTS reviews (
     is_rejected        BOOLEAN     NOT NULL DEFAULT FALSE,
     is_expired         BOOLEAN     NOT NULL DEFAULT FALSE,
     review_requested   BOOLEAN     NOT NULL DEFAULT FALSE,
+    is_exchange        BOOLEAN     NOT NULL DEFAULT FALSE,
+    exchange_id        INTEGER     REFERENCES feedback_exchanges(id) ON DELETE SET NULL,
     feedback      TEXT,
     owner_message TEXT,
     created_date       TIMESTAMPTZ DEFAULT NOW(),
-    reviewer_deadline  TIMESTAMPTZ,          -- reviewer must submit within 24 h
-    owner_deadline     TIMESTAMPTZ,          -- owner must approve within 2 days
+    reviewer_deadline  TIMESTAMPTZ,
+    owner_deadline     TIMESTAMPTZ,
     tested_platform    VARCHAR(10),
     test_duration      TEXT,
     created_account    BOOLEAN
 );
+
+-- Add deferred FKs from feedback_exchanges back to reviews
+ALTER TABLE feedback_exchanges
+    ADD CONSTRAINT fk_ror FOREIGN KEY (review_of_requester) REFERENCES reviews(id) ON DELETE SET NULL,
+    ADD CONSTRAINT fk_rod FOREIGN KEY (review_of_requestee) REFERENCES reviews(id) ON DELETE SET NULL;
 
 -- ── Notifications ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS notifications (
@@ -81,5 +103,15 @@ CREATE TABLE IF NOT EXISTS review_screenshots (
     id          SERIAL PRIMARY KEY,
     review_id   INTEGER      NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
     filename    VARCHAR(255) NOT NULL,
+    created_at  TIMESTAMPTZ  DEFAULT NOW()
+);
+
+-- ── Testimonials ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS testimonials (
+    id          SERIAL PRIMARY KEY,
+    review_id   INTEGER      NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+    app_id      INTEGER      NOT NULL REFERENCES apps(id)    ON DELETE CASCADE,
+    owner_id    INTEGER      NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
+    quote_text  TEXT         NOT NULL,
     created_at  TIMESTAMPTZ  DEFAULT NOW()
 );

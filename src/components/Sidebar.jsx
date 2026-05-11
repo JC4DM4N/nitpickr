@@ -22,16 +22,24 @@ function IconInfo() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
 }
 function IconShare() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+}
+function IconExchange() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+}
+function IconTestimonials() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
 }
 
 const NAV = [
-  { path: '/explore',       label: 'Explore',       Icon: IconExplore },
-  { path: '/my-apps',       label: 'My Apps',       Icon: IconApps },
-  { path: '/reviews',       label: 'Reviews',       Icon: IconReviews },
-  { path: '/notifications', label: 'Notifications', Icon: IconBell },
-  { path: '/credits',       label: 'Credits',       Icon: IconCredits },
-  { path: '/how-it-works',  label: 'How it works',  Icon: IconInfo },
+  { path: '/explore',        label: 'Explore',        Icon: IconExplore },
+  { path: '/my-apps',        label: 'My Apps',        Icon: IconApps },
+  { path: '/reviews',        label: 'Reviews',        Icon: IconReviews },
+  { path: '/exchanges',      label: 'Exchanges',      Icon: IconExchange },
+  // { path: '/testimonials',   label: 'Testimonials',   Icon: IconTestimonials },
+  { path: '/notifications',  label: 'Notifications',  Icon: IconBell },
+  { path: '/credits',        label: 'Credits',        Icon: IconCredits },
+  { path: '/how-it-works',   label: 'How it works',   Icon: IconInfo },
 ]
 
 export default function Sidebar({ user, onLogout, unreadCount, isOpen, onClose }) {
@@ -83,7 +91,7 @@ export default function Sidebar({ user, onLogout, unreadCount, isOpen, onClose }
                 onClick={() => navigate(profilePath)}
               >
                 <IconShare />
-                Share my apps
+                Profile
               </button>
             )
           })()}

@@ -120,6 +120,12 @@ def patch_app(
     return _build_app_outs([app], db)[0]
 
 
+@router.get("/count")
+def get_app_count(db: Session = Depends(get_db)):
+    count = db.query(func.count(models.App.id)).filter(models.App.is_hidden == False).scalar()
+    return {"count": count}
+
+
 @router.get("/mine", response_model=List[schemas.AppOut])
 def list_my_apps(
     db: Session = Depends(get_db),
@@ -131,12 +137,13 @@ def list_my_apps(
 
 @router.get("/", response_model=List[schemas.AppOut])
 def list_apps(db: Session = Depends(get_db)):
-    # Join latest review date per app, sort nulls first then oldest review first
+    # Join latest completed review date per app, sort nulls first then oldest review first
     latest_review = (
         db.query(
             models.Review.app_id,
             func.max(models.Review.created_date).label("last_reviewed"),
         )
+        .filter(models.Review.is_complete == True)
         .group_by(models.Review.app_id)
         .subquery()
     )
@@ -175,8 +182,11 @@ def approve_review(
     review.is_complete = True
     review.owner_message = payload.message
     review.owner_deadline = None
-    current_user.escrow_credits -= app.credits
-    reviewer.credits += app.credits
+    if payload.reviewer_rating is not None:
+        review.reviewer_rating = payload.reviewer_rating
+    if not review.is_exchange:
+        current_user.escrow_credits -= app.credits
+        reviewer.credits += app.credits
     create_notification(
         db, reviewer.id, "review_approved",
         f"{current_user.username} approved your review of {app.name}",
@@ -186,7 +196,7 @@ def approve_review(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username, current_user.username)
 
 
 @router.post("/{app_id}/reviews/{review_id}/request-changes", response_model=schemas.ReviewDetail)
@@ -213,7 +223,7 @@ def request_changes(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username, current_user.username)
 
 
 @router.post("/{app_id}/reviews/{review_id}/reject", response_model=schemas.ReviewDetail)
@@ -226,11 +236,44 @@ def reject_review(
 ):
     app, review = _get_owner_review(app_id, review_id, current_user, db)
     reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
+    was_exchange = review.is_exchange
     review.is_rejected = True
+    review.is_exchange = False
     review.owner_message = payload.message
     review.owner_deadline = None
-    current_user.escrow_credits -= app.credits
-    current_user.credits += app.credits
+    if payload.reviewer_rating is not None:
+        review.reviewer_rating = payload.reviewer_rating
+    if not was_exchange:
+        current_user.escrow_credits -= app.credits
+        current_user.credits += app.credits
+    else:
+        # Cancel the exchange and handle the sibling review
+        exchange = db.query(models.FeedbackExchange).filter(
+            models.FeedbackExchange.id == review.exchange_id
+        ).first()
+        if exchange:
+            exchange.status = "rejected"
+            other_review_id = (
+                exchange.review_of_requestee if review.id == exchange.review_of_requester
+                else exchange.review_of_requester
+            )
+            if other_review_id:
+                other_review = db.query(models.Review).filter(
+                    models.Review.id == other_review_id
+                ).first()
+                if other_review and not other_review.is_expired and not other_review.is_rejected:
+                    other_review.is_exchange = False
+                    if other_review.is_complete:
+                        # Other side already accepted: rejecter earns a credit,
+                        # funded by the reviewer whose review was rejected (if they have any)
+                        current_user.credits += 1
+                        if reviewer.credits > 0:
+                            reviewer.credits -= 1
+                    else:
+                        # Other side still in progress: expire it, no credit exchange
+                        other_review.is_expired = True
+                        other_review.reviewer_deadline = None
+                        other_review.owner_deadline = None
     create_notification(
         db, reviewer.id, "review_rejected",
         f"{current_user.username} rejected your review of {app.name}",
@@ -240,7 +283,7 @@ def reject_review(
     db.commit()
     db.refresh(review)
     from .reviews import _to_detail
-    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username)
+    return _to_detail(review, app, _get_screenshots(review_id, db), reviewer.username, current_user.username)
 
 
 def _get_owner_review(app_id, review_id, current_user, db):
@@ -266,6 +309,28 @@ def _get_screenshots(review_id, db):
         .order_by(models.ReviewScreenshot.created_at)
         .all()
     ]
+
+
+def _get_sibling_info(review: models.Review, db) -> tuple:
+    """Return (sibling_is_complete, sibling_app_name) for exchange reviews, else (None, None)."""
+    if not review.is_exchange or not review.exchange_id:
+        return None, None
+    exchange = db.query(models.FeedbackExchange).filter(
+        models.FeedbackExchange.id == review.exchange_id
+    ).first()
+    if not exchange:
+        return None, None
+    sibling_id = (
+        exchange.review_of_requestee if exchange.review_of_requester == review.id
+        else exchange.review_of_requester
+    )
+    if not sibling_id:
+        return None, None
+    sibling = db.query(models.Review).filter(models.Review.id == sibling_id).first()
+    if not sibling:
+        return None, None
+    sibling_app = db.query(models.App).filter(models.App.id == sibling.app_id).first()
+    return sibling.is_complete, (sibling_app.name if sibling_app else None)
 
 
 @router.get("/{app_id}/reviews/{review_id}", response_model=schemas.ReviewDetail)
@@ -296,8 +361,10 @@ def get_app_review_detail(
         .order_by(models.ReviewScreenshot.created_at)
         .all()
     ]
+    sibling_is_complete, sibling_app_name = _get_sibling_info(review, db)
     from .reviews import _to_detail
-    return _to_detail(review, app, screenshots, reviewer.username)
+    return _to_detail(review, app, screenshots, reviewer.username, current_user.username,
+                      sibling_is_complete=sibling_is_complete, sibling_app_name=sibling_app_name)
 
 
 @router.get("/{app_id}/reviews/{review_id}/messages", response_model=List[schemas.MessageOut])
@@ -321,14 +388,14 @@ def post_app_review_message(
     current_user: models.User = Depends(get_current_user),
 ):
     app, review = _get_owner_review(app_id, review_id, current_user, db)
-    if not review.is_submitted or review.is_complete or review.is_rejected:
+    if not review.is_submitted:
         raise HTTPException(status_code=400, detail="Cannot message on this review")
 
     msg = models.Message(review_id=review_id, sender_id=current_user.id, body=payload.body.strip())
     db.add(msg)
 
     # Owner messaged → only pass the deadline to the reviewer if it was currently the owner's turn
-    if review.owner_deadline is not None:
+    if not review.is_complete and not review.is_rejected and review.owner_deadline is not None:
         review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
         # review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
         review.owner_deadline = None
@@ -390,6 +457,43 @@ def get_app_reviews(
     ]
 
 
+@router.get("/reviews/completed", response_model=List[schemas.CompletedReviewItem])
+def get_completed_reviews_received(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    owned_app_ids = [
+        a.id for a in
+        db.query(models.App).filter(models.App.owner_id == current_user.id).all()
+    ]
+    if not owned_app_ids:
+        return []
+    rows = (
+        db.query(models.Review, models.App, models.User)
+        .join(models.App,  models.Review.app_id      == models.App.id)
+        .join(models.User, models.Review.reviewer_id == models.User.id)
+        .filter(
+            models.Review.app_id.in_(owned_app_ids),
+            models.Review.is_complete == True,
+        )
+        .order_by(models.Review.created_date.desc())
+        .all()
+    )
+    return [
+        schemas.CompletedReviewItem(
+            id=review.id,
+            app_id=app.id,
+            app_name=app.name,
+            app_initials=app.initials,
+            app_color=app.color,
+            reviewer_username=user.username,
+            feedback=review.feedback,
+            created_date=review.created_date,
+        )
+        for review, app, user in rows
+    ]
+
+
 @router.get("/by-owner/{username}", response_model=List[schemas.AppOut])
 def list_apps_by_owner(username: str, db: Session = Depends(get_db)):
     from sqlalchemy import func
@@ -418,6 +522,39 @@ def delete_app(
         raise HTTPException(status_code=403, detail="Forbidden")
     db.delete(app)
     db.commit()
+
+
+@router.post("/{app_id}/reviews/{review_id}/testimonials", response_model=schemas.TestimonialOut)
+def create_testimonial(
+    app_id: int,
+    review_id: int,
+    payload: schemas.TestimonialCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    app, review = _get_owner_review(app_id, review_id, current_user, db)
+    if not review.is_complete:
+        raise HTTPException(status_code=400, detail="Review must be approved before creating a testimonial")
+    if not payload.quote_text.strip():
+        raise HTTPException(status_code=422, detail="Quote text cannot be empty")
+    testimonial = models.Testimonial(
+        review_id=review_id,
+        app_id=app_id,
+        owner_id=current_user.id,
+        quote_text=payload.quote_text.strip(),
+    )
+    db.add(testimonial)
+    db.commit()
+    db.refresh(testimonial)
+    return {
+        "id": testimonial.id,
+        "review_id": testimonial.review_id,
+        "app_id": testimonial.app_id,
+        "owner_id": testimonial.owner_id,
+        "app_name": app.name,
+        "quote_text": testimonial.quote_text,
+        "created_at": testimonial.created_at,
+    }
 
 
 @router.get("/{app_id}", response_model=schemas.AppOut)

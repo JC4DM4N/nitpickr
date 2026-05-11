@@ -18,6 +18,9 @@ import CreditsPage from './pages/dashboard/CreditsPage'
 import SubmitAppPage from './pages/dashboard/SubmitAppPage'
 import NotificationsPage from './pages/dashboard/NotificationsPage'
 import UserProfilePage from './pages/dashboard/UserProfilePage'
+import ExchangesPage from './pages/dashboard/ExchangesPage'
+import TestimonialPage from './pages/dashboard/TestimonialPage'
+import TestimonialsListPage from './pages/dashboard/TestimonialsListPage'
 
 function getStoredUser() {
   try {
@@ -39,6 +42,7 @@ function App() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setUser(null)
+    window.location.replace('/login')
   }
 
   useEffect(() => {
@@ -82,9 +86,12 @@ function App() {
             <Route path="/my-apps"       element={<MyAppsPage />} />
             <Route path="/my-apps/new"   element={<SubmitAppPage />} />
             <Route path="/my-apps/:appId"                          element={<MyAppDetailPage />} />
-            <Route path="/my-apps/:appId/reviews/:reviewId"        element={<OwnerReviewPage />} />
+            <Route path="/my-apps/:appId/reviews/:reviewId"                       element={<OwnerReviewPage />} />
+            <Route path="/my-apps/:appId/reviews/:reviewId/testimonial" element={<TestimonialPage />} />
             <Route path="/reviews"       element={<ReviewsPage />} />
             <Route path="/reviews/:reviewId"                       element={<ReviewAppPage />} />
+            <Route path="/exchanges"     element={<ExchangesPage />} />
+            <Route path="/testimonials"  element={<TestimonialsListPage />} />
             <Route path="/credits"       element={<CreditsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/how-it-works"  element={<DashboardHowItWorksPage />} />

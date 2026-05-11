@@ -23,6 +23,9 @@ ID_CHANGES_REQUESTED         = "cmnnaqi9d4dba0iybg9bgsxhw"
 ID_REVIEWER_DEADLINE_EXPIRED = "cmnnbvi8500mp0i29goyg3nl9"
 ID_OWNER_DEADLINE_EXPIRED    = "cmnnbn8aj005l0i11200uv1tg"
 ID_REVIEW_MESSAGE            = "cmo914e5i001y0iwsf05oymy6"
+ID_EXCHANGE_REQUESTED        = "cmog79dxh0jyc0i0ncagn92u0"
+ID_EXCHANGE_ACCEPTED         = "cmog71pg500310i2kufi8847d"
+ID_EXCHANGE_REJECTED         = "cmog785yg3pna0i1ikolokkby"
 
 _NOTIFICATION_TYPE_TO_ID = {
     "review_started":               ID_REVIEW_STARTED,
@@ -36,6 +39,9 @@ _NOTIFICATION_TYPE_TO_ID = {
     "owner_deadline_expired":       ID_OWNER_DEADLINE_EXPIRED,
     "review_message":               ID_REVIEW_MESSAGE,
     "review_message_owner":         ID_REVIEW_MESSAGE,
+    "exchange_requested":           ID_EXCHANGE_REQUESTED,
+    "exchange_accepted":            ID_EXCHANGE_ACCEPTED,
+    "exchange_rejected":            ID_EXCHANGE_REJECTED,
 }
 
 

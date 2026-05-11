@@ -88,9 +88,14 @@ class ReviewDetail(BaseModel):
     feedback: str | None
     screenshots: list[dict]
     reviewer_username: str
+    owner_username: str
     tested_platform: str | None
     test_duration: str | None
     created_account: bool | None
+    is_exchange: bool
+    sibling_is_complete: bool | None = None
+    sibling_app_name: str | None = None
+    reviewer_rating: int | None = None
 
 
 class ReviewPatch(BaseModel):
@@ -103,6 +108,7 @@ class ReviewPatch(BaseModel):
 
 class OwnerActionPayload(BaseModel):
     message: str
+    reviewer_rating: int | None = None
 
 
 class AppCreate(BaseModel):
@@ -144,11 +150,20 @@ class NotificationOut(BaseModel):
     created_at: datetime
 
 
+class UserCard(BaseModel):
+    id: int
+    username: str
+    app_count: int
+    reviews_given: int
+    reviewer_rating: float | None
+
+
 class UserProfile(BaseModel):
     id: int
     username: str
     available_credits: int
     twitter_username: str | None
+    reviewer_rating: float | None = None
 
 
 class UserPatch(BaseModel):
@@ -173,6 +188,95 @@ class AppReviewFeedItem(BaseModel):
     id: int
     reviewer_username: str
     feedback: str | None
+    is_submitted: bool
+    is_complete: bool
+    is_rejected: bool
+    is_expired: bool
+    review_requested: bool
+    created_date: datetime
+    reviewer_deadline: datetime | None
+    owner_deadline: datetime | None
+
+
+class ExchangeOut(BaseModel):
+    id: int
+    requester_id: int
+    requestee_id: int
+    requester_username: str
+    requestee_username: str
+    requester_app_id: int
+    requester_app_name: str
+    requester_app_initials: str
+    requester_app_color: str
+    requestee_app_id: int | None
+    requestee_app_name: str | None
+    requestee_app_initials: str | None
+    requestee_app_color: str | None
+    review_of_requester: int | None
+    review_of_requestee: int | None
+    # Status fields for each review (populated when accepted)
+    ror_is_submitted: bool | None
+    ror_is_complete: bool | None
+    ror_is_rejected: bool | None
+    ror_is_expired: bool | None
+    ror_review_requested: bool | None
+    rod_is_submitted: bool | None
+    rod_is_complete: bool | None
+    rod_is_rejected: bool | None
+    rod_is_expired: bool | None
+    rod_review_requested: bool | None
+    status: str
+    message: str | None
+    created_at: datetime
+    expires_at: datetime
+
+
+class ExchangeCreate(BaseModel):
+    requestee_username: str
+    requester_app_id: int
+    message: str | None = None
+
+
+class ExchangeAccept(BaseModel):
+    requestee_app_id: int
+
+
+class CompletedReviewItem(BaseModel):
+    id: int
+    app_id: int
+    app_name: str
+    app_initials: str
+    app_color: str
+    reviewer_username: str
+    feedback: str | None
+    created_date: datetime
+
+
+class TestimonialCreate(BaseModel):
+    quote_text: str
+
+
+class TestimonialOut(BaseModel):
+    id: int
+    review_id: int
+    app_id: int
+    owner_id: int
+    app_name: str
+    quote_text: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ReviewReceived(BaseModel):
+    id: int
+    app_id: int
+    app_name: str
+    app_initials: str
+    app_color: str
+    app_stage: str
+    app_url: str
+    reviewer_username: str
     is_submitted: bool
     is_complete: bool
     is_rejected: bool

@@ -49,12 +49,12 @@ export default function OwnerReviewPage() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  async function handleAction(action, message) {
+  async function handleAction(action, message, reviewerRating) {
     const token = localStorage.getItem('token')
     const res = await authFetch(`/apps/${appId}/reviews/${reviewId}/${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, reviewer_rating: reviewerRating }),
     })
     if (!res.ok) {
       const data = await res.json()
@@ -108,8 +108,15 @@ export default function OwnerReviewPage() {
       {modal && (
         <ActionModal
           action={modal}
-          onConfirm={msg => handleAction(modal, msg)}
+          onConfirm={(msg, rating) => handleAction(modal, msg, rating)}
           onClose={() => setModal(null)}
+          description={modal === 'reject' ? (
+            !detail.is_exchange
+              ? 'You are about to reject this review. Your credit will be removed from escrow and returned to your account.'
+              : detail.sibling_is_complete
+                ? `You are about to reject this review. As your review of ${detail.sibling_app_name} has already been accepted, your account will be awarded 1 credit.`
+                : 'You are about to reject this review. The feedback exchange will be cancelled.'
+          ) : undefined}
         />
       )}
 
@@ -122,14 +129,6 @@ export default function OwnerReviewPage() {
           name={detail.app_name}
           stage={detail.app_stage}
           url={detail.app_url}
-          actions={
-            <a
-              className="header-action-btn edit-app-btn"
-              href={`/${detail.reviewer_username}`}
-            >
-              See {detail.reviewer_username}'s apps →
-            </a>
-          }
         >
           <ReviewStatusBadge
             is_submitted={detail.is_submitted}
@@ -138,6 +137,13 @@ export default function OwnerReviewPage() {
             is_expired={detail.is_expired}
             review_requested={detail.review_requested}
           />
+          {(detail.is_complete || detail.is_rejected) && detail.reviewer_rating != null && (
+            <span className="review-rating-badge">
+              {detail.reviewer_rating}
+              <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+              rating
+            </span>
+          )}
         </AppPageHeader>
 
         {canAct && (
@@ -150,6 +156,17 @@ export default function OwnerReviewPage() {
             </button>
           </div>
         )}
+
+        {/* {detail.is_complete && (
+          <div className="review-app-actions review-app-actions--top">
+            <button
+              className="owner-request-btn"
+              onClick={() => navigate(`/my-apps/${appId}/reviews/${reviewId}/testimonial`)}
+            >
+              Create testimonial →
+            </button>
+          </div>
+        )} */}
 
         <div className="review-app-body">
           <div className="review-app-main">
@@ -228,7 +245,7 @@ export default function OwnerReviewPage() {
                     <div ref={chatBottomRef} />
                   </div>
                 )}
-                {canAct && (
+                {detail.is_submitted && !detail.is_expired && (
                   <div className="chat-input-row">
                     <textarea
                       className="chat-input"

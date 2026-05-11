@@ -5,33 +5,77 @@ import { STAGE_STYLES } from '../../constants'
 import { formatTimeRemaining } from '../../utils/time'
 import { authFetch } from '../../utils/authFetch'
 
+function statusClass(r) {
+  if (r.is_expired) return 'expired'
+  if (r.is_rejected) return 'rejected'
+  if (r.is_complete) return 'complete'
+  if (r.is_submitted && r.reviewer_deadline) return 'changes-requested'
+  if (r.is_submitted) return 'awaiting'
+  return 'in-progress'
+}
+
+function statusLabel(r) {
+  if (r.is_expired) return 'Expired'
+  if (r.is_rejected) return 'Rejected'
+  if (r.is_complete) return 'Approved'
+  if (r.is_submitted && r.reviewer_deadline) return 'Changes requested'
+  if (r.is_submitted) return 'Awaiting approval'
+  if (r.review_requested) return 'Review Requested'
+  return 'In progress'
+}
+
 export default function ReviewsPage() {
   const navigate = useNavigate()
-  const [reviews, setReviews] = useState([])
+  const [tab, setTab] = useState('given')
+  const [given, setGiven] = useState([])
+  const [received, setReceived] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    authFetch('/reviews/me', {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => { setReviews(data); setLoading(false) })
+    Promise.all([
+      authFetch('/reviews/me',       { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+      authFetch('/reviews/received', { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+    ])
+      .then(([givenData, receivedData]) => {
+        setGiven(givenData)
+        setReceived(receivedData)
+        setLoading(false)
+      })
       .catch(() => { setError('Failed to load reviews'); setLoading(false) })
   }, [])
+
+  const reviews = tab === 'given' ? given : received
 
   return (
     <div className="reviews-page">
       <div className="reviews-header">
-        <h1 className="reviews-title">My Reviews</h1>
-        <p className="reviews-sub">Apps you have started reviewing.</p>
+        <h1 className="reviews-title">Reviews</h1>
       </div>
       <div className="reviews-body">
+        <div className="reviews-tabs">
+          <button
+            className={`reviews-tab${tab === 'given' ? ' reviews-tab--active' : ''}`}
+            onClick={() => setTab('given')}
+          >
+            Reviews given
+          </button>
+          <button
+            className={`reviews-tab${tab === 'received' ? ' reviews-tab--active' : ''}`}
+            onClick={() => setTab('received')}
+          >
+            Reviews received
+          </button>
+        </div>
         {loading && <p className="reviews-empty">Loading…</p>}
         {error && <p className="reviews-empty">{error}</p>}
         {!loading && !error && reviews.length === 0 && (
-          <p className="reviews-empty">No reviews yet. Head to Explore to get started.</p>
+          <p className="reviews-empty">
+            {tab === 'given'
+              ? 'No reviews yet. Head to Explore to get started.'
+              : 'No reviews received yet.'}
+          </p>
         )}
         {!loading && !error && reviews.length > 0 && (
           <table className="reviews-table">
@@ -39,6 +83,7 @@ export default function ReviewsPage() {
               <tr>
                 <th>App</th>
                 <th>Stage</th>
+                <th>{tab === 'given' ? 'Status' : 'Reviewer'}</th>
                 <th>Status</th>
                 <th>Started</th>
               </tr>
@@ -50,10 +95,13 @@ export default function ReviewsPage() {
                   : r.is_submitted
                     ? formatTimeRemaining(r.owner_deadline)
                     : formatTimeRemaining(r.reviewer_deadline)
-                const isUrgent = timeLeft && timeLeft.startsWith('0') || (timeLeft && !timeLeft.includes('d') && !timeLeft.includes('h'))
+                const isUrgent = timeLeft && (timeLeft.startsWith('0') || (!timeLeft.includes('d') && !timeLeft.includes('h')))
+                const dest = tab === 'given'
+                  ? `/reviews/${r.id}`
+                  : `/my-apps/${r.app_id}/reviews/${r.id}`
 
                 return (
-                  <tr key={r.id} onClick={() => navigate(`/reviews/${r.id}`)} style={{ cursor: 'pointer' }}>
+                  <tr key={r.id} onClick={() => navigate(dest)} style={{ cursor: 'pointer' }}>
                     <td>
                       <div className="reviews-app-cell">
                         <div className="reviews-app-icon" style={{ background: r.app_color }}>{r.app_initials}</div>
@@ -68,9 +116,12 @@ export default function ReviewsPage() {
                         {r.app_stage}
                       </span>
                     </td>
+                    {tab === 'received' && (
+                      <td className="reviews-date">{r.reviewer_username}</td>
+                    )}
                     <td>
-                      <span className={`review-status-badge ${r.is_expired ? 'expired' : r.is_rejected ? 'rejected' : r.is_complete ? 'complete' : (r.is_submitted && r.owner_deadline) ? 'awaiting' : (r.is_submitted && r.reviewer_deadline) ? 'changes-requested' : r.is_submitted ? 'awaiting' : 'in-progress'}`}>
-                        {r.is_expired ? 'Expired' : r.is_rejected ? 'Rejected' : r.is_complete ? 'Approved' : (r.is_submitted && r.reviewer_deadline) ? 'Changes requested' : r.is_submitted ? 'Awaiting approval' : r.review_requested ? 'Review Requested' : 'In progress'}
+                      <span className={`review-status-badge ${statusClass(r)}`}>
+                        {statusLabel(r)}
                       </span>
                       {timeLeft && (
                         <span className={`reviews-time-left${isUrgent ? ' reviews-time-left--urgent' : ''}`}>

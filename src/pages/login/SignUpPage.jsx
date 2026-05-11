@@ -12,8 +12,8 @@ export default function SignUpPage({ onSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (/\s/.test(username)) {
-      setError('Username must not contain spaces')
+    if (!/^[A-Za-z0-9_]+$/.test(username)) {
+      setError('Username can only contain letters, numbers, and underscores')
       return
     }
     if (/\s/.test(password)) {

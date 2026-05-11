@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 import bcrypt as bcryptlib
 
@@ -24,6 +25,7 @@ def get_my_credits(
         .filter(
             models.Review.reviewer_id == current_user.id,
             models.Review.is_complete == True,
+            models.Review.is_exchange == False,
         )
         .all()
     )
@@ -36,6 +38,7 @@ def get_my_credits(
         .filter(
             models.App.owner_id == current_user.id,
             models.Review.is_complete == True,
+            models.Review.is_exchange == False,
         )
         .all()
     )
@@ -67,17 +70,61 @@ def list_users(db: Session = Depends(get_db)):
     return db.query(models.User).all()
 
 
+@router.get("/explore", response_model=List[schemas.UserCard])
+def explore_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+
+    app_counts = dict(
+        db.query(models.App.owner_id, func.count(models.App.id))
+        .group_by(models.App.owner_id)
+        .all()
+    )
+    reviews_given = dict(
+        db.query(models.Review.reviewer_id, func.count(models.Review.id))
+        .filter(models.Review.is_complete == True)
+        .group_by(models.Review.reviewer_id)
+        .all()
+    )
+    reviewer_ratings = dict(
+        db.query(models.Review.reviewer_id, func.avg(models.Review.reviewer_rating))
+        .filter(
+            models.Review.reviewer_rating != None,
+            (models.Review.is_complete == True) | (models.Review.is_rejected == True),
+        )
+        .group_by(models.Review.reviewer_id)
+        .all()
+    )
+
+    return [
+        schemas.UserCard(
+            id=u.id,
+            username=u.username,
+            app_count=app_counts.get(u.id, 0),
+            reviews_given=reviews_given.get(u.id, 0),
+            reviewer_rating=round(reviewer_ratings[u.id], 1) if u.id in reviewer_ratings else None,
+        )
+        for u in users
+        if app_counts.get(u.id, 0) > 0  # only show users with at least one app
+    ]
+
+
 @router.get("/by-username/{username}", response_model=schemas.UserProfile)
 def get_user_by_username(username: str, db: Session = Depends(get_db)):
     from sqlalchemy import func
     user = db.query(models.User).filter(func.lower(models.User.username) == username.lower()).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    avg = db.query(func.avg(models.Review.reviewer_rating)).filter(
+        models.Review.reviewer_id == user.id,
+        models.Review.reviewer_rating != None,
+        (models.Review.is_complete == True) | (models.Review.is_rejected == True),
+    ).scalar()
     return schemas.UserProfile(
         id=user.id,
         username=user.username,
         available_credits=user.credits,
         twitter_username=user.twitter_username,
+        reviewer_rating=round(avg, 1) if avg is not None else None,
     )
 
 
@@ -103,11 +150,17 @@ def patch_me(
         current_user.twitter_username = stripped if stripped else None
     db.commit()
     db.refresh(current_user)
+    avg = db.query(func.avg(models.Review.reviewer_rating)).filter(
+        models.Review.reviewer_id == current_user.id,
+        models.Review.reviewer_rating != None,
+        (models.Review.is_complete == True) | (models.Review.is_rejected == True),
+    ).scalar()
     return schemas.UserProfile(
         id=current_user.id,
         username=current_user.username,
         available_credits=current_user.credits,
         twitter_username=current_user.twitter_username,
+        reviewer_rating=round(avg, 1) if avg is not None else None,
     )
 
 
