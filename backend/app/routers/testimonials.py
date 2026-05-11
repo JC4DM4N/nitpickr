@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -18,14 +17,11 @@ def get_testimonial(testimonial_id: int, db: Session = Depends(get_db)):
     if not testimonial:
         raise HTTPException(status_code=404, detail="Testimonial not found")
     app = db.query(models.App).filter(models.App.id == testimonial.app_id).first()
-    return JSONResponse(
-        content={
-            "id": testimonial.id,
-            "review_id": testimonial.review_id,
-            "app_id": testimonial.app_id,
-            "app_name": app.name if app else "",
-            "quote_text": testimonial.quote_text,
-            "created_at": testimonial.created_at.isoformat(),
-        },
-        headers={"Access-Control-Allow-Origin": "*"},
-    )
+    return {
+        "id": testimonial.id,
+        "review_id": testimonial.review_id,
+        "app_id": testimonial.app_id,
+        "app_name": app.name if app else "",
+        "quote_text": testimonial.quote_text,
+        "created_at": testimonial.created_at.isoformat(),
+    }
