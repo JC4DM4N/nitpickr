@@ -4,9 +4,6 @@ from datetime import datetime, timezone
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request as StarletteRequest
-from starlette.responses import Response as StarletteResponse
 
 from .database import engine, SessionLocal
 from . import models
@@ -257,25 +254,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Nitpickr API", version="0.1.0", lifespan=lifespan)
 
 
-# class PublicEmbedCorsMiddleware(BaseHTTPMiddleware):
-#     """Allow any origin to fetch public embed endpoints (no credentials needed)."""
-#     async def dispatch(self, request: StarletteRequest, call_next):
-#         if request.url.path.startswith("/testimonials/"):
-#             if request.method == "OPTIONS":
-#                 return StarletteResponse(
-#                     status_code=200,
-#                     headers={
-#                         "Access-Control-Allow-Origin": "*",
-#                         "Access-Control-Allow-Methods": "GET, OPTIONS",
-#                         "Access-Control-Allow-Headers": "*",
-#                     },
-#                 )
-#             response = await call_next(request)
-#             response.headers["Access-Control-Allow-Origin"] = "*"
-#             return response
-#         return await call_next(request)
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -286,7 +264,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# app.add_middleware(PublicEmbedCorsMiddleware)
 
 app.include_router(auth.router)
 app.include_router(users.router)
