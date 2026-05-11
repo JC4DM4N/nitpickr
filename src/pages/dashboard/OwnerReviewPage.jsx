@@ -157,7 +157,7 @@ export default function OwnerReviewPage() {
           </div>
         )}
 
-        {detail.is_complete && (
+        {/* {detail.is_complete && (
           <div className="review-app-actions review-app-actions--top">
             <button
               className="owner-request-btn"
@@ -166,7 +166,7 @@ export default function OwnerReviewPage() {
               Create testimonial →
             </button>
           </div>
-        )}
+        )} */}
 
         <div className="review-app-body">
           <div className="review-app-main">
