@@ -23,6 +23,7 @@ export default function ExplorePage() {
 
   // ── Apps state ─────────────────────────────────────────────────────────────
   const [apps, setApps] = useState([]);
+  const [totalApps, setTotalApps] = useState(0);
   const [appsLoading, setAppsLoading] = useState(true);
   const [appsError, setAppsError] = useState(null);
   const [search, setSearch] = useState("");
@@ -64,6 +65,7 @@ export default function ExplorePage() {
         }
         const activeReviewedIds = new Set(myReviews.filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired).map((r) => r.app_id));
         const completedReviewedIds = new Set(myReviews.filter((r) => r.is_complete).map((r) => r.app_id));
+        setTotalApps(allApps.length);
         setApps(
           allApps
             .filter((a) => !activeReviewedIds.has(a.id))
@@ -286,7 +288,7 @@ export default function ExplorePage() {
             {mainTab === "apps" ? (
               <>
                 <div className="results-bar">
-                  <span className="results-count">{filteredApps.length} apps currently available for review</span>
+                  <span className="results-count">{filteredApps.length} apps available for review ({totalApps} total)</span>
                 </div>
                 <div className="app-grid">
                   {appsLoading && <p className="no-results">Loading apps…</p>}
