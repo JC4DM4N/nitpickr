@@ -241,6 +241,33 @@ class ExchangeAccept(BaseModel):
     requestee_app_id: int
 
 
+class CompletedReviewItem(BaseModel):
+    id: int
+    app_id: int
+    app_name: str
+    app_initials: str
+    app_color: str
+    reviewer_username: str
+    feedback: str | None
+    created_date: datetime
+
+
+class TestimonialCreate(BaseModel):
+    quote_text: str
+
+
+class TestimonialOut(BaseModel):
+    id: int
+    review_id: int
+    app_id: int
+    owner_id: int
+    app_name: str
+    quote_text: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class ReviewReceived(BaseModel):
     id: int
     app_id: int

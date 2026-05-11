@@ -1,0 +1,132 @@
+.tlist-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.tlist-header {
+  padding: 32px 40px 24px;
+  border-bottom: 1px solid #e8e6e0;
+  background: #fff;
+}
+
+.tlist-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f0e0b;
+  margin: 0 0 6px;
+}
+
+.tlist-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tlist-body {
+  flex: 1;
+  padding: 28px 40px;
+  max-width: 800px;
+}
+
+.tlist-empty {
+  font-size: 14px;
+  color: #9e9c96;
+  margin: 0;
+}
+
+/* ── Feed ── */
+.tlist-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tlist-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1.5px solid #e8e6e0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--sans);
+}
+
+.tlist-card:hover {
+  border-color: #c4c2bc;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.tlist-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tlist-app-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tlist-card-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tlist-app-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f0e0b;
+}
+
+.tlist-reviewer {
+  font-size: 12px;
+  color: #9e9c96;
+}
+
+.tlist-date {
+  font-size: 12px;
+  color: #9e9c96;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tlist-feedback-snippet {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0 0 12px;
+  border-left: 3px solid #e8e6e0;
+  padding-left: 12px;
+}
+
+.tlist-cta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--mono);
+}
+
+@media (max-width: 640px) {
+  .tlist-header,
+  .tlist-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

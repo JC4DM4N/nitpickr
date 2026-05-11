@@ -106,6 +106,17 @@ class Message(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Testimonial(Base):
+    __tablename__ = "testimonials"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    review_id  = Column(Integer, ForeignKey("reviews.id",  ondelete="CASCADE"), nullable=False)
+    app_id     = Column(Integer, ForeignKey("apps.id",     ondelete="CASCADE"), nullable=False)
+    owner_id   = Column(Integer, ForeignKey("users.id",    ondelete="CASCADE"), nullable=False)
+    quote_text = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 

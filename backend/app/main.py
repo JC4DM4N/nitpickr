@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .database import engine, SessionLocal
 from . import models
-from .routers import users, auth, apps, reviews, notifications, exchanges
+from .routers import users, auth, apps, reviews, notifications, exchanges, testimonials
 from .routers.notifications import create_notification
 from . import loops
 
@@ -270,6 +270,7 @@ app.include_router(apps.router)
 app.include_router(reviews.router)
 app.include_router(notifications.router)
 app.include_router(exchanges.router)
+app.include_router(testimonials.router)
 
 
 @app.get("/health")

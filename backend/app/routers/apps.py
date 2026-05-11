@@ -457,6 +457,43 @@ def get_app_reviews(
     ]
 
 
+@router.get("/reviews/completed", response_model=List[schemas.CompletedReviewItem])
+def get_completed_reviews_received(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    owned_app_ids = [
+        a.id for a in
+        db.query(models.App).filter(models.App.owner_id == current_user.id).all()
+    ]
+    if not owned_app_ids:
+        return []
+    rows = (
+        db.query(models.Review, models.App, models.User)
+        .join(models.App,  models.Review.app_id      == models.App.id)
+        .join(models.User, models.Review.reviewer_id == models.User.id)
+        .filter(
+            models.Review.app_id.in_(owned_app_ids),
+            models.Review.is_complete == True,
+        )
+        .order_by(models.Review.created_date.desc())
+        .all()
+    )
+    return [
+        schemas.CompletedReviewItem(
+            id=review.id,
+            app_id=app.id,
+            app_name=app.name,
+            app_initials=app.initials,
+            app_color=app.color,
+            reviewer_username=user.username,
+            feedback=review.feedback,
+            created_date=review.created_date,
+        )
+        for review, app, user in rows
+    ]
+
+
 @router.get("/by-owner/{username}", response_model=List[schemas.AppOut])
 def list_apps_by_owner(username: str, db: Session = Depends(get_db)):
     from sqlalchemy import func
@@ -485,6 +522,39 @@ def delete_app(
         raise HTTPException(status_code=403, detail="Forbidden")
     db.delete(app)
     db.commit()
+
+
+@router.post("/{app_id}/reviews/{review_id}/testimonials", response_model=schemas.TestimonialOut)
+def create_testimonial(
+    app_id: int,
+    review_id: int,
+    payload: schemas.TestimonialCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    app, review = _get_owner_review(app_id, review_id, current_user, db)
+    if not review.is_complete:
+        raise HTTPException(status_code=400, detail="Review must be approved before creating a testimonial")
+    if not payload.quote_text.strip():
+        raise HTTPException(status_code=422, detail="Quote text cannot be empty")
+    testimonial = models.Testimonial(
+        review_id=review_id,
+        app_id=app_id,
+        owner_id=current_user.id,
+        quote_text=payload.quote_text.strip(),
+    )
+    db.add(testimonial)
+    db.commit()
+    db.refresh(testimonial)
+    return {
+        "id": testimonial.id,
+        "review_id": testimonial.review_id,
+        "app_id": testimonial.app_id,
+        "owner_id": testimonial.owner_id,
+        "app_name": app.name,
+        "quote_text": testimonial.quote_text,
+        "created_at": testimonial.created_at,
+    }
 
 
 @router.get("/{app_id}", response_model=schemas.AppOut)
