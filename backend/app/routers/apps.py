@@ -382,14 +382,14 @@ def post_app_review_message(
     current_user: models.User = Depends(get_current_user),
 ):
     app, review = _get_owner_review(app_id, review_id, current_user, db)
-    if not review.is_submitted or review.is_complete or review.is_rejected:
+    if not review.is_submitted:
         raise HTTPException(status_code=400, detail="Cannot message on this review")
 
     msg = models.Message(review_id=review_id, sender_id=current_user.id, body=payload.body.strip())
     db.add(msg)
 
     # Owner messaged → only pass the deadline to the reviewer if it was currently the owner's turn
-    if review.owner_deadline is not None:
+    if not review.is_complete and not review.is_rejected and review.owner_deadline is not None:
         review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
         # review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
         review.owner_deadline = None

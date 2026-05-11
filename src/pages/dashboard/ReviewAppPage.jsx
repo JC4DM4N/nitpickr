@@ -386,7 +386,7 @@ export default function ReviewAppPage() {
                   <div ref={chatBottomRef} />
                 </div>
               )}
-              {!detail.is_complete && !detail.is_rejected && !detail.is_expired && (
+              {!detail.is_expired && (
                 <div className="chat-input-row">
                   <textarea
                     className="chat-input"

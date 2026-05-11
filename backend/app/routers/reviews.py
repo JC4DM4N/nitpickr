@@ -330,14 +330,14 @@ def post_review_message(
         raise HTTPException(status_code=404, detail="Review not found")
     if review.reviewer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
-    if not review.is_submitted or review.is_complete or review.is_rejected:
+    if not review.is_submitted:
         raise HTTPException(status_code=400, detail="Cannot message on this review")
 
     msg = models.Message(review_id=review_id, sender_id=current_user.id, body=payload.body.strip())
     db.add(msg)
 
     # Reviewer replied → only pass the deadline to the owner if it was currently the reviewer's turn
-    if review.reviewer_deadline is not None:
+    if not review.is_complete and not review.is_rejected and review.reviewer_deadline is not None:
         review.owner_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
         # review.owner_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
         review.reviewer_deadline = None

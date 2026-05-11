@@ -157,6 +157,17 @@ export default function OwnerReviewPage() {
           </div>
         )}
 
+        {detail.is_complete && (
+          <div className="review-app-actions review-app-actions--top">
+            <button
+              className="owner-request-btn"
+              onClick={() => navigate(`/my-apps/${appId}/reviews/${reviewId}/testimonial`)}
+            >
+              Create testimonial →
+            </button>
+          </div>
+        )}
+
         <div className="review-app-body">
           <div className="review-app-main">
 
@@ -234,7 +245,7 @@ export default function OwnerReviewPage() {
                     <div ref={chatBottomRef} />
                   </div>
                 )}
-                {canAct && (
+                {detail.is_submitted && !detail.is_expired && (
                   <div className="chat-input-row">
                     <textarea
                       className="chat-input"
