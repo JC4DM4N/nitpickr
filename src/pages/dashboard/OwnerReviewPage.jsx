@@ -251,11 +251,14 @@ export default function OwnerReviewPage() {
                       className="chat-input"
                       placeholder="Ask a question or request changes…"
                       value={msgInput}
-                      onChange={e => setMsgInput(e.target.value)}
+                      onChange={e => {
+                        setMsgInput(e.target.value)
+                        e.target.style.height = 'auto'
+                        e.target.style.height = `${e.target.scrollHeight}px`
+                      }}
                       onKeyDown={e => {
                         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage() }
                       }}
-                      rows={2}
                     />
                     <button
                       className="chat-send-btn"
