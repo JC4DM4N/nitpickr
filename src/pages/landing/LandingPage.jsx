@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 
@@ -14,6 +15,7 @@ export default function LandingPage() {
       <HowItWorksExchanges />
       <Features />
       {/* <Testimonials /> */}
+      <TestimonialsCarousel />
       <CTA onGetStarted={onGetStarted} />
       <Footer />
     </div>
@@ -30,6 +32,7 @@ export function Nav({ onLogin, onSignUp }) {
         <div className="nav-links">
           <a href="#how-it-works">How it works</a>
           <a href="#features">Features</a>
+          <a href="#testimonials">What developers say</a>
         </div>
         <div className="nav-actions">
           <button onClick={onLogin} className="btn btn-ghost">
@@ -350,6 +353,41 @@ function Testimonials() {
   );
 }
 
+function TestimonialsCarousel() {
+  const [testimonials, setTestimonials] = useState([])
+
+  useEffect(() => {
+    fetch('/testimonials.json')
+      .then(r => r.json())
+      .then(setTestimonials)
+      .catch(() => {})
+  }, [])
+
+  if (!testimonials.length) return null
+
+  const slots = Array.from({ length: Math.ceil(8 / testimonials.length) }, () => testimonials).flat().slice(0, 8)
+  const doubled = [...slots, ...slots]
+
+  return (
+    <section className="testimonials-carousel-section" id="testimonials">
+      <div className="section-label">What developers say</div>
+      <div className="carousel-track-wrap">
+        <div className="carousel-track">
+          {doubled.map((t, i) => (
+            <div key={i} className="carousel-card">
+              <p className="carousel-quote">"{t.quote}"</p>
+              <div className="carousel-author">
+                <span className="carousel-author-name">{t.author}</span>
+                {t.role && <span className="carousel-author-role">{t.role}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function CTA({ onGetStarted }) {
   const stages = [
     // { icon: '💡', label: 'Just an idea', desc: "Validate your concept before writing a single line of code." },
@@ -424,6 +462,7 @@ export function Footer() {
             <h4>Product</h4>
             <a href="#how-it-works">How it works</a>
             <a href="#features">Features</a>
+            <a href="#testimonials">What developers say</a>
           </div>
           <div className="footer-col">
             <h4>Account</h4>
