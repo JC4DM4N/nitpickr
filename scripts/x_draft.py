@@ -26,7 +26,7 @@ load_dotenv(Path(__file__).parent / ".env")
 MY_USERNAME = "jam_thecreator"
 
 DRAFT_REPLY = (
-    "Hey! For getting early feedback you should check out https://nitpickr.dev\n\n"
+    "Hey! For getting early feedback on your product you should check out https://nitpickr.dev\n\n"
     "You will get users, and completely free user testing + feedback.\n\n"
     "All you have to do is review someone else's app, and you'll get the same in return.\n\n"
     "Completely free to use too!"
