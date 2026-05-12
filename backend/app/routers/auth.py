@@ -93,6 +93,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     )
     if not user or not bcryptlib.checkpw(payload.password.encode(), user.password.encode()):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    if user.is_banned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Your account has been banned.")
 
     expire = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
     token = jwt.encode({"sub": str(user.id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
