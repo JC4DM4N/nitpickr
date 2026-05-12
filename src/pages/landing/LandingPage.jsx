@@ -13,10 +13,10 @@ export default function LandingPage() {
       <Hero onGetStarted={onGetStarted} />
       <HowItWorks />
       <HowItWorksExchanges />
+      <FounderMessage />
       <Features />
       {/* <Testimonials /> */}
       <TestimonialsCarousel />
-      <FounderMessage />
       <CTA onGetStarted={onGetStarted} />
       <Footer />
     </div>
@@ -223,7 +223,7 @@ export function HowItWorksExchanges({ white, links }) {
   ];
 
   return (
-    <section id="exchanges" className={`section${white ? '' : ' how-it-works-section'}`}>
+    <section id="exchanges" className="section section-alt">
       <div className="section-label">Feedback exchanges</div>
       <h2 className="section-title">Skip the credits. Go direct.</h2>
       <p className="section-sub">
@@ -291,7 +291,7 @@ function Features() {
   ];
 
   return (
-    <section id="features" className="section section-alt">
+    <section id="features" className="section section-warm">
       <div className="section-label">Features</div>
       <h2 className="section-title">Everything you need to improve your app</h2>
       <p className="section-sub">

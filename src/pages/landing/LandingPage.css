@@ -376,6 +376,10 @@
   background: #fff;
 }
 
+.section-warm {
+  background: #f6f5f1;
+}
+
 
 .section-label {
   display: inline-block;
@@ -846,7 +850,7 @@
   flex-direction: column;
   padding: 64px;
   overflow: hidden;
-  background: #e8e6e0;
+  background: #fff;
 }
 
 .testimonials-carousel-section .section-label {
@@ -914,7 +918,7 @@
 
 /* ── Founder message ── */
 .founder-section {
-  background: #f6f5f1;
+  background: #eceae4;
   padding: 80px 24px;
 }
 
