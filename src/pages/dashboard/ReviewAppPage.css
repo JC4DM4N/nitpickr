@@ -883,7 +883,9 @@
   background: var(--bg);
   outline: none;
   resize: none;
+  overflow: hidden;
   line-height: 1.5;
+  min-height: 42px;
   transition: border-color 0.15s;
 }
 
