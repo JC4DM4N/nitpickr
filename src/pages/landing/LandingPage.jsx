@@ -15,7 +15,6 @@ export default function LandingPage() {
       <HowItWorksExchanges />
       <FounderMessage />
       <Features />
-      {/* <Testimonials /> */}
       <TestimonialsCarousel />
       <CTA onGetStarted={onGetStarted} />
       <Footer />
@@ -33,7 +32,7 @@ export function Nav({ onLogin, onSignUp }) {
         <div className="nav-links">
           <a href="#how-it-works">How it works</a>
           <a href="#features">Features</a>
-          <a href="#testimonials">What developers say</a>
+          <a href="#testimonials">Testimonials</a>
         </div>
         <div className="nav-actions">
           <button onClick={onLogin} className="btn btn-ghost">
@@ -485,7 +484,7 @@ export function Footer() {
             <h4>Product</h4>
             <a href="#how-it-works">How it works</a>
             <a href="#features">Features</a>
-            <a href="#testimonials">What developers say</a>
+            <a href="#testimonials">Testimonials</a>
           </div>
           <div className="footer-col">
             <h4>Account</h4>
