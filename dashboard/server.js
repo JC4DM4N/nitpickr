@@ -186,6 +186,7 @@ app.get('/api/users', async (_req, res) => {
         u.username,
         u.created_at,
         u.credits,
+        u.is_banned,
         COUNT(DISTINCT a.id) AS apps_count,
         COUNT(DISTINCT r_given.id) AS reviews_given,
         COUNT(DISTINCT r_recv.id) AS reviews_received
@@ -193,7 +194,7 @@ app.get('/api/users', async (_req, res) => {
       LEFT JOIN apps a ON a.owner_id = u.id
       LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
       LEFT JOIN reviews r_recv ON r_recv.app_id = a.id AND r_recv.is_complete = TRUE
-      GROUP BY u.id, u.username, u.created_at, u.credits
+      GROUP BY u.id, u.username, u.created_at, u.credits, u.is_banned
       ORDER BY u.created_at DESC
     `);
     res.json(result.rows);

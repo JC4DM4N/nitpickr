@@ -475,7 +475,7 @@
       } else {
         tbUsers.innerHTML = allUsers.map(u => `<tr>
           <td>${u.id}</td>
-          <td>${u.username}</td>
+          <td>${u.username}${u.is_banned ? ' <span class="badge badge-red" style="margin-left:6px">Banned</span>' : ''}</td>
           <td>${fmt(u.created_at)}</td>
           <td>${u.apps_count}</td>
           <td>${u.reviews_given}</td>
