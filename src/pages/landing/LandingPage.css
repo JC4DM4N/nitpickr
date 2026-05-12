@@ -911,3 +911,65 @@
   font-size: 0.8rem;
   color: #64748b;
 }
+
+/* ── Founder message ── */
+.founder-section {
+  background: #f6f5f1;
+  padding: 80px 24px;
+}
+
+.founder-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.founder-quote {
+  margin: 24px 0 32px;
+  padding: 0;
+  border: none;
+}
+
+.founder-quote p {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: #374151;
+  /* font-style: italic; */
+  margin: 0 0 16px;
+}
+
+.founder-quote p:last-child {
+  margin-bottom: 0;
+}
+
+.founder-sig {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.founder-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0f0e0b;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--sans);
+}
+
+.founder-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f0e0b;
+}
+
+.founder-role {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}

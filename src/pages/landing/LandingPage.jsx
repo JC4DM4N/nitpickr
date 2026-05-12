@@ -16,6 +16,7 @@ export default function LandingPage() {
       <Features />
       {/* <Testimonials /> */}
       <TestimonialsCarousel />
+      <FounderMessage />
       <CTA onGetStarted={onGetStarted} />
       <Footer />
     </div>
@@ -382,6 +383,28 @@ function TestimonialsCarousel() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FounderMessage() {
+  return (
+    <section className="founder-section">
+      <div className="founder-inner">
+        <div className="section-label">From the founder</div>
+        <blockquote className="founder-quote">
+          <p>"I built NitPickr because I kept running into the same problem. I'd ship something, share it in a few X&nbsp;/&nbsp;Reddit threads, and get back "looks cool!" and nothing useful.</p>
+          <p>Real feedback is hard to get when you're early. Hiring testers is expensive, asking friends feels awkward, and cold posts rarely get thoughtful responses.</p>
+          <p>So I built a simple exchange: you review someone else's app, yours gets reviewed in return. No money changes hands. Just developers helping each other ship better products."</p>
+        </blockquote>
+        <div className="founder-sig">
+          <div className="founder-avatar">J</div>
+          <div>
+            <div className="founder-name">James</div>
+            <div className="founder-role">Founder, NitPickr</div>
+          </div>
         </div>
       </div>
     </section>
