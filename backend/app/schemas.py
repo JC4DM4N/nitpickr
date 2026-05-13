@@ -43,6 +43,7 @@ class AppOut(BaseModel):
     in_progress_count: int
     owner_username: str
     owner_reviews_given: int
+    owner_reviewer_rating: float | None
 
     model_config = {"from_attributes": True}
 

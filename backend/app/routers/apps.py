@@ -47,6 +47,16 @@ def _build_app_outs(apps: list, db: Session) -> list:
         .group_by(models.Review.reviewer_id)
         .all()
     )
+    reviewer_ratings = dict(
+        db.query(models.Review.reviewer_id, func.avg(models.Review.reviewer_rating))
+        .filter(
+            models.Review.reviewer_id.in_(owner_ids),
+            models.Review.reviewer_rating != None,
+            (models.Review.is_complete == True) | (models.Review.is_rejected == True),
+        )
+        .group_by(models.Review.reviewer_id)
+        .all()
+    )
 
     return [
         schemas.AppOut(
@@ -67,6 +77,7 @@ def _build_app_outs(apps: list, db: Session) -> list:
             in_progress_count=in_progress.get(a.id, 0),
             owner_username=owner_username.get(a.owner_id, ''),
             owner_reviews_given=reviews_given.get(a.owner_id, 0),
+            owner_reviewer_rating=round(reviewer_ratings[a.owner_id], 1) if a.owner_id in reviewer_ratings else None,
         )
         for a in apps
     ]
@@ -167,6 +178,17 @@ def list_apps(db: Session = Depends(get_db)):
 
     visible_apps = [a for a in all_apps if owner_available.get(a.owner_id, 0) > 0 and not a.is_hidden]
     return _build_app_outs(visible_apps, db)
+
+
+@router.get("/all", response_model=List[schemas.AppOut])
+def list_all_apps(db: Session = Depends(get_db)):
+    apps = (
+        db.query(models.App)
+        .filter(models.App.is_hidden == False)
+        .order_by(models.App.created_at.asc())
+        .all()
+    )
+    return _build_app_outs(apps, db)
 
 
 @router.post("/{app_id}/reviews/{review_id}/approve", response_model=schemas.ReviewDetail)

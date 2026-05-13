@@ -724,6 +724,10 @@
   overflow: scroll;
 }
 
+.modal-card--wide {
+  max-width: 680px;
+}
+
 .modal-close {
   position: absolute;
   top: 16px;
@@ -857,6 +861,38 @@
 
 .modal-btn-start:hover {
   opacity: 0.8;
+}
+
+.modal-meta-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-top: 1px solid #f0ede6;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.modal-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-profile-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-right: 36px;
+}
+
+.modal-exchange-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: #fafaf8;
+  border: 1.5px solid #e8e6e0;
+  border-radius: 10px;
+  margin-top: 4px;
 }
 
 .modal-error {

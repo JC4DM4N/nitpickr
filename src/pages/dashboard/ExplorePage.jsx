@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./ExplorePage.css";
 import { STAGE_STYLES, CATEGORIES, STAGES } from "../../constants";
@@ -29,10 +29,25 @@ export default function ExplorePage() {
   const [search, setSearch] = useState("");
   const [stage, setStage] = useState("All");
   const [category, setCategory] = useState("All");
+  const [appsSort, setAppsSort] = useState("default");
   const [reviewApp, setReviewApp] = useState(null);
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [onboarding, setOnboarding] = useState(null);
   const [expandedStep, setExpandedStep] = useState(null);
+
+  const [ownApps, setOwnApps] = useState([]);
+
+  // ── Discover state ─────────────────────────────────────────────────────────
+  const [discoverApps, setDiscoverApps] = useState([]);
+  const [discoverLoading, setDiscoverLoading] = useState(false);
+  const [discoverLoaded, setDiscoverLoaded] = useState(false);
+  const [discoverError, setDiscoverError] = useState(null);
+  const [discoverSearch, setDiscoverSearch] = useState("");
+  const [discoverStage, setDiscoverStage] = useState("All");
+  const [discoverCategory, setDiscoverCategory] = useState("All");
+  const [discoverSort, setDiscoverSort] = useState("default");
+  const [discoverMinReviews, setDiscoverMinReviews] = useState("1");
+  const reviewIdSetsRef = useRef({ active: new Set(), completed: new Set() });
 
   // ── Users state ────────────────────────────────────────────────────────────
   const [users, setUsers] = useState([]);
@@ -40,8 +55,8 @@ export default function ExplorePage() {
   const [usersLoaded, setUsersLoaded] = useState(false);
   const [usersError, setUsersError] = useState(null);
   const [userSearch, setUserSearch] = useState("");
-  const [minReviews, setMinReviews] = useState("");
-  const [userSort, setUserSort] = useState("reviews_given");
+  const [minReviews, setMinReviews] = useState("1");
+  const [userSort, setUserSort] = useState("default");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -53,6 +68,7 @@ export default function ExplorePage() {
       authFetch("/apps/count").then((r) => r.json()),
     ])
       .then(([allApps, myApps, myReviews, creditsData, countData]) => {
+        setOwnApps(myApps);
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const hasOwnApps = myApps.length > 0;
         const hasApprovedReview = myReviews.some((r) => r.is_complete);
@@ -66,6 +82,7 @@ export default function ExplorePage() {
         }
         const activeReviewedIds = new Set(myReviews.filter((r) => !r.is_complete && !r.is_rejected && !r.is_expired).map((r) => r.app_id));
         const completedReviewedIds = new Set(myReviews.filter((r) => r.is_complete).map((r) => r.app_id));
+        reviewIdSetsRef.current = { active: activeReviewedIds, completed: completedReviewedIds };
         setTotalApps(countData.count);
         setApps(
           allApps
@@ -76,6 +93,28 @@ export default function ExplorePage() {
       })
       .catch(() => { setAppsError("Failed to load apps"); setAppsLoading(false); });
   }, []);
+
+  function loadDiscover() {
+    if (discoverLoaded) return;
+    setDiscoverLoading(true);
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    authFetch("/apps/all")
+      .then((r) => r.json())
+      .then((data) => {
+        const { active, completed } = reviewIdSetsRef.current;
+        setDiscoverApps(
+          data.map((a) => ({
+            ...a,
+            _isOwn: a.owner_id === user.id,
+            _alreadyReviewed: completed.has(a.id),
+            _activeReview: active.has(a.id),
+          }))
+        );
+        setDiscoverLoading(false);
+        setDiscoverLoaded(true);
+      })
+      .catch(() => { setDiscoverError("Failed to load apps"); setDiscoverLoading(false); });
+  }
 
   function loadUsers() {
     if (usersLoaded) return;
@@ -93,14 +132,37 @@ export default function ExplorePage() {
   function handleTabChange(tab) {
     setMainTab(tab);
     if (tab === "users") loadUsers();
+    if (tab === "discover") loadDiscover();
   }
 
-  const filteredApps = apps.filter(
-    (app) =>
-      (stage === "All" || app.stage === stage) &&
-      (category === "All" || app.category === category) &&
-      (search === "" || app.name.toLowerCase().includes(search.toLowerCase()) || app.description.toLowerCase().includes(search.toLowerCase())),
-  );
+  const filteredDiscoverApps = discoverApps
+    .filter(
+      (app) =>
+        !app._isOwn &&
+        (discoverStage === "All" || app.stage === discoverStage) &&
+        (discoverCategory === "All" || app.category === discoverCategory) &&
+        (discoverSearch === "" || app.name.toLowerCase().includes(discoverSearch.toLowerCase()) || app.description.toLowerCase().includes(discoverSearch.toLowerCase())) &&
+        (discoverMinReviews === "" || app.owner_reviews_given >= parseInt(discoverMinReviews)),
+    )
+    .sort((a, b) => {
+      if (discoverSort === "reviews_given") return b.owner_reviews_given - a.owner_reviews_given;
+      if (discoverSort === "reviewer_rating") return (b.owner_reviewer_rating ?? -1) - (a.owner_reviewer_rating ?? -1);
+      const ratingDiff = (b.owner_reviewer_rating ?? -1) - (a.owner_reviewer_rating ?? -1);
+      return ratingDiff !== 0 ? ratingDiff : b.owner_reviews_given - a.owner_reviews_given;
+    });
+
+  const filteredApps = apps
+    .filter(
+      (app) =>
+        (stage === "All" || app.stage === stage) &&
+        (category === "All" || app.category === category) &&
+        (search === "" || app.name.toLowerCase().includes(search.toLowerCase()) || app.description.toLowerCase().includes(search.toLowerCase())),
+    )
+    .sort((a, b) => {
+      if (appsSort === "reviews_given") return b.owner_reviews_given - a.owner_reviews_given;
+      if (appsSort === "reviewer_rating") return (b.owner_reviewer_rating ?? -1) - (a.owner_reviewer_rating ?? -1);
+      return 0;
+    });
 
   const currentUserId = JSON.parse(localStorage.getItem("user") || "{}").id;
 
@@ -113,7 +175,8 @@ export default function ExplorePage() {
     .sort((a, b) => {
       if (userSort === "reviews_given") return b.reviews_given - a.reviews_given;
       if (userSort === "reviewer_rating") return (b.reviewer_rating ?? -1) - (a.reviewer_rating ?? -1);
-      return 0;
+      const ratingDiff = (b.reviewer_rating ?? -1) - (a.reviewer_rating ?? -1);
+      return ratingDiff !== 0 ? ratingDiff : b.reviews_given - a.reviews_given;
     });
 
   return (
@@ -135,6 +198,7 @@ export default function ExplorePage() {
       {reviewApp && (
         <ReviewModal
           app={reviewApp}
+          myApps={ownApps}
           onClose={() => setReviewApp(null)}
           onReviewCreated={(reviewId, appId) => {
             setApps((prev) => prev.filter((a) => a.id !== appId));
@@ -153,17 +217,18 @@ export default function ExplorePage() {
               <IconSearch />
               <input
                 type="text"
-                placeholder={mainTab === "apps" ? '"productivity app" or "pre-launch SaaS"' : 'Search by username…'}
-                value={mainTab === "apps" ? search : userSearch}
-                onChange={(e) => mainTab === "apps" ? setSearch(e.target.value) : setUserSearch(e.target.value)}
+                placeholder={mainTab === "users" ? 'Search by username…' : '"productivity app" or "pre-launch SaaS"'}
+                value={mainTab === "apps" ? search : mainTab === "discover" ? discoverSearch : userSearch}
+                onChange={(e) => mainTab === "apps" ? setSearch(e.target.value) : mainTab === "discover" ? setDiscoverSearch(e.target.value) : setUserSearch(e.target.value)}
               />
             </div>
           </div>
           <div className="explore-main-tabs">
             <button className="btn-submit-app btn-submit-app--desktop" onClick={() => navigate("/my-apps/new")}>+ Submit your app</button>
             <div className="explore-tabs-group">
-              <button className={`explore-main-tab${mainTab === "apps" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("apps")}>Apps</button>
-              <button className={`explore-main-tab${mainTab === "users" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("users")}>Users</button>
+              <button className={`explore-main-tab${mainTab === "apps" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("apps")}>Review</button>
+              <button className={`explore-main-tab${mainTab === "discover" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("discover")}>Discover</button>
+              <button className={`explore-main-tab${mainTab === "users" ? " explore-main-tab--active" : ""}`} onClick={() => handleTabChange("users")}>Founders</button>
             </div>
             <div className="explore-tabs-spacer" />
           </div>
@@ -242,11 +307,32 @@ export default function ExplorePage() {
           {/* ── Filters sidebar ── */}
           <aside className="explore-filters">
             <p className="filters-heading">FILTERS</p>
-            {mainTab === "apps" ? (
+            {mainTab === "apps" || mainTab === "discover" ? (
               <>
                 <div className="filter-group">
+                  <label className="filter-label">Sort by</label>
+                  <select className="filter-select" value={mainTab === "apps" ? appsSort : discoverSort} onChange={(e) => mainTab === "apps" ? setAppsSort(e.target.value) : setDiscoverSort(e.target.value)}>
+                    <option value="default">Default</option>
+                    <option value="reviews_given">Reviews given</option>
+                    <option value="reviewer_rating">Reviewer rating</option>
+                  </select>
+                </div>
+                {mainTab === "discover" && (
+                  <div className="filter-group">
+                    <label className="filter-label">Min reviews given</label>
+                    <input
+                      type="number"
+                      className="filter-select"
+                      placeholder="e.g. 1"
+                      min="0"
+                      value={discoverMinReviews}
+                      onChange={(e) => setDiscoverMinReviews(e.target.value)}
+                    />
+                  </div>
+                )}
+                <div className="filter-group">
                   <label className="filter-label">Category</label>
-                  <select className="filter-select" value={category} onChange={(e) => setCategory(e.target.value)}>
+                  <select className="filter-select" value={mainTab === "apps" ? category : discoverCategory} onChange={(e) => mainTab === "apps" ? setCategory(e.target.value) : setDiscoverCategory(e.target.value)}>
                     {FILTER_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                   </select>
                 </div>
@@ -254,7 +340,7 @@ export default function ExplorePage() {
                   <label className="filter-label">Stage</label>
                   {FILTER_STAGES.map((s) => (
                     <label key={s} className="filter-radio">
-                      <input type="radio" name="stage" checked={stage === s} onChange={() => setStage(s)} />
+                      <input type="radio" name="stage" checked={(mainTab === "apps" ? stage : discoverStage) === s} onChange={() => mainTab === "apps" ? setStage(s) : setDiscoverStage(s)} />
                       {s}
                     </label>
                   ))}
@@ -265,6 +351,7 @@ export default function ExplorePage() {
                 <div className="filter-group">
                   <label className="filter-label">Sort by</label>
                   <select className="filter-select" value={userSort} onChange={(e) => setUserSort(e.target.value)}>
+                    <option value="default">Default</option>
                     <option value="reviews_given">Reviews given</option>
                     <option value="reviewer_rating">Reviewer rating</option>
                   </select>
@@ -274,7 +361,7 @@ export default function ExplorePage() {
                   <input
                     type="number"
                     className="filter-select"
-                    placeholder="e.g. 5"
+                    placeholder="e.g. 1"
                     min="0"
                     value={minReviews}
                     onChange={(e) => setMinReviews(e.target.value)}
@@ -295,9 +382,25 @@ export default function ExplorePage() {
                   {appsLoading && <p className="no-results">Loading apps…</p>}
                   {appsError && <p className="no-results">{appsError}</p>}
                   {!appsLoading && !appsError && filteredApps.map((app) => (
-                    <AppCard key={app.id} app={app} onReview={() => !app._isOwn && setReviewApp(app)} />
+                    <AppCard key={app.id} app={app} onReview={() => !app._isOwn && setReviewApp(app)} onShowMore={() => setReviewApp(app)} />
                   ))}
                   {!appsLoading && !appsError && filteredApps.length === 0 && (
+                    <p className="no-results">No apps match your filters.</p>
+                  )}
+                </div>
+              </>
+            ) : mainTab === "discover" ? (
+              <>
+                <div className="results-bar">
+                  <span className="results-count">{filteredDiscoverApps.length} apps ({discoverApps.length} total)</span>
+                </div>
+                <div className="app-grid">
+                  {discoverLoading && <p className="no-results">Loading apps…</p>}
+                  {discoverError && <p className="no-results">{discoverError}</p>}
+                  {!discoverLoading && !discoverError && filteredDiscoverApps.map((app) => (
+                    <AppCard key={app.id} app={app} onShowMore={() => setReviewApp(app)} />
+                  ))}
+                  {!discoverLoading && !discoverError && filteredDiscoverApps.length === 0 && (
                     <p className="no-results">No apps match your filters.</p>
                   )}
                 </div>
@@ -361,10 +464,10 @@ function UserCard({ user }) {
   );
 }
 
-function AppCard({ app, onReview }) {
+function AppCard({ app, onReview, onShowMore }) {
   const navigate = useNavigate();
   const stage = STAGE_STYLES[app.stage];
-  const inactive = app._isOwn;
+  const inactive = app._isOwn || !!app._activeReview;
   return (
     <div className="app-card-wrap">
       {app._isOwn && <div className="app-own-banner"><span className="app-own-badge">Your app</span></div>}
@@ -392,12 +495,25 @@ function AppCard({ app, onReview }) {
             <span className="app-footer-value">{app.owner_reviews_given}</span>
           </div>
           <div className="app-footer-stat">
+            <span className="app-footer-label">REVIEWER RATING</span>
+            {app.owner_reviewer_rating != null ? (
+              <span className="app-footer-value user-card-rating">
+                {app.owner_reviewer_rating}
+                <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+                / 5
+              </span>
+            ) : (
+              <span className="app-footer-value">—</span>
+            )}
+          </div>
+          <div className="app-footer-stat">
             <span className="app-footer-label">CREDITS</span>
             <span className="app-footer-value">{app.credits}</span>
           </div>
           <div className="app-card-footer-actions">
-            <button className="app-profile-btn" onClick={e => { e.stopPropagation(); navigate(`/${app.owner_username}`); }}>Profile →</button>
-            <button className="app-review-btn" onClick={onReview} disabled={inactive}>Leave feedback →</button>
+            <button className="app-profile-btn" onClick={e => { e.stopPropagation(); navigate(`/${app.owner_username}`); }}>Profile</button>
+            <button className="app-profile-btn" onClick={e => { e.stopPropagation(); onShowMore?.(); }}>Show more</button>
+            {onReview && <button className="app-review-btn" onClick={onReview} disabled={inactive}>Leave feedback</button>}
           </div>
         </div>
       </div>
@@ -405,9 +521,18 @@ function AppCard({ app, onReview }) {
   );
 }
 
-function ReviewModal({ app, onClose, onReviewCreated }) {
+function ReviewModal({ app, myApps, onClose, onReviewCreated }) {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState("info");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedAppId, setSelectedAppId] = useState("");
+  const [exchangeMessage, setExchangeMessage] = useState("");
+  const [exchangeSubmitting, setExchangeSubmitting] = useState(false);
+  const [exchangeError, setExchangeError] = useState(null);
+  const [exchangeDone, setExchangeDone] = useState(false);
+  const canReview = !app._isOwn && !app._activeReview;
+  const stage = STAGE_STYLES[app.stage];
 
   async function handleStart() {
     setLoading(true);
@@ -429,17 +554,72 @@ function ReviewModal({ app, onClose, onReviewCreated }) {
     }
   }
 
+  async function handleExchangeSubmit() {
+    if (!selectedAppId) return;
+    setExchangeSubmitting(true);
+    setExchangeError(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await authFetch("/exchanges/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          requestee_username: app.owner_username,
+          requester_app_id: parseInt(selectedAppId),
+          message: exchangeMessage.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setExchangeError(data.detail || "Failed to send request"); return; }
+      setExchangeDone(true);
+    } catch {
+      setExchangeError("Could not connect to server");
+    } finally {
+      setExchangeSubmitting(false);
+    }
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-card modal-card--wide" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
+
         <div className="modal-header">
           <div className="app-icon" style={{ background: app.color }}>{app.initials}</div>
-          <div>
-            <div className="modal-title">Start a review for <strong>{app.name}</strong></div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="modal-title"><strong>{app.name}</strong></div>
             <div className="modal-url">{app.url}</div>
           </div>
+          <button className="app-profile-btn modal-profile-btn" onClick={() => navigate(`/${app.owner_username}`)}>Profile</button>
         </div>
+
+        <div className="modal-meta-row">
+          <div className="modal-meta-item">
+            <span className="app-footer-label">OWNER</span>
+            <span className="app-footer-value">{app.owner_username}</span>
+          </div>
+          <div className="modal-meta-item">
+            <span className="app-footer-label">REVIEWER RATING</span>
+            {app.owner_reviewer_rating != null ? (
+              <span className="app-footer-value user-card-rating">
+                {app.owner_reviewer_rating}
+                <img src="/star.png" width="20" height="20" alt="star" style={{ display: "block" }} />
+                / 5
+              </span>
+            ) : (
+              <span className="app-footer-value">—</span>
+            )}
+          </div>
+          <div className="modal-meta-item">
+            <span className="app-footer-label">STAGE</span>
+            <span className="app-stage-badge" style={stage}>{app.stage}</span>
+          </div>
+          <div className="modal-meta-item">
+            <span className="app-footer-label">REVIEWS GIVEN</span>
+            <span className="app-footer-value">{app.owner_reviews_given}</span>
+          </div>
+        </div>
+
         <div className="modal-scroll-body">
           {app.description && (
             <>
@@ -449,11 +629,64 @@ function ReviewModal({ app, onClose, onReviewCreated }) {
           )}
           <p className="modal-section-label">WHAT THE DEVELOPER IS LOOKING FOR</p>
           <div className="modal-request">{app.request}</div>
+
+          {mode === "exchange" && !exchangeDone && (
+            <div className="modal-exchange-form">
+              <p className="modal-section-label">YOUR APP</p>
+              {myApps.length === 0 ? (
+                <p className="modal-description">You haven't submitted any apps yet.</p>
+              ) : (
+                <select className="filter-select" value={selectedAppId} onChange={(e) => setSelectedAppId(e.target.value)}>
+                  <option value="">Select an app…</option>
+                  {myApps.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              )}
+              <p className="modal-section-label">MESSAGE (OPTIONAL)</p>
+              <textarea
+                className="modal-request"
+                style={{ minHeight: 72, resize: "vertical", cursor: "auto" }}
+                value={exchangeMessage}
+                onChange={(e) => setExchangeMessage(e.target.value)}
+                placeholder="Say why you'd like to exchange feedback…"
+              />
+              {exchangeError && <p className="modal-error">{exchangeError}</p>}
+            </div>
+          )}
+          {exchangeDone && (
+            <p className="modal-description" style={{ color: "#16a34a", fontWeight: 600 }}>
+              Exchange request sent to {app.owner_username}!
+            </p>
+          )}
         </div>
+
         {error && <p className="modal-error">{error}</p>}
+
         <div className="modal-actions">
-          <button className="modal-btn-cancel" onClick={onClose}>Cancel</button>
-          <button className="modal-btn-start" onClick={handleStart} disabled={loading}>{loading ? "Starting…" : "Start review →"}</button>
+          {mode === "info" && (
+            <>
+              {canReview && (
+                <button className="modal-btn-cancel" onClick={() => setMode("exchange")}>Request exchange</button>
+              )}
+              {canReview ? (
+                <button className="modal-btn-start" onClick={handleStart} disabled={loading}>
+                  {loading ? "Starting…" : "Leave feedback"}
+                </button>
+              ) : (
+                <button className="modal-btn-cancel" onClick={onClose}>Close</button>
+              )}
+            </>
+          )}
+          {mode === "exchange" && !exchangeDone && (
+            <>
+              <button className="modal-btn-cancel" onClick={() => setMode("info")}>Back</button>
+              <button className="modal-btn-start" onClick={handleExchangeSubmit} disabled={exchangeSubmitting || !selectedAppId || myApps.length === 0}>
+                {exchangeSubmitting ? "Sending…" : "Send request"}
+              </button>
+            </>
+          )}
+          {exchangeDone && (
+            <button className="modal-btn-start" onClick={onClose}>Done</button>
+          )}
         </div>
       </div>
     </div>
