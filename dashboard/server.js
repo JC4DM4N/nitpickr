@@ -1,9 +1,40 @@
+require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
 const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
 const PORT = 3002;
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD;
+
+app.use(express.urlencoded({ extended: false }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'dev-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, maxAge: 8 * 60 * 60 * 1000 }, // 8 hours
+}));
+
+function requireAuth(req, res, next) {
+  if (req.session.authed) return next();
+  res.redirect('/login');
+}
+
+app.get('/login', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
+
+app.post('/login', (req, res) => {
+  if (req.body.password === DASHBOARD_PASSWORD) {
+    req.session.authed = true;
+    res.redirect('/');
+  } else {
+    res.redirect('/login?error=1');
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/login'));
+});
 
 const pool = new Pool({
   host: process.env.DB_HOST || '172.236.21.178',
@@ -14,7 +45,10 @@ const pool = new Pool({
   ssl: false,
 });
 
-app.use(express.static(path.join(__dirname)));
+// Serve login page assets (the login.html itself is handled by the route above)
+// Protect index.html and all API routes
+app.get('/', requireAuth, (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.use('/api', requireAuth);
 
 app.get('/api/users-per-day', async (req, res) => {
   try {

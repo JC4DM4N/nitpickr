@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nitpickr Dashboard — Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-radius: 14px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 20px;
+      font-family: inherit;
+    }
+
+    input[type="password"]:focus {
+      border-color: #818cf8;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #818cf8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.12s;
+      font-family: inherit;
+    }
+
+    button:hover { opacity: 0.85; }
+
+    .error {
+      background: #450a0a;
+      border: 1px solid #7f1d1d;
+      color: #f87171;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Nitpickr Dashboard</h1>
+    <p class="subtitle">Enter the password to continue.</p>
+
+    <div id="error" class="error" style="display:none">Incorrect password.</div>
+
+    <form method="POST" action="/login">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autofocus autocomplete="current-password" />
+      <button type="submit">Sign in</button>
+    </form>
+
+    <script>
+      if (new URLSearchParams(location.search).get('error')) {
+        document.getElementById('error').style.display = 'block';
+      }
+    </script>
+  </div>
+</body>
+</html>
