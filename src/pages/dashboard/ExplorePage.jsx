@@ -255,7 +255,7 @@ export default function ExplorePage() {
               label: "Leave feedback on someone's app",
               detail: onboarding.leftFeedback === "pending"
                 ? "Your review has been submitted and is awaiting approval from the app owner. Once they approve it, this step will complete."
-                : "Pick an app from the list below and leave honest, constructive feedback. You'll earn a credit once your review is approved.",
+                : "Pick an app from the list below and leave honest, constructive feedback. Your app will become available for review once your review is approved.",
             },
           ];
           return (
