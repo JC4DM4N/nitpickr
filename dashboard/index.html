@@ -399,7 +399,7 @@
     }
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -410,13 +410,14 @@
         fetch('/api/apps').then(r => r.json()),
         fetch('/api/feedback-exchanges').then(r => r.json()),
         fetch('/api/users').then(r => r.json()),
+        fetch('/api/completed-reviews-count').then(r => r.json()),
       ]);
 
       // Stats
       const totalUsers = users.reduce((s, r) => s + parseInt(r.count), 0);
       document.getElementById('stat-users').textContent = totalUsers;
       document.getElementById('stat-active').textContent = Array.isArray(active) ? active.length : '—';
-      document.getElementById('stat-completed').textContent = Array.isArray(completed) ? completed.length : '—';
+      document.getElementById('stat-completed').textContent = completedCount.total ?? '—';
       document.getElementById('stat-credits').textContent = credits.total ?? '—';
       document.getElementById('stat-apps').textContent = appCount.total ?? '—';
 

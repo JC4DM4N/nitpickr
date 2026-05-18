@@ -238,6 +238,16 @@ app.get('/api/users', async (_req, res) => {
   }
 });
 
+app.get('/api/completed-reviews-count', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) AS total FROM reviews WHERE is_complete = TRUE');
+    res.json({ total: parseInt(result.rows[0].total) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/app-count', async (_req, res) => {
   try {
     const result = await pool.query('SELECT COUNT(*) AS total FROM apps');
