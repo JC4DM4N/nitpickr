@@ -72,7 +72,7 @@ def list_users(db: Session = Depends(get_db)):
 
 @router.get("/explore", response_model=List[schemas.UserCard])
 def explore_users(db: Session = Depends(get_db)):
-    users = db.query(models.User).all()
+    users = db.query(models.User).filter(models.User.is_banned == False).all()
 
     app_counts = dict(
         db.query(models.App.owner_id, func.count(models.App.id))

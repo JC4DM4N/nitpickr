@@ -176,7 +176,14 @@ def list_apps(db: Session = Depends(get_db)):
         for u in db.query(models.User).filter(models.User.id.in_(owner_ids)).all()
     }
 
-    visible_apps = [a for a in all_apps if owner_available.get(a.owner_id, 0) > 0 and not a.is_hidden]
+    owner_banned = {
+        u.id: u.is_banned
+        for u in db.query(models.User).filter(models.User.id.in_(owner_ids)).all()
+    }
+    visible_apps = [
+        a for a in all_apps
+        if owner_available.get(a.owner_id, 0) > 0 and not a.is_hidden and not owner_banned.get(a.owner_id, False)
+    ]
     return _build_app_outs(visible_apps, db)
 
 
@@ -184,7 +191,8 @@ def list_apps(db: Session = Depends(get_db)):
 def list_all_apps(db: Session = Depends(get_db)):
     apps = (
         db.query(models.App)
-        .filter(models.App.is_hidden == False)
+        .join(models.User, models.App.owner_id == models.User.id)
+        .filter(models.App.is_hidden == False, models.User.is_banned == False)
         .order_by(models.App.created_at.asc())
         .all()
     )
