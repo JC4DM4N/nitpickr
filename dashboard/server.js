@@ -272,6 +272,46 @@ app.get('/api/credits-in-circulation', async (_req, res) => {
   }
 });
 
+app.get('/api/banned-users', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.username,
+        u.created_at,
+        u.credits,
+        COUNT(DISTINCT a.id) AS apps_count,
+        COUNT(DISTINCT r_given.id) AS reviews_given,
+        COUNT(DISTINCT r_recv.id) AS reviews_received,
+        COALESCE(
+          (SELECT json_agg(json_build_object(
+            'id', r.id,
+            'app_name', a2.name,
+            'app_owner', u_owner.username,
+            'feedback', r.feedback,
+            'created_date', r.created_date
+          ) ORDER BY r.created_date DESC)
+          FROM reviews r
+          JOIN apps a2 ON r.app_id = a2.id
+          JOIN users u_owner ON a2.owner_id = u_owner.id
+          WHERE r.reviewer_id = u.id AND r.is_complete = TRUE),
+          '[]'::json
+        ) AS reviews
+      FROM users u
+      LEFT JOIN apps a ON a.owner_id = u.id
+      LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
+      LEFT JOIN reviews r_recv ON r_recv.app_id = a.id AND r_recv.is_complete = TRUE
+      WHERE u.is_banned = TRUE
+      GROUP BY u.id, u.username, u.created_at, u.credits
+      ORDER BY u.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/feedback-exchanges', async (_req, res) => {
   try {
     const result = await pool.query(`
