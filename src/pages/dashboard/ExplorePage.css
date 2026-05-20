@@ -444,7 +444,7 @@
   }
 
   .app-card-footer-actions {
-    gap: 8px;
+    gap: 4px;
   }
 
   .modal-overlay {
@@ -660,7 +660,7 @@
 }
 
 .app-profile-btn {
-  padding: 8px 16px;
+  padding: 7px 13px;
   background: transparent;
   color: #6b7280;
   border: 1.5px solid #d1cfc8;
@@ -681,7 +681,7 @@
 }
 
 .app-review-btn {
-  padding: 8px 16px;
+  padding: 7px 13px;
   background: #0f0e0b;
   color: #fff;
   border: none;
