@@ -28,7 +28,7 @@ MY_USERNAME = "jam_thecreator"
 DRAFT_REPLY = (
     "Hey! For getting early feedback on your product you should check out https://nitpickr.dev\n\n"
     "You will get users, and completely free user testing + feedback.\n\n"
-    "All you have to do is review someone else's app, and you'll get the same in return.\n\n"
+    "All you have to do is give feedback on someone else's product, and you'll get the same in return.\n\n"
     "Completely free to use too!"
 )
 
@@ -64,9 +64,12 @@ CLASSIFIER_PROMPT = (
 EDITOR_PROMPT = (
     "You are personalising a marketing reply on X (Twitter). "
     "Given the author's display name, username, and tweet, write a short personalised opening line "
-    "to replace 'Hey!' at the start of the reply, with a 'Hey NAME!'. "
+    "to replace 'Hey! For getting early feedback on your product' at the start of the reply, "
+    "with a 'Hey NAME! For getting early feedback on your product'. "
     "Only use their first name where it makes sense. If you cannot determine their name, "
-    "or if their name is a company name, just return 'Hey!'"
+    "don't force it. "
+    "If you can determine the name of their product, or if you can find a more appropraite term "
+    "(such as 'your tool', 'your app') then you can also replace 'your product' too."
 )
 
 
@@ -118,7 +121,7 @@ def tailor_response(reply: dict) -> str:
         response_format=_TailoredOpener,
     )
     opening = response.choices[0].message.parsed.opening_line.strip()
-    return DRAFT_REPLY.replace("Hey!", opening, 1)
+    return DRAFT_REPLY.replace("Hey! For getting early feedback on your product", opening, 1)
 
 # ── tweets.js ─────────────────────────────────────────────────────────────────
 
