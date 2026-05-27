@@ -450,9 +450,9 @@ def index():
 
 @app.route("/bookmarklet")
 def bookmarklet_page():
-    ip   = _local_ip()
-    port = 5555
-    # Raw JS — displayed in a <textarea>-style box so copy/paste preserves exact characters
+    # Use request.host so the bookmarklet points to whatever address the browser used —
+    # works correctly whether accessed via localhost, LAN IP, or public IP.
+    host = request.host  # e.g. "172.236.21.178:5555"
     bm_raw = (
         "javascript:(function(){"
         "var aa=document.querySelectorAll('article[data-testid=\"tweet\"]');"
@@ -460,7 +460,7 @@ def bookmarklet_page():
         "var w=document.createElement('div');"
         "aa.forEach(function(a){w.appendChild(a.cloneNode(true));});"
         "var b64=btoa(unescape(encodeURIComponent(w.outerHTML)));"
-        f"window.location.href='http://{ip}:{port}/capture#'+b64;"
+        f"window.location.href='http://{host}/capture#'+b64;"
         "})()"
     )
     return render_template_string(BOOKMARKLET_HTML, bookmarklet_raw=bm_raw)
