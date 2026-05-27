@@ -198,18 +198,19 @@ function renderDrafts(drafts) {
   const el = document.getElementById('drafts-list');
   if (!drafts.length) { el.innerHTML = '<p style="font-size:.82rem;color:#888">No pending drafts.</p>'; return; }
   el.innerHTML = drafts.map((d, i) => {
+    const post     = esc(d.original_text || '');
     const plain    = esc(d.draft_text || '');
     const tailored = esc(d.draft_text_tailored || d.draft_text || '');
-    const tweet    = esc((d.original_text || '').slice(0, 120)) + (d.original_text?.length > 120 ? '…' : '');
     return `
       <div class="draft" id="draft-${i}">
         <div class="draft-user">@${esc(d.reply_to_username)} &mdash; ${esc(d.reply_to_name)}</div>
-        <div class="draft-tweet">${tweet}</div>
         <div class="tabs">
-          <button class="tab active" onclick="showTab(${i},'plain')">Plain</button>
+          <button class="tab active" onclick="showTab(${i},'post')">Post</button>
+          <button class="tab" onclick="showTab(${i},'plain')">Plain</button>
           <button class="tab" onclick="showTab(${i},'tailored')">Tailored</button>
         </div>
-        <div class="draft-text" id="text-plain-${i}">${plain}</div>
+        <div class="draft-text" id="text-post-${i}">${post}</div>
+        <div class="draft-text" id="text-plain-${i}" style="display:none">${plain}</div>
         <div class="draft-text" id="text-tailored-${i}" style="display:none">${tailored}</div>
         <div class="draft-actions">
           <button class="green sm" onclick="useDraft(${i},'${esc(d.reply_to_href)}','plain')">Use Plain</button>
@@ -220,10 +221,10 @@ function renderDrafts(drafts) {
   }).join('');
 }
 
+const TABS = ['post', 'plain', 'tailored'];
 function showTab(i, variant) {
-  document.getElementById(`text-plain-${i}`).style.display    = variant === 'plain'    ? '' : 'none';
-  document.getElementById(`text-tailored-${i}`).style.display = variant === 'tailored' ? '' : 'none';
-  document.querySelectorAll(`#draft-${i} .tab`).forEach((b, j) => b.classList.toggle('active', j === (variant === 'plain' ? 0 : 1)));
+  TABS.forEach(v => { document.getElementById(`text-${v}-${i}`).style.display = v === variant ? '' : 'none'; });
+  document.querySelectorAll(`#draft-${i} .tab`).forEach((b, j) => b.classList.toggle('active', TABS[j] === variant));
 }
 
 async function useDraft(i, href, variant) {
