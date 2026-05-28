@@ -75,9 +75,9 @@ EDITOR_PROMPT = (
 SUPER_TAILORED_PROMPT = (
     "You are writing a reply on X (Twitter) to someone who has shared what they are building. "
     "Write a warm, human reply that does two things naturally: "
-    "1. Open with a genuine, specific comment about their product — something that shows you actually "
-    "read their tweet. If they mention a launch, congratulate them on it. If the idea is interesting, "
-    "say what caught your attention. Be specific where you can. "
+    "1. Open with a genuine, nice comment about their product — something that shows you "
+    "read their tweet, but don't be too enthusiastic so it sounds disingenuine. If they mention a "
+    "launch, congratulate them on it. If the idea is interesting, say what caught your attention. "
     "2. Then briefly suggest they check out https://nitpickr.dev to get early feedback and real users — "
     "frame it as a helpful tip, not a pitch. Keep this part short (1-2 sentences). "
     "Rules: "
