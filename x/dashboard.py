@@ -198,9 +198,11 @@ function renderDrafts(drafts) {
   const el = document.getElementById('drafts-list');
   if (!drafts.length) { el.innerHTML = '<p style="font-size:.82rem;color:#888">No pending drafts.</p>'; return; }
   el.innerHTML = drafts.map((d, i) => {
-    const post     = esc(d.original_text || '');
-    const plain    = esc(d.draft_text || '');
-    const tailored = esc(d.draft_text_tailored || d.draft_text || '');
+    const post        = esc(d.original_text || '');
+    const plain       = esc(d.draft_text || '');
+    const tailored    = esc(d.draft_text_tailored || d.draft_text || '');
+    const superText   = esc(d.draft_text_super_tailored || '');
+    const hasSuperTab = !!d.draft_text_super_tailored;
     return `
       <div class="draft" id="draft-${i}">
         <div class="draft-user">@${esc(d.reply_to_username)} &mdash; ${esc(d.reply_to_name)}</div>
@@ -208,22 +210,28 @@ function renderDrafts(drafts) {
           <button class="tab active" onclick="showTab(${i},'post')">Post</button>
           <button class="tab" onclick="showTab(${i},'plain')">Plain</button>
           <button class="tab" onclick="showTab(${i},'tailored')">Tailored</button>
+          ${hasSuperTab ? `<button class="tab" onclick="showTab(${i},'super')">Super</button>` : ''}
         </div>
         <div class="draft-text" id="text-post-${i}">${post}</div>
         <div class="draft-text" id="text-plain-${i}" style="display:none">${plain}</div>
         <div class="draft-text" id="text-tailored-${i}" style="display:none">${tailored}</div>
+        <div class="draft-text" id="text-super-${i}" style="display:none">${superText}</div>
         <div class="draft-actions">
           <button class="green sm" onclick="useDraft(${i},'${esc(d.reply_to_href)}','plain')">Use Plain</button>
           <button class="green sm" onclick="useDraft(${i},'${esc(d.reply_to_href)}','tailored')">Use Tailored</button>
+          ${hasSuperTab ? `<button class="green sm" onclick="useDraft(${i},'${esc(d.reply_to_href)}','super')">Use Super</button>` : ''}
           <button class="red sm"   onclick="passDraft(${i},'${esc(d.reply_to_href)}')">Pass</button>
         </div>
       </div>`;
   }).join('');
 }
 
-const TABS = ['post', 'plain', 'tailored'];
+const TABS = ['post', 'plain', 'tailored', 'super'];
 function showTab(i, variant) {
-  TABS.forEach(v => { document.getElementById(`text-${v}-${i}`).style.display = v === variant ? '' : 'none'; });
+  TABS.forEach(v => {
+    const el = document.getElementById(`text-${v}-${i}`);
+    if (el) el.style.display = v === variant ? '' : 'none';
+  });
   document.querySelectorAll(`#draft-${i} .tab`).forEach((b, j) => b.classList.toggle('active', TABS[j] === variant));
 }
 
@@ -605,7 +613,7 @@ def _update_draft(href: str, action: str, variant: str | None):
         return jsonify(ok=False, message="Draft not found.")
 
     if action == "sent" and variant:
-        key = "draft_text" if variant == "plain" else "draft_text_tailored"
+        key = {"plain": "draft_text", "tailored": "draft_text_tailored", "super": "draft_text_super_tailored"}.get(variant, "draft_text")
         sent.append({**target, "sent_at": datetime.now(timezone.utc).isoformat(), "sent_text": target.get(key) or target.get("draft_text", "")})
         sent_f.write_text(json.dumps(sent, indent=2, ensure_ascii=False), encoding="utf-8")
 

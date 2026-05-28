@@ -72,6 +72,21 @@ EDITOR_PROMPT = (
     "(such as 'your tool', 'your app') then you can also replace 'your product' too."
 )
 
+SUPER_TAILORED_PROMPT = (
+    "You are writing a reply on X (Twitter) to someone who has shared what they are building. "
+    "Write a warm, human reply that does two things naturally: "
+    "1. Open with a genuine, specific comment about their product — something that shows you actually "
+    "read their tweet. If they mention a launch, congratulate them on it. If the idea is interesting, "
+    "say what caught your attention. Be specific where you can. "
+    "2. Then briefly suggest they check out https://nitpickr.dev to get early feedback and real users — "
+    "frame it as a helpful tip, not a pitch. Keep this part short (1-2 sentences). "
+    "Rules: "
+    "Use their first name if it is obvious from their display name. "
+    "Do not use words like 'game-changer', 'revolutionary', 'incredible', 'awesome', 'amazing', or 'congrats' if the launch isn't explicitly mentioned. "
+    "Sound like a real person — warm and direct, not a marketing bot. "
+    "3-5 sentences total. Return only the reply text, nothing else."
+)
+
 
 class _PromoResult(BaseModel):
     is_promo: bool
@@ -80,6 +95,10 @@ class _PromoResult(BaseModel):
 
 class _TailoredOpener(BaseModel):
     opening_line: str
+
+
+class _SuperTailoredReply(BaseModel):
+    reply: str
 
 
 _openai: OpenAI | None = None
@@ -122,6 +141,22 @@ def tailor_response(reply: dict) -> str:
     )
     opening = response.choices[0].message.parsed.opening_line.strip()
     return DRAFT_REPLY.replace("Hey! For getting early feedback on your product", opening, 1)
+
+
+def super_tailor_response(reply: dict) -> str:
+    name = reply.get("name") or reply.get("username", "")
+    username = reply.get("username", "")
+    tweet = reply.get("tweet", "")
+
+    response = _get_openai().beta.chat.completions.parse(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": SUPER_TAILORED_PROMPT},
+            {"role": "user", "content": f"Name: {name}\nUsername: @{username}\nTweet: {tweet}"},
+        ],
+        response_format=_SuperTailoredReply,
+    )
+    return response.choices[0].message.parsed.reply.strip()
 
 # ── tweets.js ─────────────────────────────────────────────────────────────────
 
@@ -214,6 +249,7 @@ def main() -> None:
             "original_text": tweet,
             "draft_text": f"{DRAFT_REPLY}",
             "draft_text_tailored": tailor_response(reply),
+            "draft_text_super_tailored": super_tailor_response(reply),
             "status": "draft",
         }
         new_drafts.append(draft)
