@@ -99,6 +99,12 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     .draft-actions { display: flex; gap: 8px; }
     .draft-actions button { margin: 0; flex: 1; }
     .badge { display: inline-block; background: #1d9bf0; color: #fff; font-size: 0.7rem; font-weight: 700; border-radius: 9px; padding: 2px 7px; margin-left: 6px; vertical-align: middle; }
+    textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; font-family: inherit; resize: vertical; min-height: 60px; outline: none; transition: border-color .15s; }
+    textarea:focus { border-color: #1d9bf0; }
+    .post-idea { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+    .post-idea-style { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #888; margin-bottom: 6px; }
+    .post-idea-text { font-size: 0.85rem; background: #f8f9fa; padding: 10px; border-radius: 8px; white-space: pre-wrap; margin-bottom: 10px; line-height: 1.5; color: #1a1a1a; }
+    .char-count { font-size: 0.72rem; color: #aaa; text-align: right; margin-top: -6px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -143,6 +149,16 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     <button class="grey sm" onclick="loadDrafts()">Refresh Drafts</button>
     <div id="drafts-status" class="status"></div>
     <div id="drafts-list" style="margin-top:12px"></div>
+  </div>
+
+  <!-- ⑤ Post Ideas -->
+  <div class="card">
+    <div class="card-title">⑤ Post Ideas</div>
+    <p class="hint">Describe an idea or situation — get 5 posts at varying virality levels.</p>
+    <textarea id="post-idea-input" placeholder="e.g. my servers are causing me trouble" rows="2"></textarea>
+    <button onclick="generatePostIdeas()" style="margin-top:8px">Generate Posts</button>
+    <div id="post-ideas-status" class="status"></div>
+    <div id="post-ideas-list" style="margin-top:12px"></div>
   </div>
 </div>
 
@@ -205,7 +221,10 @@ function renderDrafts(drafts) {
     const hasSuperTab = !!d.draft_text_super_tailored;
     return `
       <div class="draft" id="draft-${i}">
-        <div class="draft-user">@${esc(d.reply_to_username)} &mdash; ${esc(d.reply_to_name)}</div>
+        <div class="draft-user">
+          @${esc(d.reply_to_username)} &mdash; ${esc(d.reply_to_name)}
+          ${d.thread_sent_count ? `<span style="font-size:0.72rem;font-weight:500;color:#888;margin-left:6px">${d.thread_sent_count} sent to thread</span>` : ''}
+        </div>
         <div class="tabs">
           <button class="tab active" onclick="showTab(${i},'post')">Post</button>
           <button class="tab" onclick="showTab(${i},'plain')">Plain</button>
@@ -264,6 +283,51 @@ function setStatus(id, msg, cls) {
 
 function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+}
+
+async function generatePostIdeas() {
+  const prompt = document.getElementById('post-idea-input').value.trim();
+  if (!prompt) { setStatus('post-ideas-status', 'Enter an idea first.', 'error'); return; }
+  setStatus('post-ideas-status', 'Generating posts…', '');
+  document.getElementById('post-ideas-list').innerHTML = '';
+  const r = await api('/api/generate_posts', {prompt});
+  if (!r.ok) { setStatus('post-ideas-status', r.message, 'error'); return; }
+  setStatus('post-ideas-status', `${r.posts.length} posts generated`, 'ok');
+  renderPostIdeas(r.posts);
+}
+
+function renderPostIdeas(posts) {
+  const el = document.getElementById('post-ideas-list');
+  if (!posts.length) { el.innerHTML = '<p style="font-size:.82rem;color:#888">No posts generated.</p>'; return; }
+  el.innerHTML = posts.map((p, i) => {
+    const chars = p.text.length;
+    const overLimit = chars > 280;
+    return `
+      <div class="post-idea">
+        <div class="post-idea-style">${esc(p.style)}</div>
+        <div class="post-idea-text" id="post-text-${i}">${esc(p.text)}</div>
+        <div class="char-count" style="color:${overLimit ? '#dc2626' : '#aaa'}">${chars}/280</div>
+        <div class="draft-actions">
+          <button class="green sm" onclick="postOnX(${i})">Post on X</button>
+          <button class="grey sm" onclick="copyPostText(${i})">Copy</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function postOnX(i) {
+  const text = document.getElementById(`post-text-${i}`).innerText;
+  window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+}
+
+async function copyPostText(i) {
+  const text = document.getElementById(`post-text-${i}`).innerText;
+  await copyText(text);
+  const btn = document.querySelectorAll(`#post-ideas-list .post-idea`)[i].querySelectorAll('.draft-actions button')[1];
+  const orig = btn.textContent;
+  btn.textContent = 'Copied ✓';
+  btn.classList.add('green');
+  setTimeout(() => { btn.textContent = orig; btn.classList.remove('green'); }, 1500);
 }
 
 loadDrafts();
@@ -586,7 +650,17 @@ def get_drafts():
     f = DATA_DIR / "drafts.json"
     if not f.exists():
         return jsonify([])
-    return jsonify(json.loads(f.read_text(encoding="utf-8")))
+    drafts = json.loads(f.read_text(encoding="utf-8"))
+
+    sent_f = DATA_DIR / "sent.json"
+    sent   = json.loads(sent_f.read_text(encoding="utf-8")) if sent_f.exists() else []
+    from collections import Counter
+    sent_counts = Counter(s.get("thread_href") for s in sent if s.get("thread_href"))
+
+    for d in drafts:
+        d["thread_sent_count"] = sent_counts.get(d.get("thread_href"), 0)
+
+    return jsonify(drafts)
 
 
 @app.route("/api/draft/use", methods=["POST"])
@@ -599,6 +673,25 @@ def draft_use():
 def draft_pass():
     data = request.get_json(silent=True) or {}
     return _update_draft(data.get("href", ""), "passed", None)
+
+
+@app.route("/api/generate_posts", methods=["POST"])
+def generate_posts():
+    data = request.get_json(silent=True) or {}
+    prompt = (data.get("prompt") or "").strip()
+    if not prompt:
+        return jsonify(ok=False, message="No prompt provided.")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_DIR / "x_draft_posts.py"), prompt],
+        capture_output=True, text=True, cwd=str(SCRIPT_DIR),
+    )
+    if result.returncode != 0:
+        return jsonify(ok=False, message=result.stderr.strip() or "Post generation failed.")
+    try:
+        posts = json.loads(result.stdout.strip())
+    except Exception:
+        return jsonify(ok=False, message="Failed to parse generated posts.")
+    return jsonify(ok=True, posts=posts)
 
 
 def _update_draft(href: str, action: str, variant: str | None):
