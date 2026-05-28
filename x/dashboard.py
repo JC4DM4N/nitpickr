@@ -480,12 +480,16 @@ def scrape_push():
         return jsonify(ok=False, message="No HTML received.")
 
     DATA_DIR.mkdir(exist_ok=True)
-    (DATA_DIR / "thread.html").write_text(html, encoding="utf-8")
+    thread_file = DATA_DIR / "thread.html"
+    thread_file.write_text(
+        (thread_file.read_text(encoding="utf-8") if thread_file.exists() else "") + "\n" + html,
+        encoding="utf-8",
+    )
 
     from bs4 import BeautifulSoup
-    soup  = BeautifulSoup(html, "html.parser")
+    soup  = BeautifulSoup(thread_file.read_text(encoding="utf-8"), "html.parser")
     count = len(soup.find_all("article", attrs={"data-testid": "tweet"}))
-    return jsonify(ok=True, message=f"Saved thread.html — {count} tweet(s) captured.")
+    return jsonify(ok=True, message=f"Appended — {count} tweet(s) total in thread.html.")
 
 
 @app.route("/api/launch_chrome", methods=["POST"])
