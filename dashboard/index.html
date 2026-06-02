@@ -59,6 +59,7 @@
 
     table {
       width: 100%;
+      min-width: 420px;
       border-collapse: collapse;
       font-size: 0.82rem;
     }
@@ -129,6 +130,8 @@
     .table-scroll {
       max-height: 280px;
       overflow-y: auto;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .error {
@@ -153,6 +156,21 @@
 
     .stat-label { font-size: 0.72rem; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
     .stat-value { font-size: 1.5rem; font-weight: 700; color: #f8fafc; }
+
+    @media (max-width: 600px) {
+      body { padding: 16px 12px; }
+
+      .grid { grid-template-columns: 1fr; }
+
+      .stat { min-width: calc(50% - 10px); }
+
+      .expand-inner { grid-template-columns: 1fr; }
+
+      .expand-value { font-size: 0.75rem; }
+      .expand-label { font-size: 0.62rem; }
+
+      .card { padding: 16px 12px; }
+    }
   </style>
 </head>
 <body>
