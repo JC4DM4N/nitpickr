@@ -615,6 +615,7 @@
 
 .app-footer-label {
   font-size: 10px;
+  font-family: monospace;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -623,6 +624,7 @@
 
 .app-footer-value {
   font-size: 17px;
+  font-family: monospace;
   font-weight: 700;
   color: #0f0e0b;
   font-family: var(--mono);
@@ -794,6 +796,7 @@
 
 .modal-section-label {
   font-size: 10px;
+  font-family: monospace;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -812,6 +815,7 @@
 
 .modal-description {
   font-size: 14px;
+  font-family: monospace;
   color: #374151;
   line-height: 1.6;
   margin: 0;
