@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./ExplorePage.css";
 import { STAGE_STYLES, CATEGORIES, STAGES } from "../../constants";
 import { authFetch } from "../../utils/authFetch";
@@ -476,7 +476,7 @@ function AppCard({ app, onReview, onShowMore }) {
         <div className="app-card-header">
           <div className="app-icon" style={{ background: app.color }}>{app.initials}</div>
           <div className="app-name-block">
-            <div className="app-name">{app.name}</div>
+            <Link to={`/discover/${app.slug || app.id}`} className="app-name app-name--link">{app.name}</Link>
             <div className="app-url">{app.url}</div>
           </div>
           <div className="app-card-meta">

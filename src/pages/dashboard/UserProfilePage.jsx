@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import "../dashboard/ExplorePage.css";
 import "./UserProfilePage.css";
 import { STAGE_STYLES } from "../../constants";
@@ -373,7 +373,7 @@ function AppCard({ app, isOwnApp, isLoggedIn, hasCredits, ownerUsername, onRevie
           {app.initials}
         </div>
         <div className="app-name-block">
-          <div className="app-name">{app.name}</div>
+          <Link to={`/discover/${app.slug || app.id}`} className="app-name app-name--link">{app.name}</Link>
           <div className="app-url">{app.url}</div>
         </div>
         <div className="app-card-meta">

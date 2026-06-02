@@ -1,6 +1,7 @@
 /* ── Explore ── */
 .explore {
   min-height: 100%;
+  background: #f6f5f1;
 }
 
 /* Hero header */
@@ -549,6 +550,15 @@
   text-overflow: ellipsis;
 }
 
+.app-name--link {
+  text-decoration: none;
+  display: block;
+}
+.app-name--link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .app-url {
   font-size: 12px;
   color: #9ca3af;
@@ -867,6 +877,7 @@
 
 .modal-meta-row {
   display: flex;
+  justify-content: space-evenly;
   gap: 24px;
   flex-wrap: wrap;
   padding: 14px 0;

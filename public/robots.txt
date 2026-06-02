@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /apps/
+Disallow: /my-apps/
+Disallow: /reviews/
+Disallow: /exchanges/
+Disallow: /credits/
+Disallow: /notifications/
+
+Sitemap: https://nitpickr.dev/sitemap.xml
