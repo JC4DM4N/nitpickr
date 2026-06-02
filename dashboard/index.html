@@ -164,8 +164,10 @@
 
       .grid { grid-template-columns: 1fr; }
 
-      .stat-row { flex-direction: column; gap: 8px; }
-      .stat { flex: none; }
+      .stat-row { flex-wrap: nowrap; gap: 6px; }
+      .stat { flex: 1; min-width: 0; padding: 8px 6px; }
+      .stat-label { font-size: 0.6rem; }
+      .stat-value { font-size: 1.2rem; }
 
       .expand-inner { grid-template-columns: 1fr; }
 
