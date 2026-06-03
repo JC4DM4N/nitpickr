@@ -13,6 +13,7 @@ export default defineConfig({
       '/reviews': 'http://localhost:8000',
       '/notifications': 'http://localhost:8000',
       '/exchanges': 'http://localhost:8000',
+      '/sitemap.xml': 'http://localhost:8000',
     },
   },
 })

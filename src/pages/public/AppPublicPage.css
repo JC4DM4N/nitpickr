@@ -1,0 +1,190 @@
+/* ── Page wrapper ── */
+.app-pub-standalone {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg, #fafaf8);
+}
+
+/* ── Header ── */
+.app-pub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e8e6e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-left: 20px;
+}
+
+.app-pub-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.app-pub-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.app-pub-btn-ghost {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: color 0.15s;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.app-pub-btn-ghost:hover { color: #0f0e0b; }
+
+/* ── Hero overrides ── */
+.app-pub-hero-section {
+  text-align: center;
+}
+
+.app-pub-hero-section .profile-hero-identity {
+  margin-left: 0;
+}
+
+.app-pub-icon-lg {
+  width: 72px !important;
+  height: 72px !important;
+  border-radius: 16px !important;
+  font-size: 26px !important;
+}
+
+.app-pub-url-link {
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 13px;
+  font-family: var(--mono);
+  display: inline-block;
+  margin-top: 4px;
+  transition: color 0.15s;
+}
+.app-pub-url-link:hover { color: #4b5563; }
+
+.app-pub-owner-text {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.app-pub-owner-link {
+  color: #6b7280;
+  text-decoration: none;
+  font-weight: 600;
+}
+.app-pub-owner-link:hover { color: #0f0e0b; }
+
+/* ── Results area ── */
+.app-pub-results {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-bottom: 48px;
+}
+
+/* ── Content card (modal-card used on a page) ── */
+.app-pub-content-card {
+  max-height: none !important;
+  box-shadow: none;
+  border: 1.5px solid #e8e6e0;
+  margin: 0 auto;
+}
+
+/* ── How it works ── */
+.app-pub-how-section {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-pub-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-pub-steps li {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.app-pub-how-note {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ── Loading / not found ── */
+.app-pub-loading,
+.app-pub-not-found {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  color: #6b7280;
+  font-size: 15px;
+}
+.app-pub-not-found h1 { color: #0f0e0b; margin: 0; }
+.app-pub-not-found p { margin: 0; }
+
+/* ── Footer ── */
+.app-pub-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e8e6e0;
+  background: #fff;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: #9ca3af;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.app-pub-standalone a {
+  text-decoration: none;
+}
+
+.app-pub-footer a {
+  color: #6b7280;
+  font-family: var(--mono);
+}
+.app-pub-footer a:hover { color: #0f0e0b; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .app-pub-header { padding: 12px 16px; }
+
+  .app-pub-icon-lg {
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 20px !important;
+  }
+
+  .app-pub-content-card {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+}

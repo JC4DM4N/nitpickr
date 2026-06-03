@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,26 @@ from ..dependencies import get_current_user
 from .notifications import create_notification
 
 router = APIRouter(prefix="/apps", tags=["apps"])
+
+
+def _slugify(name: str) -> str:
+    s = name.lower().strip()
+    s = re.sub(r'[^a-z0-9]+', '-', s)
+    return s.strip('-')[:100]
+
+
+def _unique_slug(name: str, db: Session, exclude_id: int | None = None) -> str:
+    base = _slugify(name)
+    slug = base
+    n = 2
+    while True:
+        q = db.query(models.App).filter(models.App.slug == slug)
+        if exclude_id is not None:
+            q = q.filter(models.App.id != exclude_id)
+        if not q.first():
+            return slug
+        slug = f"{base}-{n}"
+        n += 1
 
 
 def _build_app_outs(apps: list, db: Session) -> list:
@@ -47,6 +68,16 @@ def _build_app_outs(apps: list, db: Session) -> list:
         .group_by(models.Review.reviewer_id)
         .all()
     )
+    reviewer_ratings = dict(
+        db.query(models.Review.reviewer_id, func.avg(models.Review.reviewer_rating))
+        .filter(
+            models.Review.reviewer_id.in_(owner_ids),
+            models.Review.reviewer_rating != None,
+            (models.Review.is_complete == True) | (models.Review.is_rejected == True),
+        )
+        .group_by(models.Review.reviewer_id)
+        .all()
+    )
 
     return [
         schemas.AppOut(
@@ -67,6 +98,8 @@ def _build_app_outs(apps: list, db: Session) -> list:
             in_progress_count=in_progress.get(a.id, 0),
             owner_username=owner_username.get(a.owner_id, ''),
             owner_reviews_given=reviews_given.get(a.owner_id, 0),
+            owner_reviewer_rating=round(reviewer_ratings[a.owner_id], 1) if a.owner_id in reviewer_ratings else None,
+            slug=a.slug,
         )
         for a in apps
     ]
@@ -90,6 +123,7 @@ def create_app(
         description=payload.description,
         request=payload.request,
         credits=1,
+        slug=_unique_slug(payload.name, db),
     )
     db.add(app)
     db.commit()
@@ -115,6 +149,7 @@ def patch_app(
             setattr(app, field, value)
     if payload.name is not None:
         app.initials = ''.join(w[0].upper() for w in payload.name.split()[:2])
+        app.slug = _unique_slug(payload.name, db, exclude_id=app_id)
     db.commit()
     db.refresh(app)
     return _build_app_outs([app], db)[0]
@@ -165,8 +200,27 @@ def list_apps(db: Session = Depends(get_db)):
         for u in db.query(models.User).filter(models.User.id.in_(owner_ids)).all()
     }
 
-    visible_apps = [a for a in all_apps if owner_available.get(a.owner_id, 0) > 0 and not a.is_hidden]
+    owner_banned = {
+        u.id: u.is_banned
+        for u in db.query(models.User).filter(models.User.id.in_(owner_ids)).all()
+    }
+    visible_apps = [
+        a for a in all_apps
+        if owner_available.get(a.owner_id, 0) > 0 and not a.is_hidden and not owner_banned.get(a.owner_id, False)
+    ]
     return _build_app_outs(visible_apps, db)
+
+
+@router.get("/all", response_model=List[schemas.AppOut])
+def list_all_apps(db: Session = Depends(get_db)):
+    apps = (
+        db.query(models.App)
+        .join(models.User, models.App.owner_id == models.User.id)
+        .filter(models.App.is_hidden == False, models.User.is_banned == False)
+        .order_by(models.App.created_at.asc())
+        .all()
+    )
+    return _build_app_outs(apps, db)
 
 
 @router.post("/{app_id}/reviews/{review_id}/approve", response_model=schemas.ReviewDetail)
@@ -555,6 +609,13 @@ def create_testimonial(
         "quote_text": testimonial.quote_text,
         "created_at": testimonial.created_at,
     }
+
+@router.get("/by-slug/{slug}", response_model=schemas.AppOut)
+def get_app_by_slug(slug: str, db: Session = Depends(get_db)):
+    app = db.query(models.App).filter(models.App.slug == slug).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="App not found")
+    return _build_app_outs([app], db)[0]
 
 
 @router.get("/{app_id}", response_model=schemas.AppOut)

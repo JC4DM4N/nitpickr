@@ -373,7 +373,11 @@
 }
 
 .section-alt {
-  background: #fff;
+  background: #f6f5f1;
+}
+
+.section-warm {
+  background: #f6f5f1;
 }
 
 
@@ -752,6 +756,143 @@
   padding: 20px 0 8px;
 }
 
+/* ── Testimonials carousel ── */
+.testimonials-carousel-section {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  padding: 64px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.testimonials-carousel-section .section-label {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.carousel-track-wrap {
+  overflow: hidden;
+  width: 100%;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: carousel-scroll 40s linear infinite;
+}
+
+.carousel-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes carousel-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.carousel-card {
+  width: 280px;
+  flex-shrink: 0;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.carousel-quote {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.carousel-author {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.carousel-author-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.carousel-author-role {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* ── Founder message ── */
+.founder-section {
+  background: #eceae4;
+  padding: 80px 24px;
+}
+
+.founder-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.founder-quote {
+  margin: 24px 0 32px;
+  padding: 0;
+  border: none;
+}
+
+.founder-quote p {
+  font-size: 0.85rem;
+  line-height: 1.75;
+  color: #374151;
+  font-style: italic;
+  margin: 0 0 16px;
+}
+
+.founder-quote p:last-child {
+  margin-bottom: 0;
+}
+
+.founder-sig {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.founder-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0f0e0b;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--sans);
+}
+
+.founder-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f0e0b;
+}
+
+.founder-role {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+
+
 /* ── Mobile optimisations ── */
 @media (max-width: 640px) {
   /* Hero */
@@ -836,5 +977,22 @@
 
   .footer-inner {
     margin-bottom: 28px;
+  }
+
+  /* Testimonials carousel */
+  .testimonials-carousel-section {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Founder message */
+  .founder-section {
+    padding-left: 44px;
+    padding-right: 44px;
+  }
+
+  .founder-section .section-label {
+    display: block;
+    text-align: center;
   }
 }

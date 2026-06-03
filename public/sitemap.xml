@@ -1,12 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  NOTE: This static sitemap covers only public static pages.
+  The full dynamic sitemap (including all app pages at /apps/:id) is served
+  by the FastAPI backend at GET /sitemap.xml. In production, configure your
+  reverse proxy to forward /sitemap.xml to the backend so crawlers always
+  get the up-to-date version.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url>
     <loc>https://nitpickr.dev/</loc>
-    <lastmod>2026-04-30</lastmod>
+    <lastmod>2026-06-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
+  <url>
+    <loc>https://nitpickr.dev/how-it-works</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://nitpickr.dev/signup</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 
 </urlset>

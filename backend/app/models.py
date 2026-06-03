@@ -21,6 +21,7 @@ class User(Base):
     credits          = Column(Integer, nullable=False, default=0)
     escrow_credits   = Column(Integer, nullable=False, default=0)
     twitter_username = Column(String(50), nullable=True)
+    is_banned        = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -37,6 +38,7 @@ class App(Base):
     stage = Column(String(20), nullable=False)
     description = Column(Text, nullable=False)
     request     = Column(Text, nullable=False)
+    slug            = Column(String(120), unique=True, nullable=True, index=True)
     credits         = Column(Integer, nullable=False, default=1)
     is_hidden       = Column(Boolean, nullable=False, default=False)
     is_multi_review = Column(Boolean, nullable=False, default=False)

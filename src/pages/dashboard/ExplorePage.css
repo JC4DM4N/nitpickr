@@ -1,6 +1,7 @@
 /* ── Explore ── */
 .explore {
   min-height: 100%;
+  background: #f6f5f1;
 }
 
 /* Hero header */
@@ -444,7 +445,7 @@
   }
 
   .app-card-footer-actions {
-    gap: 8px;
+    gap: 4px;
   }
 
   .modal-overlay {
@@ -456,7 +457,8 @@
     padding: 24px 20px;
     border-radius: 16px 16px 12px 12px;
     max-height: 85vh;
-    overflow: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .user-card {
@@ -548,6 +550,15 @@
   text-overflow: ellipsis;
 }
 
+.app-name--link {
+  text-decoration: none;
+  display: block;
+}
+.app-name--link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .app-url {
   font-size: 12px;
   color: #9ca3af;
@@ -604,6 +615,7 @@
 
 .app-footer-label {
   font-size: 10px;
+  font-family: monospace;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -612,6 +624,7 @@
 
 .app-footer-value {
   font-size: 17px;
+  font-family: monospace;
   font-weight: 700;
   color: #0f0e0b;
   font-family: var(--mono);
@@ -659,7 +672,7 @@
 }
 
 .app-profile-btn {
-  padding: 8px 16px;
+  padding: 7px 13px;
   background: transparent;
   color: #6b7280;
   border: 1.5px solid #d1cfc8;
@@ -680,7 +693,7 @@
 }
 
 .app-review-btn {
-  padding: 8px 16px;
+  padding: 7px 13px;
   background: #0f0e0b;
   color: #fff;
   border: none;
@@ -721,7 +734,12 @@
   flex-direction: column;
   gap: 20px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  overflow: scroll;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.modal-card--wide {
+  max-width: 680px;
 }
 
 .modal-close {
@@ -778,6 +796,7 @@
 
 .modal-section-label {
   font-size: 10px;
+  font-family: monospace;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -790,12 +809,13 @@
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
-  overflow: scroll;
 }
 
 .modal-description {
   font-size: 14px;
+  font-family: monospace;
   color: #374151;
   line-height: 1.6;
   margin: 0;
@@ -857,6 +877,39 @@
 
 .modal-btn-start:hover {
   opacity: 0.8;
+}
+
+.modal-meta-row {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-top: 1px solid #f0ede6;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.modal-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-profile-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-right: 36px;
+}
+
+.modal-exchange-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: #fafaf8;
+  border: 1.5px solid #e8e6e0;
+  border-radius: 10px;
+  margin-top: 4px;
 }
 
 .modal-error {

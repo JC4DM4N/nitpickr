@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import AppPublicPage from './pages/public/AppPublicPage'
 import LandingPage from './pages/landing/LandingPage'
 import HowItWorksPage from './pages/landing/HowItWorksPage'
 import DashboardHowItWorksPage from './pages/dashboard/HowItWorksPage'
@@ -75,6 +76,7 @@ function App() {
         <Route path="/signup" element={<PublicOnly><SignUpPage onSuccess={handleLoginSuccess} /></PublicOnly>} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/discover/:slug" element={<AppPublicPage />} />
 
         <Route element={<ConditionalDashboard />}>
           <Route path="/:username" element={<UserProfilePage />} />

@@ -1,9 +1,40 @@
+require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
 const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
 const PORT = 3002;
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD;
+
+app.use(express.urlencoded({ extended: false }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'dev-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, maxAge: 8 * 60 * 60 * 1000 }, // 8 hours
+}));
+
+function requireAuth(req, res, next) {
+  if (req.session.authed) return next();
+  res.redirect('/login');
+}
+
+app.get('/login', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
+
+app.post('/login', (req, res) => {
+  if (req.body.password === DASHBOARD_PASSWORD) {
+    req.session.authed = true;
+    res.redirect('/');
+  } else {
+    res.redirect('/login?error=1');
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/login'));
+});
 
 const pool = new Pool({
   host: process.env.DB_HOST || '172.236.21.178',
@@ -14,7 +45,10 @@ const pool = new Pool({
   ssl: false,
 });
 
-app.use(express.static(path.join(__dirname)));
+// Serve login page assets (the login.html itself is handled by the route above)
+// Protect index.html and all API routes
+app.get('/', requireAuth, (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.use('/api', requireAuth);
 
 app.get('/api/users-per-day', async (req, res) => {
   try {
@@ -186,6 +220,7 @@ app.get('/api/users', async (_req, res) => {
         u.username,
         u.created_at,
         u.credits,
+        u.is_banned,
         COUNT(DISTINCT a.id) AS apps_count,
         COUNT(DISTINCT r_given.id) AS reviews_given,
         COUNT(DISTINCT r_recv.id) AS reviews_received
@@ -193,10 +228,20 @@ app.get('/api/users', async (_req, res) => {
       LEFT JOIN apps a ON a.owner_id = u.id
       LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
       LEFT JOIN reviews r_recv ON r_recv.app_id = a.id AND r_recv.is_complete = TRUE
-      GROUP BY u.id, u.username, u.created_at, u.credits
+      GROUP BY u.id, u.username, u.created_at, u.credits, u.is_banned
       ORDER BY u.created_at DESC
     `);
     res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/completed-reviews-count', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) AS total FROM reviews WHERE is_complete = TRUE');
+    res.json({ total: parseInt(result.rows[0].total) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -221,6 +266,46 @@ app.get('/api/credits-in-circulation', async (_req, res) => {
       WHERE username NOT IN ('JamesC', 'jc')
     `);
     res.json({ total: result.rows[0].total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/banned-users', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.username,
+        u.created_at,
+        u.credits,
+        COUNT(DISTINCT a.id) AS apps_count,
+        COUNT(DISTINCT r_given.id) AS reviews_given,
+        COUNT(DISTINCT r_recv.id) AS reviews_received,
+        COALESCE(
+          (SELECT json_agg(json_build_object(
+            'id', r.id,
+            'app_name', a2.name,
+            'app_owner', u_owner.username,
+            'feedback', r.feedback,
+            'created_date', r.created_date
+          ) ORDER BY r.created_date DESC)
+          FROM reviews r
+          JOIN apps a2 ON r.app_id = a2.id
+          JOIN users u_owner ON a2.owner_id = u_owner.id
+          WHERE r.reviewer_id = u.id AND r.is_complete = TRUE),
+          '[]'::json
+        ) AS reviews
+      FROM users u
+      LEFT JOIN apps a ON a.owner_id = u.id
+      LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
+      LEFT JOIN reviews r_recv ON r_recv.app_id = a.id AND r_recv.is_complete = TRUE
+      WHERE u.is_banned = TRUE
+      GROUP BY u.id, u.username, u.created_at, u.credits
+      ORDER BY u.created_at DESC
+    `);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

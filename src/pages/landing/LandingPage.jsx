@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 
@@ -12,8 +13,9 @@ export default function LandingPage() {
       <Hero onGetStarted={onGetStarted} />
       <HowItWorks />
       <HowItWorksExchanges />
+      <FounderMessage />
       <Features />
-      {/* <Testimonials /> */}
+      <TestimonialsCarousel />
       <CTA onGetStarted={onGetStarted} />
       <Footer />
     </div>
@@ -30,6 +32,7 @@ export function Nav({ onLogin, onSignUp }) {
         <div className="nav-links">
           <a href="#how-it-works">How it works</a>
           <a href="#features">Features</a>
+          <a href="#testimonials">Testimonials</a>
         </div>
         <div className="nav-actions">
           <button onClick={onLogin} className="btn btn-ghost">
@@ -219,7 +222,7 @@ export function HowItWorksExchanges({ white, links }) {
   ];
 
   return (
-    <section id="exchanges" className={`section${white ? '' : ' how-it-works-section'}`}>
+    <section id="exchanges" className="section section-alt">
       <div className="section-label">Feedback exchanges</div>
       <h2 className="section-title">Skip the credits. Go direct.</h2>
       <p className="section-sub">
@@ -287,7 +290,7 @@ function Features() {
   ];
 
   return (
-    <section id="features" className="section section-alt">
+    <section id="features" className="section section-warm">
       <div className="section-label">Features</div>
       <h2 className="section-title">Everything you need to improve your app</h2>
       <p className="section-sub">
@@ -348,6 +351,63 @@ function Testimonials() {
       </div>
     </section>
   );
+}
+
+function TestimonialsCarousel() {
+  const [testimonials, setTestimonials] = useState([])
+
+  useEffect(() => {
+    fetch('/testimonials.json')
+      .then(r => r.json())
+      .then(setTestimonials)
+      .catch(() => {})
+  }, [])
+
+  if (!testimonials.length) return null
+
+  const slots = Array.from({ length: Math.ceil(8 / testimonials.length) }, () => testimonials).flat().slice(0, 8)
+  const doubled = [...slots, ...slots]
+
+  return (
+    <section className="testimonials-carousel-section" id="testimonials">
+      <div className="section-label">What developers say</div>
+      <div className="carousel-track-wrap">
+        <div className="carousel-track">
+          {doubled.map((t, i) => (
+            <div key={i} className="carousel-card">
+              <p className="carousel-quote">"{t.quote}"</p>
+              <div className="carousel-author">
+                <span className="carousel-author-name">{t.author}</span>
+                {t.role && <span className="carousel-author-role">{t.role}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FounderMessage() {
+  return (
+    <section className="founder-section">
+      <div className="founder-inner">
+        <div className="section-label">From the founder</div>
+        <blockquote className="founder-quote">
+          <p>"I built NitPickr because I kept running into the same problem. I'd ship something, share it in a few X&nbsp;/&nbsp;Reddit threads, and get back "looks cool!" and nothing useful.</p>
+          <p>Real feedback is hard to get when you're early. Hiring testers is expensive, asking friends feels awkward, and cold posts rarely get thoughtful responses.</p>
+          <p>So I built a simple exchange: you review someone else's app, yours gets reviewed in return. No money changes hands. Just developers helping each other ship better products."</p>
+        </blockquote>
+        <div className="founder-sig">
+          <div className="founder-avatar">J</div>
+          <div>
+            <div className="founder-name">James</div>
+            <div className="founder-role">Founder, NitPickr</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 function CTA({ onGetStarted }) {
@@ -424,6 +484,7 @@ export function Footer() {
             <h4>Product</h4>
             <a href="#how-it-works">How it works</a>
             <a href="#features">Features</a>
+            <a href="#testimonials">Testimonials</a>
           </div>
           <div className="footer-col">
             <h4>Account</h4>

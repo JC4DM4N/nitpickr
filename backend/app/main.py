@@ -2,10 +2,12 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from sqlalchemy.orm import Session
 
-from .database import engine, SessionLocal
+from .database import engine, SessionLocal, get_db
 from . import models
 from .routers import users, auth, apps, reviews, notifications, exchanges, testimonials
 from .routers.notifications import create_notification
@@ -277,3 +279,49 @@ app.include_router(testimonials.router)
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+_SITEMAP_STATIC = [
+    ("/", "weekly", "1.0"),
+    ("/how-it-works", "monthly", "0.7"),
+    ("/signup", "monthly", "0.6"),
+    ("/login", "monthly", "0.4"),
+]
+
+
+@app.get("/sitemap.xml", response_class=Response)
+def sitemap(db: Session = Depends(get_db)):
+    base = loops.FRONTEND_URL
+    public_apps = (
+        db.query(models.App)
+        .join(models.User, models.App.owner_id == models.User.id)
+        .filter(models.App.is_hidden == False, models.User.is_banned == False)
+        .all()
+    )
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    entries = []
+    for path, changefreq, priority in _SITEMAP_STATIC:
+        entries.append(
+            f"  <url>\n"
+            f"    <loc>{base}{path}</loc>\n"
+            f"    <changefreq>{changefreq}</changefreq>\n"
+            f"    <priority>{priority}</priority>\n"
+            f"  </url>"
+        )
+    for a in public_apps:
+        path = f"/discover/{a.slug}" if a.slug else f"/discover/{a.id}"
+        entries.append(
+            f"  <url>\n"
+            f"    <loc>{base}{path}</loc>\n"
+            f"    <lastmod>{today}</lastmod>\n"
+            f"    <changefreq>weekly</changefreq>\n"
+            f"    <priority>0.8</priority>\n"
+            f"  </url>"
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(entries)
+        + "\n</urlset>"
+    )
+    return Response(content=xml, media_type="application/xml")

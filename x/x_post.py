@@ -90,7 +90,7 @@ def main() -> None:
             break
 
         if choice == "3":
-            drafts, sent = move_to_sent(draft, drafts, sent, sent_text=None)
+            drafts = [d for d in drafts if d.get("reply_to_href") != draft["reply_to_href"]]
             save_json(DRAFTS_FILE, drafts)
             print("Passed.")
             continue

@@ -91,6 +91,7 @@ def main() -> None:
     replies, op = parse_thread(html)
 
     out_file.write_text(json.dumps(replies, indent=2, ensure_ascii=False))
+    html_file.write_text("", encoding="utf-8")
     print(f"Extracted {len(replies)} repl{'y' if len(replies) == 1 else 'ies'} → {out_file}")
 
 

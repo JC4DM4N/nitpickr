@@ -4,8 +4,8 @@ backend/.env
 scripts/.env
 
 # X reply drafter output
-scripts/data/
-scripts/.token.json
+x/data/
+x/.token.json
 
 # Logs
 logs
@@ -31,3 +31,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
