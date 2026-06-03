@@ -156,6 +156,7 @@
       padding: 12px 16px;
       flex: 1;
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
       min-width: 0;
     }
@@ -178,6 +179,9 @@
       .expand-inner { grid-template-columns: 1fr; }
 
       .card { padding: 14px 10px; }
+
+      table { min-width: 0; table-layout: fixed; }
+      thead th, tbody td { padding: 8px 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     }
   </style>
 </head>
@@ -292,7 +296,6 @@
               <th>Requestee</th>
               <th>Status</th>
               <th>Created</th>
-              <th>Deadline</th>
             </tr>
           </thead>
           <tbody id="table-exchanges"></tbody>
@@ -309,8 +312,8 @@
               <th>#</th>
               <th>App</th>
               <th>Owner</th>
-              <th>Reviews Received</th>
-              <th>Reviews Given</th>
+              <th>Given</th>
+              <th>Received</th>
             </tr>
           </thead>
           <tbody id="table-apps"></tbody>
@@ -326,10 +329,10 @@
             <tr>
               <th>#</th>
               <th>Username</th>
-              <th>Joined</th>
+              <!-- <th>Joined</th> -->
               <th>Apps</th>
-              <th>Reviews Given</th>
-              <th>Reviews Received</th>
+              <th>Given</th>
+              <th>Received</th>
               <th>Credits</th>
             </tr>
           </thead>
@@ -346,10 +349,10 @@
             <tr>
               <th>#</th>
               <th>Username</th>
-              <th>Joined</th>
+              <!-- <th>Joined</th> -->
               <th>Apps</th>
-              <th>Reviews Given</th>
-              <th>Reviews Received</th>
+              <th>Given</th>
+              <th>Received</th>
               <th>Credits</th>
             </tr>
           </thead>
@@ -442,10 +445,30 @@
         const next = row.nextElementSibling;
         if (!next || !next.classList.contains('expand-row')) return;
         const open = next.style.display !== 'none';
+        if (!open) {
+          document.querySelectorAll('tr.expand-row').forEach(r => {
+            if (r !== next && r.style.display !== 'none') {
+              r.style.display = 'none';
+              const prev = r.previousElementSibling;
+              if (prev) prev.style.background = '';
+            }
+          });
+        }
         next.style.display = open ? 'none' : '';
         row.style.background = open ? '' : '#1a1d35';
       });
     }
+
+    document.addEventListener('click', e => {
+      if (e.target.closest('tr.data-row') || e.target.closest('tr.expand-row')) return;
+      document.querySelectorAll('tr.expand-row').forEach(r => {
+        if (r.style.display !== 'none') {
+          r.style.display = 'none';
+          const prev = r.previousElementSibling;
+          if (prev) prev.style.background = '';
+        }
+      });
+    });
 
     async function load() {
       const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers] = await Promise.all([
@@ -474,9 +497,9 @@
       // Feedback exchanges table
       const tbExchanges = document.getElementById('table-exchanges');
       if (!Array.isArray(exchanges) || exchanges.error) {
-        tbExchanges.innerHTML = `<tr><td colspan="6" class="error">${exchanges.error || 'Error loading'}</td></tr>`;
+        tbExchanges.innerHTML = `<tr><td colspan="5" class="error">${exchanges.error || 'Error loading'}</td></tr>`;
       } else if (exchanges.length === 0) {
-        tbExchanges.innerHTML = '<tr><td colspan="6" style="color:#64748b;padding:12px 10px">No feedback exchanges</td></tr>';
+        tbExchanges.innerHTML = '<tr><td colspan="5" style="color:#64748b;padding:12px 10px">No feedback exchanges</td></tr>';
       } else {
         const exchangeStatusBadge = s => {
           switch ((s || '').toLowerCase()) {
@@ -499,8 +522,7 @@
             <td>${e.requestee}</td>
             <td>${exchangeStatusBadge(e.status)}</td>
             <td>${fmt(e.created_at)}</td>
-            <td>${e.expires_at ? fmt(e.expires_at) : '—'}</td>
-          </tr>${expandRow(6, detail)}`;
+          </tr>${expandRow(5, detail)}`;
         }).join('');
         attachToggle(tbExchanges);
       }
@@ -514,8 +536,8 @@
           <td>${a.id}</td>
           <td>${a.app_name}</td>
           <td>${a.owner}</td>
-          <td>${a.reviews_received}</td>
           <td>${a.reviews_given}</td>
+          <td>${a.reviews_received}</td>
         </tr>`).join('');
       }
 
@@ -527,7 +549,6 @@
         tbUsers.innerHTML = allUsers.map(u => `<tr>
           <td>${u.id}</td>
           <td>${u.username}${u.is_banned ? ' <span class="badge badge-red" style="margin-left:6px">Banned</span>' : ''}</td>
-          <td>${fmt(u.created_at)}</td>
           <td>${u.apps_count}</td>
           <td>${u.reviews_given}</td>
           <td>${u.reviews_received}</td>
@@ -562,7 +583,6 @@
           return `<tr class="data-row">
             <td>${u.id}</td>
             <td>${u.username}</td>
-            <td>${fmt(u.created_at)}</td>
             <td>${u.apps_count}</td>
             <td>${u.reviews_given}</td>
             <td>${u.reviews_received}</td>
