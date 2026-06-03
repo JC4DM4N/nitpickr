@@ -31,6 +31,15 @@ def create_review(
     if not app:
         raise HTTPException(status_code=404, detail="App not found")
 
+    active_count = db.query(models.Review).filter(
+        models.Review.reviewer_id == current_user.id,
+        models.Review.is_complete == False,
+        models.Review.is_rejected == False,
+        models.Review.is_expired == False,
+    ).count()
+    if active_count >= 10:
+        raise HTTPException(status_code=400, detail="You already have 10 active reviews. Complete or wait for some to expire before starting another.")
+
     existing_q = db.query(models.Review).filter(
         models.Review.app_id == payload.app_id,
         models.Review.reviewer_id == current_user.id,
