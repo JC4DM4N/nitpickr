@@ -201,7 +201,7 @@ export default function AppPublicPage() {
               )}
 
               <p className="modal-section-label">WHAT THE DEVELOPER IS LOOKING FOR</p>
-              <div className="modal-request">{app.request}</div>
+              <div className="modal-request modal-request-app-profile-page">{app.request}</div>
 
               {reviewError && <p className="modal-error">{reviewError}</p>}
 
