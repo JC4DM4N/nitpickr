@@ -1,3 +1,5 @@
+import html as _html
+import json
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -325,3 +327,245 @@ def sitemap(db: Session = Depends(get_db)):
         + "\n</urlset>"
     )
     return Response(content=xml, media_type="application/xml")
+
+
+_STAGE_STYLES = {
+    'Pre-launch': 'background:#fef3c7;color:#92400e',
+    'Beta':       'background:#dbeafe;color:#1e40af',
+    'Live':       'background:#d1fae5;color:#065f46',
+}
+
+_e = _html.escape
+
+
+@app.get("/discover/{slug}", response_class=Response)
+def discover_app_page(slug: str, db: Session = Depends(get_db)):
+    from .routers.apps import _build_app_outs
+    app_obj = (
+        db.query(models.App)
+        .join(models.User, models.App.owner_id == models.User.id)
+        .filter(
+            models.App.slug == slug,
+            models.App.is_hidden == False,
+            models.User.is_banned == False,
+        )
+        .first()
+    )
+    if not app_obj:
+        return Response(content=_discover_404_html(), media_type="text/html", status_code=404)
+    app_data = _build_app_outs([app_obj], db)[0]
+    return Response(content=_discover_page_html(app_data), media_type="text/html")
+
+
+def _discover_404_html() -> str:
+    return f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>App not found — NitPickr</title>
+{_discover_shared_styles()}
+</head><body>
+{_discover_header()}
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:80px 24px;color:#6b7280;font-family:system-ui">
+  <h1 style="color:#0f0e0b;margin:0">App not found</h1>
+  <p style="margin:0">This app may have been removed or made private.</p>
+  <a href="/" style="font-family:ui-monospace,Consolas,monospace;font-size:13px;font-weight:600;color:#fff;background:#0f0e0b;padding:10px 20px;border-radius:8px">Back to NitPickr</a>
+</div>
+{_discover_footer()}
+</body></html>"""
+
+
+def _discover_page_html(app) -> str:
+    app_url = app.url if app.url.startswith('http') else f'https://{app.url}'
+    stage_css = _STAGE_STYLES.get(app.stage, 'background:#f3f4f6;color:#374151')
+    page_title = _e(f"{app.name} — developer feedback on NitPickr")
+    page_desc  = _e(f"{app.description} Get real feedback from indie developers on NitPickr — a free, credit-based feedback community.")
+    page_url   = f"https://nitpickr.dev/discover/{_e(app.slug or str(app.id))}"
+    json_ld    = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": app.name,
+        "url": app_url,
+        "applicationCategory": app.category,
+        "description": app.description,
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    })
+
+    rating_hero = ""
+    rating_stat = f'<span class="stat-value">—</span>'
+    if app.owner_reviewer_rating is not None:
+        r = _e(str(app.owner_reviewer_rating))
+        rating_hero = f'<span class="rating-badge">{r} <img src="/star.png" width="16" height="16" alt="star"> reviewer rating</span>'
+        rating_stat = f'<span class="stat-value stat-value--row">{r} <img src="/star.png" width="16" height="16" alt="star"> / 5</span>'
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{page_title}</title>
+  <meta name="description" content="{page_desc}">
+  <meta property="og:title" content="{page_title}">
+  <meta property="og:description" content="{page_desc}">
+  <meta property="og:url" content="{page_url}">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{page_title}">
+  <meta name="twitter:description" content="{page_desc}">
+  <link rel="canonical" href="{page_url}">
+  <link rel="icon" href="/favicon.ico">
+  <script type="application/ld+json">{json_ld}</script>
+  {_discover_shared_styles()}
+</head>
+<body>
+  {_discover_header()}
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="app-icon" style="background:{_e(app.color)}">{_e(app.initials)}</div>
+      <h1 class="hero-name">{_e(app.name)}</h1>
+      <a class="hero-url" href="{_e(app_url)}" target="_blank" rel="noopener noreferrer">{_e(app.url)} ↗</a>
+      <div class="meta-row">
+        <span class="owner-text">by <a href="/{_e(app.owner_username)}" class="owner-link">{_e(app.owner_username)}</a></span>
+      </div>
+      <div class="meta-row">
+        <span class="category-tag">{_e(app.category)}</span>
+        <span class="stage-badge" style="{stage_css}">{_e(app.stage)}</span>
+        {rating_hero}
+      </div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="results">
+      <div class="card">
+        <div class="stat-row">
+          <div class="stat">
+            <span class="stat-label">STAGE</span>
+            <span class="stage-badge" style="{stage_css}">{_e(app.stage)}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">REVIEWS RECEIVED</span>
+            <span class="stat-value">{_e(str(app.approved_count))}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">CREDITS PER REVIEW</span>
+            <span class="stat-value">{_e(str(app.credits))}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">REVIEWER RATING</span>
+            {rating_stat}
+          </div>
+        </div>
+
+        <p class="section-label">ABOUT THIS APP</p>
+        <p class="description">{_e(app.description)}</p>
+
+        <p class="section-label">WHAT THE DEVELOPER IS LOOKING FOR</p>
+        <div class="request">{_e(app.request)}</div>
+
+        <div class="card-actions">
+          <a href="{_e(app_url)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Visit {_e(app.name)} ↗</a>
+          <a href="/signup" class="btn-primary">Sign up to leave feedback →</a>
+        </div>
+      </div>
+
+      <div class="how-section">
+        <p class="section-label">HOW NITPICKR WORKS</p>
+        <ol class="how-steps">
+          <li><strong>Review apps</strong> — Try other developers' apps and leave honest, actionable feedback.</li>
+          <li><strong>Earn credits</strong> — Each approved review earns you one credit.</li>
+          <li><strong>Get feedback</strong> — Spend credits to receive feedback on your own app.</li>
+        </ol>
+        <p class="how-note">No subscriptions. No credit card. Just developers helping developers.</p>
+      </div>
+    </div>
+  </div>
+
+  {_discover_footer()}
+</body>
+</html>"""
+
+
+def _discover_header() -> str:
+    return """<header class="header">
+  <a href="/" class="header-logo"><img src="/nitpickr_logo.svg" alt="NitPickr" height="22"></a>
+  <div class="header-actions">
+    <a href="/login" class="btn-ghost">Sign in</a>
+    <a href="/" class="btn-primary">Explore apps →</a>
+  </div>
+</header>"""
+
+
+def _discover_footer() -> str:
+    return """<footer>
+  <a href="/">NitPickr</a><span>·</span>
+  <a href="/signup">Get free feedback</a><span>·</span>
+  <a href="/how-it-works">How it works</a><span>·</span>
+  <a href="/explore">Explore apps</a>
+</footer>"""
+
+
+def _discover_shared_styles() -> str:
+    return """<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --mono: ui-monospace, Consolas, monospace; --sans: system-ui, 'Segoe UI', Roboto, sans-serif; --border: #e8e6e0; }
+  body { font-family: var(--sans); color: #0f0e0b; background: #fafaf8; -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
+  a { text-decoration: none; }
+
+  /* Header */
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+  .header-logo { display: flex; align-items: center; }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-ghost { font-family: var(--mono); font-size: 13px; font-weight: 500; color: #6b7280; padding: 8px 12px; border-radius: 8px; }
+  .btn-ghost:hover { color: #0f0e0b; }
+  .btn-primary { font-family: var(--mono); font-size: 13px; font-weight: 600; color: #fff; background: #0f0e0b; padding: 9px 18px; border-radius: 8px; white-space: nowrap; }
+  .btn-primary:hover { opacity: 0.8; }
+  .btn-secondary { font-family: var(--mono); font-size: 13px; font-weight: 500; color: #6b7280; background: transparent; padding: 9px 16px; border-radius: 8px; border: 1.5px solid var(--border); white-space: nowrap; }
+  .btn-secondary:hover { background: #f6f5f1; }
+
+  /* Hero */
+  .hero { background: #fff; border-bottom: 1px solid var(--border); padding: 48px 24px 36px; text-align: center; }
+  .hero-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .app-icon { width: 72px; height: 72px; border-radius: 16px; color: #fff; font-size: 26px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: var(--mono); flex-shrink: 0; }
+  .hero-name { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -1.5px; color: #0f0e0b; line-height: 1.1; }
+  .hero-url { font-family: var(--mono); font-size: 13px; color: #9ca3af; }
+  .hero-url:hover { color: #4b5563; }
+  .meta-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
+  .owner-text { font-size: 13px; color: #6b7280; font-family: var(--mono); }
+  .owner-link { color: #6b7280; font-weight: 600; }
+  .owner-link:hover { color: #0f0e0b; }
+  .category-tag { background: #f6f5f1; color: #6b7280; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); font-family: var(--mono); }
+  .stage-badge { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; font-family: var(--mono); }
+  .rating-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 600; color: #0f0e0b; font-family: var(--mono); }
+
+  /* Body */
+  .body { display: flex; justify-content: center; padding: 28px 16px 64px; }
+  .results { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 32px; }
+
+  /* Card */
+  .card { background: #fff; border-radius: 16px; border: 1.5px solid var(--border); padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+  .stat-row { display: flex; gap: 24px; flex-wrap: wrap; padding: 14px 0; border-top: 1px solid #f0ede6; border-bottom: 1px solid #f0ede6; }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; font-family: var(--mono); }
+  .stat-value { font-size: 17px; font-weight: 700; color: #0f0e0b; font-family: var(--mono); letter-spacing: -0.5px; }
+  .stat-value--row { display: inline-flex; align-items: center; gap: 5px; }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9ca3af; font-family: var(--mono); }
+  .description { font-size: 14px; line-height: 1.7; color: #374151; }
+  .request { background: #fafaf8; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 14px; line-height: 1.7; color: #374151; }
+  .card-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+  /* How it works */
+  .how-section { display: flex; flex-direction: column; gap: 12px; }
+  .how-steps { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .how-steps li { font-size: 14px; line-height: 1.6; color: #374151; }
+  .how-note { font-size: 13px; color: #9ca3af; font-family: var(--mono); }
+
+  /* Footer */
+  footer { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 20px 24px; border-top: 1px solid var(--border); background: #fff; font-size: 13px; font-family: var(--mono); color: #9ca3af; flex-wrap: wrap; margin-top: auto; }
+  footer a { color: #6b7280; }
+  footer a:hover { color: #0f0e0b; }
+
+  @media (max-width: 640px) {
+    .header { padding: 12px 16px; }
+    .hero { padding: 32px 16px 24px; }
+    .card { padding: 20px 16px; border-radius: 0; border-left: none; border-right: none; }
+  }
+</style>"""
