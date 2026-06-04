@@ -14,6 +14,7 @@ from . import models
 from .routers import users, auth, apps, reviews, notifications, exchanges, testimonials
 from .routers.notifications import create_notification
 from . import loops
+from . import llm_judge
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -84,6 +85,63 @@ def _expire_reviews():
         for review in expired_conversation:
             app = db.query(models.App).filter(models.App.id == review.app_id).first()
             reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
+
+            # Ask the LLM whether the owner implicitly approved the review before
+            # falling back to the standard expiry path.
+            verdict = None
+            if app:
+                owner_msg_count = (
+                    db.query(models.Message)
+                    .filter(
+                        models.Message.review_id == review.id,
+                        models.Message.sender_id == app.owner_id,
+                    )
+                    .count()
+                )
+                if owner_msg_count > 0:
+                    all_messages = (
+                        db.query(models.Message)
+                        .filter(models.Message.review_id == review.id)
+                        .order_by(models.Message.created_at)
+                        .all()
+                    )
+                    formatted = [
+                        {
+                            "role": "owner" if m.sender_id == app.owner_id else "reviewer",
+                            "body": m.body,
+                        }
+                        for m in all_messages
+                    ]
+                    verdict = llm_judge.judge_conversation(
+                        feedback=review.feedback or "",
+                        messages=formatted,
+                        app_name=app.name,
+                    )
+
+            if verdict == "approve":
+                owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+                if owner and reviewer:
+                    owner.escrow_credits -= app.credits
+                    reviewer.credits += app.credits
+                review.is_complete = True
+                review.reviewer_deadline = None
+                review.owner_message = "Review was auto-approved by agent as it was judged to be complete. "
+                if reviewer:
+                    create_notification(
+                        db, reviewer.id, "review_approved",
+                        f"Your review of {app.name} was auto-approved — credit earned.",
+                        app_id=app.id, review_id=review.id,
+                        action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
+                    )
+                if owner:
+                    create_notification(
+                        db, owner.id, "review_approved",
+                        f"Your review of {app.name} was auto-approved.",
+                        app_id=app.id, review_id=review.id,
+                        action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}/reviews/{review.id}",
+                    )
+                continue
+
             if app:
                 owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
                 if owner:
