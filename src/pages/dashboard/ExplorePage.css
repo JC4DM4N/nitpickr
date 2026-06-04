@@ -445,7 +445,14 @@
   }
 
   .app-card-footer-actions {
-    gap: 4px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .app-card-footer-actions .app-review-btn {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
   }
 
   .modal-overlay {
