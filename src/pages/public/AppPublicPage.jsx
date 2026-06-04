@@ -206,14 +206,14 @@ export default function AppPublicPage() {
               {reviewError && <p className="modal-error">{reviewError}</p>}
 
               <div className="modal-actions">
-                <a
+                {/* <a
                   href={appUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="app-review-btn"
                 >
-                  Visit {app.name}
-                </a>
+                  Visit
+                </a> */}
                 {isLoggedIn ? (
                   <button
                     className="app-review-btn"

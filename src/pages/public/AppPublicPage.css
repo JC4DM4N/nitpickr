@@ -53,6 +53,12 @@
 
 .app-pub-hero-section .profile-hero-identity {
   margin-left: 0;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.app-pub-hero-section .app-icon {
+  align-self: auto;
 }
 
 .app-pub-icon-lg {
@@ -172,6 +178,12 @@
 }
 .app-pub-footer a:hover { color: #0f0e0b; }
 
+/* ── Actions row override ── */
+.app-pub-content-card .modal-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .app-pub-header { padding: 12px 16px; }
@@ -183,8 +195,7 @@
   }
 
   .app-pub-content-card {
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
+    border-radius: 12px !important;
   }
 }
+
