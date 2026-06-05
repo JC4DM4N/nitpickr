@@ -116,31 +116,34 @@ export default function CreditsPurchasePage() {
           </p>
         </div>
 
-        <div className="cp-explainer">
-          <p className="cp-section-label">HOW CREDITS WORK</p>
-          <ul className="cp-explainer-list">
-            <li>
-              Each credit allows your app receive one round of feedback from a
-              real developer.
-            </li>
-            <li>
-              Each app you list has a credit value. When someone reviews your 
-              app and you approve it, that credit is transferred to the reviewer.
-            </li>
-            <li>
-              While a review is in progress, the credit is held in escrow — you 
-              cannot spend it elsewhere until the review concludes.
-            </li>
-            <li>
-              If a review is rejected or the reviewer abandons it, the credit 
-              returns to your available balance.
-            </li>
-            <li>
-              Apps owned by users with no available credits are hidden from
-              Explore until credits are topped up.
-            </li>
-          </ul>
-        </div>
+      </div>
+
+      <div className="cp-explainer-wrap">
+      <div className="cp-explainer">
+        <p className="cp-section-label">HOW CREDITS WORK</p>
+        <ul className="cp-explainer-list">
+          <li>
+            Each credit allows your app receive one round of feedback from a
+            real developer.
+          </li>
+          <li>
+            Each app you list has a credit value. When someone reviews your
+            app and you approve it, that credit is transferred to the reviewer.
+          </li>
+          <li>
+            While a review is in progress, the credit is held in escrow — you
+            cannot spend it elsewhere until the review concludes.
+          </li>
+          <li>
+            If a review is rejected or the reviewer abandons it, the credit
+            returns to your available balance.
+          </li>
+          <li>
+            Apps owned by users with no available credits are hidden from
+            Explore until credits are topped up.
+          </li>
+        </ul>
+      </div>
       </div>
     </div>
   );

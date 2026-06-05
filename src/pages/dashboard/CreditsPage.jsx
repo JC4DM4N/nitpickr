@@ -41,47 +41,51 @@ export default function CreditsPage() {
         </p>
       </div>
 
-      {purchaseSuccess && (
-        <div className="credits-success-banner">
-          Payment successful — your credits have been added to your account.
+      <div className="credits-page-body">
+        {purchaseSuccess && (
+          <div className="credits-success-banner">
+            Payment successful — your credits have been added to your account.
+          </div>
+        )}
+
+        <div className="credits-stats-grid">
+          <StatCard
+            label="Available"
+            value={loading ? "—" : data?.available}
+            hint="Ready to spend"
+            accent
+          />
+          <StatCard
+            label="In Escrow"
+            value={loading ? "—" : data?.in_escrow}
+            hint="Locked while reviews are active"
+          />
+          <StatCard
+            label="Total Holdings"
+            value={loading ? "—" : data?.total}
+            hint="Available + in escrow"
+          />
         </div>
-      )}
 
-      <div className="credits-stats-grid">
-        <StatCard
-          label="Available"
-          value={loading ? "—" : data?.available}
-          hint="Ready to spend"
-          accent
-        />
-        <StatCard
-          label="In Escrow"
-          value={loading ? "—" : data?.in_escrow}
-          hint="Locked while reviews are active"
-        />
-        <StatCard
-          label="Total Holdings"
-          value={loading ? "—" : data?.total}
-          hint="Available + in escrow"
-        />
+        <div className="credits-divider" />
+
+        <div className="credits-stats-grid">
+          <StatCard
+            label="Total Earned"
+            value={loading ? "—" : data?.earned_ever}
+            hint="From approved reviews you submitted"
+            positive
+          />
+          <StatCard
+            label="Total Spent"
+            value={loading ? "—" : data?.spent_ever}
+            hint="Paid out for approved feedback on your apps"
+          />
+        </div>
+
       </div>
 
-      <div className="credits-divider" />
-
-      <div className="credits-stats-grid">
-        <StatCard
-          label="Total Earned"
-          value={loading ? "—" : data?.earned_ever}
-          hint="From approved reviews you submitted"
-          positive
-        />
-        <StatCard
-          label="Total Spent"
-          value={loading ? "—" : data?.spent_ever}
-          hint="Paid out for approved feedback on your apps"
-        />
-      </div>
-
+      <div className="credits-explainer-wrap">
       <div className="credits-explainer">
         <p className="credits-explainer-heading">HOW CREDITS WORK</p>
         <ul className="credits-explainer-list">
@@ -106,6 +110,7 @@ export default function CreditsPage() {
             Explore until credits are topped up.
           </li>
         </ul>
+      </div>
       </div>
     </div>
   );

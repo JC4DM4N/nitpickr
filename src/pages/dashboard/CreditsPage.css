@@ -1,10 +1,12 @@
 .credits-page {
-  padding: 40px;
-  max-width: 760px;
+  min-height: 100%;
 }
 
+/* ── White header ── */
 .credits-page-header {
-  margin-bottom: 32px;
+  background: #fff;
+  border-bottom: 1px solid #e8e6e0;
+  padding: 40px 48px 32px;
 }
 
 .credits-page-title-row {
@@ -12,7 +14,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+}
+
+.credits-page-title {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #0f0e0b;
+  margin: 0;
+}
+
+.credits-page-sub {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
 }
 
 .credits-buy-btn {
@@ -34,6 +50,18 @@
   opacity: 0.8;
 }
 
+/* ── Body ── */
+.credits-page-body {
+  padding: 28px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+}
+
 .credits-success-banner {
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
@@ -42,21 +70,7 @@
   font-size: 14px;
   color: #15803d;
   font-weight: 500;
-}
-
-.credits-page-title {
-  font-size: clamp(24px, 2.5vw, 32px);
-  font-weight: 800;
-  letter-spacing: -1px;
-  color: #0f0e0b;
-  margin: 0;
-}
-
-.credits-page-sub {
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.6;
-  margin: 0;
+  margin-bottom: 24px;
 }
 
 /* ── Stat grid ── */
@@ -137,12 +151,17 @@
 }
 
 /* ── Explainer ── */
+.credits-explainer-wrap {
+  padding: 0 48px 32px;
+}
+
 .credits-explainer {
-  margin-top: 32px;
-  background: #fafaf8;
+  background: #fff;
   border: 1px solid #e8e6e0;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 22px 24px;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .credits-explainer-heading {
@@ -169,12 +188,12 @@
 }
 
 @media (max-width: 640px) {
-  .credits-page {
-    padding: 16px;
+  .credits-page-header {
+    padding: 24px 20px 20px;
   }
 
-  .credits-page-header {
-    margin-bottom: 20px;
+  .credits-page-body {
+    padding: 20px;
   }
 
   .credits-stats-grid {
@@ -196,8 +215,7 @@
     margin: 16px 0;
   }
 
-  .credits-explainer {
-    margin-top: 20px;
-    padding: 16px;
+  .credits-explainer-wrap {
+    padding: 0 16px 24px;
   }
 }
