@@ -14,6 +14,7 @@ _API_URL = "https://app.loops.so/api/v1/transactional"
 
 ID_WELCOME                   = "cmnnbweuk00tc0i0jmr103qwy"
 ID_RESET_PASSWORD            = "cmnnb2h4r1gyf0iwaw2phd9ah"
+ID_VERIFY_EMAIL              = "cmq11kuam02m10j2stzf641p1"
 ID_REVIEW_STARTED            = "cmnnbsd7002650i1la2wk0yfs"
 ID_REVIEW_SUBMITTED          = "cmnnbu8dy00pr0i0eiiuux6s3"
 ID_REVIEW_RESUBMITTED        = "cmnnbr6ci00en0i1w6g2241jz"

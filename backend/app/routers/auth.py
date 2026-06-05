@@ -20,12 +20,17 @@ TOKEN_EXPIRE_HOURS = 24
 
 LOOPS_PASSWORD_RESET_ID = loops.ID_RESET_PASSWORD
 LOOPS_WELCOME_ID = loops.ID_WELCOME
+LOOPS_VERIFY_EMAIL_ID = loops.ID_VERIFY_EMAIL
 
 
 class RegisterRequest(BaseModel):
     username: str
     email: str
     password: str
+
+
+class RegisterResponse(BaseModel):
+    email: str
 
 
 class LoginRequest(BaseModel):
@@ -50,7 +55,32 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: str
+
+
+def _send_verification_email(user: models.User, db: Session) -> None:
+    db.query(models.EmailVerificationToken).filter(
+        models.EmailVerificationToken.user_id == user.id
+    ).delete()
+
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    db.add(models.EmailVerificationToken(token=token, user_id=user.id, expires_at=expires_at))
+    db.commit()
+
+    loops.send_transactional(
+        email=user.email,
+        transactional_id=LOOPS_VERIFY_EMAIL_ID,
+        data_variables={"verificationToken": token, "username": user.username},
+    )
+
+
+@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     if db.query(models.User).filter(models.User.email == payload.email).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use")
@@ -58,26 +88,19 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already taken")
 
     hashed = bcryptlib.hashpw(payload.password.encode(), bcryptlib.gensalt()).decode()
-    user = models.User(email=payload.email, username=payload.username, password=hashed)
+    user = models.User(
+        email=payload.email,
+        username=payload.username,
+        password=hashed,
+        email_verified=False,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    expire = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
-    token = jwt.encode({"sub": str(user.id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+    _send_verification_email(user, db)
 
-    loops.send_transactional(
-        email=user.email,
-        transactional_id=LOOPS_WELCOME_ID,
-        data_variables={"username": user.username},
-    )
-
-    return TokenResponse(
-        access_token=token,
-        user_id=user.id,
-        username=user.username,
-        email=user.email,
-    )
+    return RegisterResponse(email=user.email)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -95,6 +118,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if user.is_banned:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Your account has been banned.")
+    if not user.email_verified:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified")
 
     expire = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
     token = jwt.encode({"sub": str(user.id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
@@ -105,6 +130,52 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         username=user.username,
         email=user.email,
     )
+
+
+@router.post("/verify-email", response_model=TokenResponse)
+def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
+    now = datetime.now(timezone.utc)
+    verification_token = (
+        db.query(models.EmailVerificationToken)
+        .filter(
+            models.EmailVerificationToken.token == payload.token,
+            models.EmailVerificationToken.expires_at > now,
+        )
+        .first()
+    )
+    if not verification_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired link")
+
+    user = db.query(models.User).filter(models.User.id == verification_token.user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired link")
+
+    user.email_verified = True
+    db.delete(verification_token)
+    db.commit()
+
+    loops.send_transactional(
+        email=user.email,
+        transactional_id=LOOPS_WELCOME_ID,
+        data_variables={"username": user.username},
+    )
+
+    expire = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
+    token = jwt.encode({"sub": str(user.id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+
+    return TokenResponse(
+        access_token=token,
+        user_id=user.id,
+        username=user.username,
+        email=user.email,
+    )
+
+
+@router.post("/resend-verification", status_code=status.HTTP_204_NO_CONTENT)
+def resend_verification(payload: ResendVerificationRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == payload.email).first()
+    if user and not user.email_verified:
+        _send_verification_email(user, db)
 
 
 @router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)

@@ -8,12 +8,14 @@ export default function LoginPage({ onSuccess }) {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [unverified, setUnverified] = useState(false)
   const [loading, setLoading] = useState(false)
   const successMessage = location.state?.message
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setUnverified(false)
     setLoading(true)
     try {
       const res = await fetch('/auth/login', {
@@ -23,7 +25,11 @@ export default function LoginPage({ onSuccess }) {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.detail || 'Invalid credentials')
+        if (data.detail === 'Email not verified') {
+          setUnverified(true)
+        } else {
+          setError(data.detail || 'Invalid credentials')
+        }
         return
       }
       localStorage.setItem('token', data.access_token)
@@ -79,6 +85,18 @@ export default function LoginPage({ onSuccess }) {
 
           {successMessage && <p className="login-error" style={{ color: '#16a34a', background: '#f0fdf4', borderColor: '#bbf7d0' }}>{successMessage}</p>}
           {error && <p className="login-error">{error}</p>}
+          {unverified && (
+            <p className="login-error">
+              Please verify your email before signing in.{' '}
+              <button
+                type="button"
+                className="login-switch-btn"
+                onClick={() => navigate('/verify-email')}
+              >
+                Resend verification email
+              </button>
+            </p>
+          )}
 
           <button type="submit" className="login-submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}

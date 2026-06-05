@@ -33,14 +33,7 @@ export default function SignUpPage({ onSuccess }) {
         setError(data.detail || 'Could not create account')
         return
       }
-      localStorage.setItem('token', data.access_token)
-      localStorage.setItem('user', JSON.stringify({
-        id: data.user_id,
-        username: data.username,
-        email: data.email,
-      }))
-      onSuccess({ id: data.user_id, username: data.username, email: data.email })
-      navigate('/explore')
+      navigate('/verify-email', { state: { email: data.email } })
     } catch {
       setError('Could not connect to server. Is it running?')
     } finally {

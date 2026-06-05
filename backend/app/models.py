@@ -22,6 +22,7 @@ class User(Base):
     escrow_credits   = Column(Integer, nullable=False, default=0)
     twitter_username = Column(String(50), nullable=True)
     is_banned        = Column(Boolean, nullable=False, default=False)
+    email_verified   = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -121,6 +122,15 @@ class Testimonial(Base):
 
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    token      = Column(String(100), unique=True, nullable=False, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class EmailVerificationToken(Base):
+    __tablename__ = "email_verification_tokens"
 
     id         = Column(Integer, primary_key=True, index=True)
     token      = Column(String(100), unique=True, nullable=False, index=True)

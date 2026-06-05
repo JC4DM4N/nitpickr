@@ -8,6 +8,7 @@ import LoginPage from './pages/login/LoginPage'
 import SignUpPage from './pages/login/SignUpPage'
 import ForgotPasswordPage from './pages/login/ForgotPasswordPage'
 import ResetPasswordPage from './pages/login/ResetPasswordPage'
+import VerifyEmailPage from './pages/login/VerifyEmailPage'
 import Dashboard from './pages/dashboard/Dashboard'
 import ExplorePage from './pages/dashboard/ExplorePage'
 import MyAppsPage from './pages/dashboard/MyAppsPage'
@@ -76,6 +77,7 @@ function App() {
         <Route path="/signup" element={<PublicOnly><SignUpPage onSuccess={handleLoginSuccess} /></PublicOnly>} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage onSuccess={handleLoginSuccess} />} />
         <Route path="/discover/:slug" element={<AppPublicPage />} />
 
         <Route element={<ConditionalDashboard />}>

@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     credits          INTEGER     NOT NULL DEFAULT 1,
     escrow_credits   INTEGER     NOT NULL DEFAULT 0,
     twitter_username VARCHAR(50) DEFAULT NULL,
+    email_verified   BOOLEAN     NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
