@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from .database import engine, SessionLocal, get_db
 from . import models
-from .routers import users, auth, apps, reviews, notifications, exchanges, testimonials
+from .routers import users, auth, apps, reviews, notifications, exchanges, testimonials, payments
 from .routers.notifications import create_notification
 from . import loops
 from . import llm_judge
@@ -334,6 +334,7 @@ app.include_router(reviews.router)
 app.include_router(notifications.router)
 app.include_router(exchanges.router)
 app.include_router(testimonials.router)
+app.include_router(payments.router)
 
 
 @app.get("/health")

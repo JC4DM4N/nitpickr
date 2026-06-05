@@ -287,3 +287,11 @@ class ReviewReceived(BaseModel):
     created_date: datetime
     reviewer_deadline: datetime | None
     owner_deadline: datetime | None
+
+
+class CreditPurchaseRequest(BaseModel):
+    quantity: int
+
+
+class CheckoutSessionOut(BaseModel):
+    checkout_url: str

@@ -145,3 +145,15 @@ class ReviewScreenshot(Base):
     review_id = Column(Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False)
     filename  = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class CreditPurchase(Base):
+    __tablename__ = "credit_purchases"
+
+    id                = Column(Integer, primary_key=True, index=True)
+    user_id           = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    stripe_session_id = Column(String(200), unique=True, nullable=False, index=True)
+    quantity          = Column(Integer, nullable=False)
+    amount_cents      = Column(Integer, nullable=False)
+    status            = Column(String(20), nullable=False, default="pending")  # pending | completed
+    created_at        = Column(DateTime(timezone=True), server_default=func.now())

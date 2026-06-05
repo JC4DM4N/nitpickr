@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "./CreditsPage.css";
 import { authFetch } from "../../utils/authFetch";
 
 export default function CreditsPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const purchaseSuccess = searchParams.get("purchase") === "success";
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -17,17 +21,31 @@ export default function CreditsPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [purchaseSuccess]);
 
   return (
     <div className="credits-page">
       <div className="credits-page-header">
-        <h1 className="credits-page-title">Credits</h1>
+        <div className="credits-page-title-row">
+          <h1 className="credits-page-title">Credits</h1>
+          <button
+            className="credits-buy-btn"
+            onClick={() => navigate("/credits/purchase")}
+          >
+            Buy credits →
+          </button>
+        </div>
         <p className="credits-page-sub">
           Credits are spent when you approve feedback on your apps, and earned
           when your reviews are approved.
         </p>
       </div>
+
+      {purchaseSuccess && (
+        <div className="credits-success-banner">
+          Payment successful — your credits have been added to your account.
+        </div>
+      )}
 
       <div className="credits-stats-grid">
         <StatCard
@@ -67,6 +85,10 @@ export default function CreditsPage() {
       <div className="credits-explainer">
         <p className="credits-explainer-heading">HOW CREDITS WORK</p>
         <ul className="credits-explainer-list">
+          <li>
+            Each credit allows your app receive one round of feedback from a
+            real developer.
+          </li>
           <li>
             Each app you list has a credit value. When someone reviews your app
             and you approve it, that credit is transferred to the reviewer.
