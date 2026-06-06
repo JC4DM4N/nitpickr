@@ -30,6 +30,7 @@ export default function AppPublicPage() {
   const [reviewError, setReviewError] = useState(null)
 
   const isLoggedIn = !!localStorage.getItem('token')
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
 
   useEffect(() => {
     const prevTitle = document.title
@@ -214,7 +215,7 @@ export default function AppPublicPage() {
                 >
                   Visit
                 </a> */}
-                {isLoggedIn ? (
+                {isLoggedIn && currentUser.username?.toLowerCase() === app.owner_username?.toLowerCase() ? null : isLoggedIn ? (
                   <button
                     className="app-review-btn"
                     onClick={handleStartReview}
