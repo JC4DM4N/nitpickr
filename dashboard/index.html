@@ -342,6 +342,25 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Credit Holders</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Credits</th>
+              <th>Escrow</th>
+              <th>Received</th>
+              <th>Given</th>
+            </tr>
+          </thead>
+          <tbody id="table-credit-holders"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Banned Users</div>
       <div class="table-scroll">
         <table>
@@ -471,7 +490,7 @@
     });
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -484,6 +503,7 @@
         fetch('/api/users').then(r => r.json()),
         fetch('/api/completed-reviews-count').then(r => r.json()),
         fetch('/api/banned-users').then(r => r.json()),
+        fetch('/api/credit-holders').then(r => r.json()),
       ]);
 
       // Stats — exclude banned users from total
@@ -553,6 +573,23 @@
           <td>${u.reviews_given}</td>
           <td>${u.reviews_received}</td>
           <td>${u.credits}</td>
+        </tr>`).join('');
+      }
+
+      // Credit holders table
+      const tbCreditHolders = document.getElementById('table-credit-holders');
+      if (!Array.isArray(creditHolders) || creditHolders.error) {
+        tbCreditHolders.innerHTML = `<tr><td colspan="6" class="error">${creditHolders.error || 'Error loading'}</td></tr>`;
+      } else if (creditHolders.length === 0) {
+        tbCreditHolders.innerHTML = '<tr><td colspan="6" style="color:#64748b;padding:12px 10px">No credit holders</td></tr>';
+      } else {
+        tbCreditHolders.innerHTML = creditHolders.map((u, i) => `<tr>
+          <td>${i + 1}</td>
+          <td>${u.username}</td>
+          <td>${u.credits}</td>
+          <td>${u.escrow_credits}</td>
+          <td>${u.reviews_received}</td>
+          <td>${u.reviews_given}</td>
         </tr>`).join('');
       }
 

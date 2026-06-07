@@ -312,6 +312,31 @@ app.get('/api/banned-users', async (_req, res) => {
   }
 });
 
+app.get('/api/credit-holders', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.username,
+        u.credits,
+        u.escrow_credits,
+        COUNT(DISTINCT r_given.id) AS reviews_given,
+        COUNT(DISTINCT r_recv.id) AS reviews_received
+      FROM users u
+      LEFT JOIN apps a ON a.owner_id = u.id
+      LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
+      LEFT JOIN reviews r_recv ON r_recv.app_id = a.id AND r_recv.is_complete = TRUE
+      WHERE u.credits > 0 OR u.escrow_credits > 0
+      GROUP BY u.id, u.username, u.credits, u.escrow_credits
+      ORDER BY (u.credits + u.escrow_credits) DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/feedback-exchanges', async (_req, res) => {
   try {
     const result = await pool.query(`
