@@ -62,7 +62,7 @@ export default function Sidebar({ user, onLogout, unreadCount, isOpen, onClose }
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={`sidebar${isOpen ? ' sidebar--open' : ''}`}>
       <div className="sidebar-top">
-        <div className="sidebar-logo">
+        <div className="sidebar-logo" onClick={() => navigate(user ? '/explore' : '/')} style={{ cursor: 'pointer' }}>
           <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
         </div>
         <nav className="sidebar-nav">
