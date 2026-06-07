@@ -223,7 +223,12 @@ app.get('/api/users', async (_req, res) => {
         u.is_banned,
         COUNT(DISTINCT a.id) AS apps_count,
         COUNT(DISTINCT r_given.id) AS reviews_given,
-        COUNT(DISTINCT r_recv.id) AS reviews_received
+        COUNT(DISTINCT r_recv.id) AS reviews_received,
+        COALESCE(
+          (SELECT json_agg(json_build_object('id', a2.id, 'name', a2.name) ORDER BY a2.id DESC)
+           FROM apps a2 WHERE a2.owner_id = u.id),
+          '[]'::json
+        ) AS apps
       FROM users u
       LEFT JOIN apps a ON a.owner_id = u.id
       LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
@@ -321,7 +326,12 @@ app.get('/api/credit-holders', async (_req, res) => {
         u.credits,
         u.escrow_credits,
         COUNT(DISTINCT r_given.id) AS reviews_given,
-        COUNT(DISTINCT r_recv.id) AS reviews_received
+        COUNT(DISTINCT r_recv.id) AS reviews_received,
+        COALESCE(
+          (SELECT json_agg(json_build_object('id', a2.id, 'name', a2.name) ORDER BY a2.id DESC)
+           FROM apps a2 WHERE a2.owner_id = u.id),
+          '[]'::json
+        ) AS apps
       FROM users u
       LEFT JOIN apps a ON a.owner_id = u.id
       LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
