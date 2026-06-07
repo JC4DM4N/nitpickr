@@ -437,7 +437,7 @@
 }
 
 @media (max-width: 480px) {
-  .explore-hero.profile-hero {
+  .explore-hero.profile-hero--own {
     text-align: left;
   }
 
@@ -448,8 +448,8 @@
   }
 
   .explore-hero:not(.profile-hero--own) .profile-hero-identity {
-    align-items: flex-start;
-    text-align: left;
+    align-items: center;
+    text-align: center;
   }
 
   .profile-exchange-row {
