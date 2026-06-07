@@ -314,6 +314,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-decoration: none;
+}
+.user-card-username--link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .user-card-profile-btn {

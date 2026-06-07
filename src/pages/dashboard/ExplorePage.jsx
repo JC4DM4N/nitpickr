@@ -435,7 +435,7 @@ function UserCard({ user }) {
     <div className="user-card">
       <div className="user-card-header">
         <div className="user-card-avatar">{user.username[0].toUpperCase()}</div>
-        <div className="user-card-username">{user.username}</div>
+        <Link to={`/${user.username}`} className="user-card-username user-card-username--link">{user.username}</Link>
         <button className="app-profile-btn user-card-profile-btn" onClick={() => navigate(`/${user.username}`)}>Profile →</button>
       </div>
       <div className="user-card-stats">
