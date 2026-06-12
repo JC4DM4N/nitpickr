@@ -1,85 +1,97 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import { STAGE_STYLES } from '../../constants'
-import { authFetch } from '../../utils/authFetch'
-import '../dashboard/ExplorePage.css'
-import '../dashboard/UserProfilePage.css'
-import './AppPublicPage.css'
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { STAGE_STYLES } from "../../constants";
+import { authFetch } from "../../utils/authFetch";
+import "../dashboard/ExplorePage.css";
+import "../dashboard/UserProfilePage.css";
+import "./AppPublicPage.css";
 
-const SITE_URL = 'https://nitpickr.dev'
+const SITE_URL = "https://nitpickr.dev";
 
 function setMetaTag(attr, name, content) {
-  let el = document.querySelector(`meta[${attr}="${name}"]`)
+  let el = document.querySelector(`meta[${attr}="${name}"]`);
   if (el) {
-    el.setAttribute('content', content)
+    el.setAttribute("content", content);
   } else {
-    el = document.createElement('meta')
-    el.setAttribute(attr, name)
-    el.setAttribute('content', content)
-    document.head.appendChild(el)
+    el = document.createElement("meta");
+    el.setAttribute(attr, name);
+    el.setAttribute("content", content);
+    document.head.appendChild(el);
   }
 }
 
 export default function AppPublicPage() {
-  const { slug } = useParams()
-  const navigate = useNavigate()
-  const [app, setApp] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
-  const [reviewLoading, setReviewLoading] = useState(false)
-  const [reviewError, setReviewError] = useState(null)
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [app, setApp] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
 
-  const isLoggedIn = !!localStorage.getItem('token')
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+  const isLoggedIn = !!localStorage.getItem("token");
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    const prevTitle = document.title
+    const prevTitle = document.title;
     fetch(`/apps/by-slug/${slug}`)
-      .then(r => {
-        if (!r.ok) throw new Error('not found')
-        return r.json()
+      .then((r) => {
+        if (!r.ok) throw new Error("not found");
+        return r.json();
       })
-      .then(data => {
-        if (data.is_hidden) { setNotFound(true); setLoading(false); return }
-        setApp(data)
-        setLoading(false)
-        const pageTitle = `${data.name} — developer feedback on NitPickr`
-        const pageDesc = `${data.description} Get real feedback from indie developers on NitPickr — a free, credit-based feedback community.`
-        const pageUrl = `${SITE_URL}/discover/${slug}`
-        document.title = pageTitle
-        setMetaTag('name', 'description', pageDesc)
-        setMetaTag('property', 'og:title', pageTitle)
-        setMetaTag('property', 'og:description', pageDesc)
-        setMetaTag('property', 'og:url', pageUrl)
-        setMetaTag('name', 'twitter:title', pageTitle)
-        setMetaTag('name', 'twitter:description', pageDesc)
-        let canonical = document.querySelector('link[rel="canonical"]')
-        if (canonical) canonical.setAttribute('href', pageUrl)
+      .then((data) => {
+        if (data.is_hidden) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+        setApp(data);
+        setLoading(false);
+        const pageTitle = `${data.name} — developer feedback on NitPickr`;
+        const pageDesc = `${data.description} Get real feedback from indie developers on NitPickr — a free, credit-based feedback community.`;
+        const pageUrl = `${SITE_URL}/discover/${slug}`;
+        document.title = pageTitle;
+        setMetaTag("name", "description", pageDesc);
+        setMetaTag("property", "og:title", pageTitle);
+        setMetaTag("property", "og:description", pageDesc);
+        setMetaTag("property", "og:url", pageUrl);
+        setMetaTag("name", "twitter:title", pageTitle);
+        setMetaTag("name", "twitter:description", pageDesc);
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (canonical) canonical.setAttribute("href", pageUrl);
       })
       .catch(() => {
-        setNotFound(true)
-        setLoading(false)
-      })
-    return () => { document.title = prevTitle }
-  }, [slug])
+        setNotFound(true);
+        setLoading(false);
+      });
+    return () => {
+      document.title = prevTitle;
+    };
+  }, [slug]);
 
   async function handleStartReview() {
-    setReviewLoading(true)
-    setReviewError(null)
+    setReviewLoading(true);
+    setReviewError(null);
     try {
-      const token = localStorage.getItem('token')
-      const res = await authFetch('/reviews/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      const token = localStorage.getItem("token");
+      const res = await authFetch("/reviews/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ app_id: app.id }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setReviewError(data.detail || 'Failed to start review'); return }
-      navigate(`/reviews/${data.id}`)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReviewError(data.detail || "Failed to start review");
+        return;
+      }
+      navigate(`/reviews/${data.id}`);
     } catch {
-      setReviewError('Could not connect to server')
+      setReviewError("Could not connect to server");
     } finally {
-      setReviewLoading(false)
+      setReviewLoading(false);
     }
   }
 
@@ -89,7 +101,7 @@ export default function AppPublicPage() {
         <AppPubHeader isLoggedIn={isLoggedIn} />
         <div className="app-pub-loading">Loading…</div>
       </div>
-    )
+    );
   }
 
   if (notFound) {
@@ -99,23 +111,25 @@ export default function AppPublicPage() {
         <div className="app-pub-not-found">
           <h1>App not found</h1>
           <p>This app may have been removed or made private.</p>
-          <Link to="/" className="modal-btn-start">Back to NitPickr</Link>
+          <Link to="/" className="modal-btn-start">
+            Back to NitPickr
+          </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const stage = STAGE_STYLES[app.stage] || {}
-  const appUrl = app.url.startsWith('http') ? app.url : `https://${app.url}`
+  const stage = STAGE_STYLES[app.stage] || {};
+  const appUrl = app.url.startsWith("http") ? app.url : `https://${app.url}`;
   const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
     name: app.name,
     url: appUrl,
     applicationCategory: app.category,
     description: app.description,
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  }
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  };
 
   return (
     <div className="app-pub-standalone">
@@ -128,7 +142,10 @@ export default function AppPublicPage() {
       <div className="explore">
         <div className="explore-hero profile-hero app-pub-hero-section">
           <div className="profile-hero-identity">
-            <div className="app-icon app-pub-icon-lg" style={{ background: app.color }}>
+            <div
+              className="app-icon app-pub-icon-lg"
+              style={{ background: app.color }}
+            >
               {app.initials}
             </div>
             <div>
@@ -143,8 +160,11 @@ export default function AppPublicPage() {
               </a>
               <div className="profile-meta-row">
                 <span className="app-pub-owner-text">
-                  by{' '}
-                  <Link to={`/${app.owner_username}`} className="app-pub-owner-link">
+                  by{" "}
+                  <Link
+                    to={`/${app.owner_username}`}
+                    className="app-pub-owner-link"
+                  >
                     {app.owner_username}
                   </Link>
                 </span>
@@ -170,7 +190,9 @@ export default function AppPublicPage() {
               <div className="modal-meta-row">
                 <div className="modal-meta-item">
                   <span className="app-footer-label">STAGE</span>
-                  <span className="app-stage-badge" style={stage}>{app.stage}</span>
+                  <span className="app-stage-badge" style={stage}>
+                    {app.stage}
+                  </span>
                 </div>
                 <div className="modal-meta-item">
                   <span className="app-footer-label">REVIEWS RECEIVED</span>
@@ -185,7 +207,13 @@ export default function AppPublicPage() {
                   {app.owner_reviewer_rating != null ? (
                     <span className="app-footer-value user-card-rating">
                       {app.owner_reviewer_rating}
-                      <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+                      <img
+                        src="/star.png"
+                        width="20"
+                        height="20"
+                        alt="star"
+                        style={{ display: "block" }}
+                      />
                       / 5
                     </span>
                   ) : (
@@ -201,8 +229,12 @@ export default function AppPublicPage() {
                 </>
               )}
 
-              <p className="modal-section-label">WHAT THE DEVELOPER IS LOOKING FOR</p>
-              <div className="modal-request modal-request-app-profile-page">{app.request}</div>
+              <p className="modal-section-label">
+                WHAT THE DEVELOPER IS LOOKING FOR
+              </p>
+              <div className="modal-request modal-request-app-profile-page">
+                {app.request}
+              </div>
 
               {reviewError && <p className="modal-error">{reviewError}</p>}
 
@@ -215,13 +247,15 @@ export default function AppPublicPage() {
                 >
                   Visit
                 </a> */}
-                {isLoggedIn && currentUser.username?.toLowerCase() === app.owner_username?.toLowerCase() ? null : isLoggedIn ? (
+                {isLoggedIn &&
+                currentUser.username?.toLowerCase() ===
+                  app.owner_username?.toLowerCase() ? null : isLoggedIn ? (
                   <button
                     className="app-review-btn"
                     onClick={handleStartReview}
                     disabled={reviewLoading}
                   >
-                    {reviewLoading ? 'Starting…' : 'Leave feedback →'}
+                    {reviewLoading ? "Starting…" : "Leave feedback →"}
                   </button>
                 ) : (
                   <Link to="/signup" className="app-review-btn">
@@ -265,7 +299,7 @@ export default function AppPublicPage() {
         <Link to="/explore">Explore apps</Link>
       </footer>
     </div>
-  )
+  );
 }
 
 function AppPubHeader({ isLoggedIn }) {
@@ -275,9 +309,15 @@ function AppPubHeader({ isLoggedIn }) {
         <img src="/nitpickr_logo.svg" alt="NitPickr" height="30" />
       </Link>
       <div className="app-pub-header-actions">
-        {!isLoggedIn && <Link to="/login" className="app-pub-btn-ghost">Sign in</Link>}
-        <Link to={isLoggedIn ? '/explore' : '/'} className="app-review-btn">Explore apps →</Link>
+        {!isLoggedIn && (
+          <Link to="/login" className="app-pub-btn-ghost">
+            Sign in
+          </Link>
+        )}
+        <Link to={isLoggedIn ? "/explore" : "/"} className="app-review-btn">
+          Explore apps →
+        </Link>
       </div>
     </header>
-  )
+  );
 }
