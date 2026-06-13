@@ -64,23 +64,22 @@ CLASSIFIER_PROMPT = (
 EDITOR_PROMPT = (
     "You are personalising a marketing reply on X (Twitter). "
     "Given the author's display name, username, and tweet, write a short personalised opening line "
-    "to replace 'Hey! For getting early feedback on your product' at the start of the reply, "
-    "with a 'Hey NAME! For getting early feedback on your product'. "
-    "Only use their first name where it makes sense. If you cannot determine their name, "
-    "don't force it. "
+    "to replace 'Hey! For getting early feedback on your product you should check out https://nitpickr.dev' "
+    "at the start of the reply, with a 'Hey NAME! For getting early feedback on your product you should check out https://nitpickr.dev'. "
+    "Only use their first name where it makes sense, and only if it is an actual person's name. "
+    "Do not replace it with the name of their company, product or twitter handle, unless it is an actual person's name. "
+    "If you cannot determine their name, don't force it. "
     "If you can determine the name of their product, or if you can find a more appropraite term "
     "(such as 'your tool', 'your app') then you can also replace 'your product' too."
 )
 
 SUPER_TAILORED_PROMPT = (
-    "You are writing a reply on X (Twitter) to someone who has shared what they are building. "
-    "Write a warm, human reply that does two things naturally: "
-    "1. Open with a genuine, nice comment about their product — something that shows you "
-    "read their tweet, but don't be too enthusiastic so it sounds disingenuine. If they mention a "
-    "launch, congratulate them on it. If the idea is interesting, say what caught your attention. "
-    "2. Then briefly suggest they check out https://nitpickr.dev to get early feedback and real users — "
-    "frame it as a helpful tip, not a pitch. Keep this part short (1-2 sentences). "
-    "Rules: "
+    "You are personalising a reply on X (Twitter) to someone who has shared what they are building. "
+    "You will be given a draft reply as a starting point. Use it as the basis for your response — "
+    "keep its core structure and purpose, but adapt the wording, details, and framing freely to suit the person's specific product. "
+    "You can rephrase any part of it, swap out generic language for product-specific language, or adjust the tone to feel natural for their context. "
+    "Do not just tweak the opening line — tailor the whole reply so it feels specific to what they are building. "
+    "The final reply must still naturally mention https://nitpickr.dev as a way to get early feedback and real users. "
     "Use their first name if it is obvious from their display name. "
     "Do not use words like 'game-changer', 'revolutionary', 'incredible', 'awesome', 'amazing', or 'congrats' if the launch isn't explicitly mentioned. "
     "Sound like a real person — warm and direct, not a marketing bot. "
@@ -140,7 +139,8 @@ def tailor_response(reply: dict) -> str:
         response_format=_TailoredOpener,
     )
     opening = response.choices[0].message.parsed.opening_line.strip()
-    return DRAFT_REPLY.replace("Hey! For getting early feedback on your product", opening, 1)
+    # return DRAFT_REPLY.replace("Hey! For getting early feedback on your product", opening, 1)
+    return DRAFT_REPLY.replace("Hey! For getting early feedback on your product you should check out https://nitpickr.dev", opening, 1)
 
 
 def super_tailor_response(reply: dict) -> str:
@@ -152,7 +152,7 @@ def super_tailor_response(reply: dict) -> str:
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": SUPER_TAILORED_PROMPT},
-            {"role": "user", "content": f"Name: {name}\nUsername: @{username}\nTweet: {tweet}"},
+            {"role": "user", "content": f"Draft reply:\n{DRAFT_REPLY}\n\nName: {name}\nUsername: @{username}\nTweet: {tweet}"},
         ],
         response_format=_SuperTailoredReply,
     )
