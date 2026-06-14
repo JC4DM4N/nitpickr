@@ -12,7 +12,7 @@ export default function LandingPage() {
       <Nav onLogin={onLogin} onSignUp={onSignUp ?? onGetStarted} />
       <Hero onGetStarted={onGetStarted} />
       <HowItWorks />
-      <HowItWorksExchanges />
+      {/* <HowItWorksExchanges /> */}
       <FounderMessage />
       <Features />
       <TestimonialsCarousel />
