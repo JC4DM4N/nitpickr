@@ -30,9 +30,9 @@ export default function CreditsPage() {
           <h1 className="credits-page-title">Credits</h1>
           <button
             className="credits-buy-btn"
-            onClick={() => navigate("/credits/purchase")}
+            onClick={() => navigate("/credits/get-more")}
           >
-            Buy credits →
+            Get more credits →
           </button>
         </div>
         <p className="credits-page-sub">
