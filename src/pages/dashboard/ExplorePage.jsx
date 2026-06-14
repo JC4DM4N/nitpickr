@@ -682,6 +682,8 @@ function ReviewModal({ app, myApps, onClose, onReviewCreated }) {
           ) : (
             <button className="modal-btn-cancel" onClick={onClose}>Close</button>
           )}
+            </>
+          )}
         </div>
       </div>
     </div>
