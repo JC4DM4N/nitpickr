@@ -18,6 +18,7 @@ import ReviewsPage from './pages/dashboard/ReviewsPage'
 import ReviewAppPage from './pages/dashboard/ReviewAppPage'
 import CreditsPage from './pages/dashboard/CreditsPage'
 import CreditsPurchasePage from './pages/dashboard/CreditsPurchasePage'
+import GetMoreCreditsPage from './pages/dashboard/GetMoreCreditsPage'
 import SubmitAppPage from './pages/dashboard/SubmitAppPage'
 import NotificationsPage from './pages/dashboard/NotificationsPage'
 import UserProfilePage from './pages/dashboard/UserProfilePage'
@@ -98,7 +99,8 @@ function App() {
             <Route path="/exchanges"     element={<ExchangesPage />} />
             <Route path="/testimonials"  element={<TestimonialsListPage />} />
             <Route path="/credits"          element={<CreditsPage />} />
-            <Route path="/credits/purchase" element={<CreditsPurchasePage />} />
+            <Route path="/credits/purchase"  element={<CreditsPurchasePage />} />
+            <Route path="/credits/get-more"  element={<GetMoreCreditsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/how-it-works"  element={<DashboardHowItWorksPage />} />
             <Route path="*"              element={<Navigate to="/explore" replace />} />

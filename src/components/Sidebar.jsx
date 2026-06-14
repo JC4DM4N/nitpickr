@@ -102,7 +102,11 @@ export default function Sidebar({ user, onLogout, unreadCount, isOpen, onClose }
             <span className="credits-widget-icon">⚡</span>
           </div>
           <div className="credits-widget-value">{credits ?? '—'}</div>
-          <p className="credits-widget-hint">Review an app to earn more</p>
+          <p className="credits-widget-hint">
+            <button className="credits-widget-hint-link" onClick={() => navigate('/credits/get-more')}>
+              Get more credits
+            </button>
+          </p>
         </div>
       </div>
       <div className="sidebar-footer">
