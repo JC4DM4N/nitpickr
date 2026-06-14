@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure /usr/local/bin (and other common locations) are in PATH for cron
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+
 # Load R2 credentials
 source "$(dirname "$0")/../backend/.env"
 
@@ -16,7 +19,7 @@ echo "Saved to $LOCAL_PATH"
 echo "Uploading to Cloudflare R2..."
 AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
 AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
-aws s3 cp "$LOCAL_PATH" \
+/usr/local/bin/aws s3 cp "$LOCAL_PATH" \
   "s3://${R2_BUCKET}/backups/$FILENAME" \
   --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
   --region auto
