@@ -223,7 +223,12 @@ app.get('/api/users', async (_req, res) => {
         u.is_banned,
         COUNT(DISTINCT a.id) AS apps_count,
         COUNT(DISTINCT r_given.id) AS reviews_given,
-        COUNT(DISTINCT r_recv.id) AS reviews_received
+        COUNT(DISTINCT r_recv.id) AS reviews_received,
+        COALESCE(
+          (SELECT json_agg(json_build_object('id', a2.id, 'name', a2.name) ORDER BY a2.id DESC)
+           FROM apps a2 WHERE a2.owner_id = u.id),
+          '[]'::json
+        ) AS apps
       FROM users u
       LEFT JOIN apps a ON a.owner_id = u.id
       LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
@@ -304,6 +309,36 @@ app.get('/api/banned-users', async (_req, res) => {
       WHERE u.is_banned = TRUE
       GROUP BY u.id, u.username, u.created_at, u.credits
       ORDER BY u.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/credit-holders', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.username,
+        u.credits,
+        u.escrow_credits,
+        COUNT(DISTINCT r_given.id) AS reviews_given,
+        COUNT(DISTINCT r_recv.id) AS reviews_received,
+        COALESCE(
+          (SELECT json_agg(json_build_object('id', a2.id, 'name', a2.name) ORDER BY a2.id DESC)
+           FROM apps a2 WHERE a2.owner_id = u.id),
+          '[]'::json
+        ) AS apps
+      FROM users u
+      LEFT JOIN apps a ON a.owner_id = u.id
+      LEFT JOIN reviews r_given ON r_given.reviewer_id = u.id AND r_given.is_complete = TRUE
+      LEFT JOIN reviews r_recv ON r_recv.app_id = a.id AND r_recv.is_complete = TRUE
+      WHERE u.credits > 0 OR u.escrow_credits > 0
+      GROUP BY u.id, u.username, u.credits, u.escrow_credits
+      ORDER BY (u.credits + u.escrow_credits) DESC
     `);
     res.json(result.rows);
   } catch (err) {

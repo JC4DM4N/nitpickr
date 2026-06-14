@@ -342,6 +342,25 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Credit Holders</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Credits</th>
+              <th>Escrow</th>
+              <th>Received</th>
+              <th>Given</th>
+            </tr>
+          </thead>
+          <tbody id="table-credit-holders"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Banned Users</div>
       <div class="table-scroll">
         <table>
@@ -471,7 +490,7 @@
     });
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -484,6 +503,7 @@
         fetch('/api/users').then(r => r.json()),
         fetch('/api/completed-reviews-count').then(r => r.json()),
         fetch('/api/banned-users').then(r => r.json()),
+        fetch('/api/credit-holders').then(r => r.json()),
       ]);
 
       // Stats — exclude banned users from total
@@ -544,16 +564,55 @@
       // Users table
       const tbUsers = document.getElementById('table-users');
       if (!Array.isArray(allUsers) || allUsers.error) {
-        tbUsers.innerHTML = `<tr><td colspan="7" class="error">${allUsers.error || 'Error loading'}</td></tr>`;
+        tbUsers.innerHTML = `<tr><td colspan="6" class="error">${allUsers.error || 'Error loading'}</td></tr>`;
       } else {
-        tbUsers.innerHTML = allUsers.map(u => `<tr>
-          <td>${u.id}</td>
-          <td>${u.username}${u.is_banned ? ' <span class="badge badge-red" style="margin-left:6px">Banned</span>' : ''}</td>
-          <td>${u.apps_count}</td>
-          <td>${u.reviews_given}</td>
-          <td>${u.reviews_received}</td>
-          <td>${u.credits}</td>
-        </tr>`).join('');
+        tbUsers.innerHTML = allUsers.map(u => {
+          const userApps = Array.isArray(u.apps) ? u.apps : [];
+          const appsHtml = userApps.length === 0
+            ? '<div style="color:#475569;font-style:italic;font-size:0.82rem">No apps</div>'
+            : userApps.map(a => `<div style="padding:3px 0;font-size:0.82rem;color:#cbd5e1">${a.name}</div>`).join('');
+          const detail = `<div class="expand-field full">
+            <span class="expand-label">Apps (${userApps.length})</span>
+            <div class="expand-value" style="margin-top:6px">${appsHtml}</div>
+          </div>`;
+          return `<tr class="data-row">
+            <td>${u.id}</td>
+            <td>${u.username}${u.is_banned ? ' <span class="badge badge-red" style="margin-left:6px">Banned</span>' : ''}</td>
+            <td>${u.apps_count}</td>
+            <td>${u.reviews_given}</td>
+            <td>${u.reviews_received}</td>
+            <td>${u.credits}</td>
+          </tr>${expandRow(6, detail)}`;
+        }).join('');
+        attachToggle(tbUsers);
+      }
+
+      // Credit holders table
+      const tbCreditHolders = document.getElementById('table-credit-holders');
+      if (!Array.isArray(creditHolders) || creditHolders.error) {
+        tbCreditHolders.innerHTML = `<tr><td colspan="6" class="error">${creditHolders.error || 'Error loading'}</td></tr>`;
+      } else if (creditHolders.length === 0) {
+        tbCreditHolders.innerHTML = '<tr><td colspan="6" style="color:#64748b;padding:12px 10px">No credit holders</td></tr>';
+      } else {
+        tbCreditHolders.innerHTML = creditHolders.map((u, i) => {
+          const userApps = Array.isArray(u.apps) ? u.apps : [];
+          const appsHtml = userApps.length === 0
+            ? '<div style="color:#475569;font-style:italic;font-size:0.82rem">No apps</div>'
+            : userApps.map(a => `<div style="padding:3px 0;font-size:0.82rem;color:#cbd5e1">${a.name}</div>`).join('');
+          const detail = `<div class="expand-field full">
+            <span class="expand-label">Apps (${userApps.length})</span>
+            <div class="expand-value" style="margin-top:6px">${appsHtml}</div>
+          </div>`;
+          return `<tr class="data-row">
+            <td>${i + 1}</td>
+            <td>${u.username}</td>
+            <td>${u.credits}</td>
+            <td>${u.escrow_credits}</td>
+            <td>${u.reviews_received}</td>
+            <td>${u.reviews_given}</td>
+          </tr>${expandRow(6, detail)}`;
+        }).join('');
+        attachToggle(tbCreditHolders);
       }
 
       // Banned users table
