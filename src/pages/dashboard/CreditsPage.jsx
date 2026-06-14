@@ -28,12 +28,12 @@ export default function CreditsPage() {
       <div className="credits-page-header">
         <div className="credits-page-title-row">
           <h1 className="credits-page-title">Credits</h1>
-          <button
+          {/* <button
             className="credits-buy-btn"
             onClick={() => navigate("/credits/purchase")}
           >
             Buy credits →
-          </button>
+          </button> */}
         </div>
         <p className="credits-page-sub">
           Credits are spent when you approve feedback on your apps, and earned
