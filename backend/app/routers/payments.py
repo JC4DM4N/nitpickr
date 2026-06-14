@@ -55,7 +55,7 @@ def create_checkout_session(
                     "name": label,
                     "description": (
                         f"{payload.quantity} credit{'s' if payload.quantity > 1 else ''} "
-                        "redeemable for app feedback on NitPickr"
+                        "will be added to your NitPickr account."
                     ),
                 },
             },
