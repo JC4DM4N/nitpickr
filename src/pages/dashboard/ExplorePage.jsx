@@ -532,6 +532,7 @@ function ReviewModal({ app, myApps, onClose, onReviewCreated }) {
   const [exchangeError, setExchangeError] = useState(null);
   const [exchangeDone, setExchangeDone] = useState(false);
   const canReview = !app._isOwn && !app._activeReview;
+  const hasCredits = app.owner_available_credits > 0;
   const stage = STAGE_STYLES[app.stage];
 
   async function handleStart() {
@@ -668,24 +669,18 @@ function ReviewModal({ app, myApps, onClose, onReviewCreated }) {
                 <button className="modal-btn-cancel" onClick={() => setMode("exchange")}>Request exchange</button>
               )}
               {canReview ? (
-                <button className="modal-btn-start" onClick={handleStart} disabled={loading}>
+            <div className="profile-review-col">
+              <button className="modal-btn-start" onClick={handleStart} disabled={loading || !hasCredits}>
                   {loading ? "Starting…" : "Leave feedback"}
                 </button>
-              ) : (
-                <button className="modal-btn-cancel" onClick={onClose}>Close</button>
+              {!hasCredits && (
+                <span className="profile-no-credits-msg">
+                  {app.owner_username} has no credits available for you to leave feedback
+                </span>
               )}
-            </>
-          )}
-          {mode === "exchange" && !exchangeDone && (
-            <>
-              <button className="modal-btn-cancel" onClick={() => setMode("info")}>Back</button>
-              <button className="modal-btn-start" onClick={handleExchangeSubmit} disabled={exchangeSubmitting || !selectedAppId || myApps.length === 0}>
-                {exchangeSubmitting ? "Sending…" : "Send request"}
-              </button>
-            </>
-          )}
-          {exchangeDone && (
-            <button className="modal-btn-start" onClick={onClose}>Done</button>
+            </div>
+          ) : (
+            <button className="modal-btn-cancel" onClick={onClose}>Close</button>
           )}
         </div>
       </div>

@@ -895,6 +895,11 @@
   opacity: 0.8;
 }
 
+.modal-btn-start:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .modal-meta-row {
   display: flex;
   justify-content: space-evenly;
