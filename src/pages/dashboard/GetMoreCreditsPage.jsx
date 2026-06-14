@@ -15,6 +15,27 @@ export default function GetMoreCreditsPage() {
 
       <div className="gmc-cards">
         <div className="gmc-card">
+          <p className="gmc-label">PURCHASE</p>
+          <h2 className="gmc-card-title">Buy credits</h2>
+          <p className="gmc-card-desc">
+            Buy credits directly, no need to leave feedback on other apps. Each credit costs{" "}
+            <strong>$3</strong> and is added to your account instantly after
+            payment.
+          </p>
+
+          <div className="gmc-price-badge">$3 <span>/ credit</span></div>
+
+          <div className="gmc-card-actions">
+            <button
+              className="gmc-btn gmc-btn--primary"
+              onClick={() => navigate("/credits/purchase")}
+            >
+              Buy credits →
+            </button>
+          </div>
+        </div>
+
+        <div className="gmc-card">
           <p className="gmc-label">EARN</p>
           <h2 className="gmc-card-title">Review an app</h2>
           <p className="gmc-card-desc">
@@ -34,27 +55,6 @@ export default function GetMoreCreditsPage() {
             </button>
             <button className="gmc-btn gmc-btn--ghost" onClick={() => navigate("/how-it-works")}>
               How it works
-            </button>
-          </div>
-        </div>
-
-        <div className="gmc-card">
-          <p className="gmc-label">PURCHASE</p>
-          <h2 className="gmc-card-title">Buy credits</h2>
-          <p className="gmc-card-desc">
-            Buy credits directly, no need to leave feedback on other apps. Each credit costs{" "}
-            <strong>$3</strong> and is added to your account instantly after
-            payment.
-          </p>
-
-          <div className="gmc-price-badge">$3 <span>/ credit</span></div>
-
-          <div className="gmc-card-actions">
-            <button
-              className="gmc-btn gmc-btn--primary"
-              onClick={() => navigate("/credits/purchase")}
-            >
-              Buy credits →
             </button>
           </div>
         </div>
