@@ -347,6 +347,21 @@ app.get('/api/credit-holders', async (_req, res) => {
   }
 });
 
+app.get('/api/unverified-users', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, username, email, created_at
+      FROM users
+      WHERE email_verified = FALSE
+      ORDER BY created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/feedback-exchanges', async (_req, res) => {
   try {
     const result = await pool.query(`

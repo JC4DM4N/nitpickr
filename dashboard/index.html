@@ -379,6 +379,23 @@
         </table>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-title">Unverified Users</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="table-unverified"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -490,7 +507,7 @@
     });
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders, unverifiedUsers] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -504,6 +521,7 @@
         fetch('/api/completed-reviews-count').then(r => r.json()),
         fetch('/api/banned-users').then(r => r.json()),
         fetch('/api/credit-holders').then(r => r.json()),
+        fetch('/api/unverified-users').then(r => r.json()),
       ]);
 
       // Stats — exclude banned users from total
@@ -862,6 +880,21 @@
           </tr>${expandRow(6, detail)}`;
         }).join('');
         attachToggle(tbFailed);
+      }
+
+      // Unverified users table
+      const tbUnverified = document.getElementById('table-unverified');
+      if (!Array.isArray(unverifiedUsers) || unverifiedUsers.error) {
+        tbUnverified.innerHTML = `<tr><td colspan="4" class="error">${unverifiedUsers.error || 'Error loading'}</td></tr>`;
+      } else if (unverifiedUsers.length === 0) {
+        tbUnverified.innerHTML = '<tr><td colspan="4" style="color:#64748b;padding:12px 10px">No unverified users</td></tr>';
+      } else {
+        tbUnverified.innerHTML = unverifiedUsers.map((u, i) => `<tr>
+          <td>${i + 1}</td>
+          <td>${u.username}</td>
+          <td>${u.email}</td>
+          <td>${fmt(u.created_at)}</td>
+        </tr>`).join('');
       }
 
       document.getElementById('last-updated').textContent =
