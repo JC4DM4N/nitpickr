@@ -44,6 +44,7 @@ class AppOut(BaseModel):
     owner_username: str
     owner_reviews_given: int
     owner_reviewer_rating: float | None
+    owner_available_credits: int
     slug: str | None = None
 
     model_config = {"from_attributes": True}

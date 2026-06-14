@@ -121,6 +121,7 @@ export default function AppPublicPage() {
 
   const stage = STAGE_STYLES[app.stage] || {};
   const appUrl = app.url.startsWith("http") ? app.url : `https://${app.url}`;
+  const hasCredits = app.owner_available_credits > 0;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -239,24 +240,24 @@ export default function AppPublicPage() {
               {reviewError && <p className="modal-error">{reviewError}</p>}
 
               <div className="modal-actions">
-                {/* <a
-                  href={appUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="app-review-btn"
-                >
-                  Visit
-                </a> */}
                 {isLoggedIn &&
                 currentUser.username?.toLowerCase() ===
                   app.owner_username?.toLowerCase() ? null : isLoggedIn ? (
-                  <button
-                    className="app-review-btn"
-                    onClick={handleStartReview}
-                    disabled={reviewLoading}
-                  >
-                    {reviewLoading ? "Starting…" : "Leave feedback →"}
-                  </button>
+                  <div className="profile-review-col">
+                    <button
+                      className="app-review-btn"
+                      onClick={handleStartReview}
+                      disabled={reviewLoading || !hasCredits}
+                    >
+                      {reviewLoading ? "Starting…" : "Leave feedback →"}
+                    </button>
+                    {!hasCredits && (
+                      <span className="profile-no-credits-msg">
+                        {app.owner_username} has no credits available for you to leave
+                        feedback
+                      </span>
+                    )}
+                  </div>
                 ) : (
                   <Link to="/signup" className="app-review-btn">
                     Sign up to leave feedback →

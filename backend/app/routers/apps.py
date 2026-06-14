@@ -58,10 +58,9 @@ def _build_app_outs(apps: list, db: Session) -> list:
     )
 
     owner_ids = list({a.owner_id for a in apps})
-    owner_username = {
-        u.id: u.username
-        for u in db.query(models.User).filter(models.User.id.in_(owner_ids)).all()
-    }
+    _owners = db.query(models.User).filter(models.User.id.in_(owner_ids)).all()
+    owner_username = {u.id: u.username for u in _owners}
+    owner_credits = {u.id: u.credits for u in _owners}
     reviews_given = dict(
         db.query(models.Review.reviewer_id, func.count(models.Review.id))
         .filter(models.Review.reviewer_id.in_(owner_ids), models.Review.is_complete == True)
@@ -99,6 +98,7 @@ def _build_app_outs(apps: list, db: Session) -> list:
             owner_username=owner_username.get(a.owner_id, ''),
             owner_reviews_given=reviews_given.get(a.owner_id, 0),
             owner_reviewer_rating=round(reviewer_ratings[a.owner_id], 1) if a.owner_id in reviewer_ratings else None,
+            owner_available_credits=owner_credits.get(a.owner_id, 0),
             slug=a.slug,
         )
         for a in apps
