@@ -29,7 +29,7 @@ DRAFT_REPLY = (
     "Hey! For getting early feedback on your product you should check out https://nitpickr.dev\n\n"
     "You will get users, and completely free user testing + feedback.\n\n"
     "All you have to do is give feedback on someone else's product, and you'll get the same in return.\n\n"
-    "Completely free to use too!"
+    "Plus, it's free to use!"
 )
 
 DATA_DIR    = Path(__file__).parent / "data"
