@@ -46,14 +46,23 @@ export default function Sidebar({ user, onLogout, unreadCount, isOpen, onClose }
   const location = useLocation()
   const navigate = useNavigate()
   const [credits, setCredits] = useState(null)
+  const [activeReviewCount, setActiveReviewCount] = useState(0)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    authFetch('/users/me/credits', {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
+    const headers = { 'Authorization': `Bearer ${token}` }
+    authFetch('/users/me/credits', { headers })
       .then(r => r.json())
       .then(data => setCredits(data.available))
+      .catch(() => {})
+    Promise.all([
+      authFetch('/reviews/me', { headers }).then(r => r.json()),
+      authFetch('/reviews/received', { headers }).then(r => r.json()),
+    ])
+      .then(([given, received]) => {
+        const isActive = r => !r.is_complete && !r.is_rejected && !r.is_expired
+        setActiveReviewCount(given.filter(isActive).length + received.filter(isActive).length)
+      })
       .catch(() => {})
   }, [location.pathname])
 
@@ -78,6 +87,9 @@ export default function Sidebar({ user, onLogout, unreadCount, isOpen, onClose }
                 {label}
                 {path === '/notifications' && unreadCount > 0 && (
                   <span className="sidebar-notif-badge">{unreadCount}</span>
+                )}
+                {path === '/reviews' && activeReviewCount > 0 && (
+                  <span className="sidebar-notif-badge">{activeReviewCount}</span>
                 )}
               </button>
             )
