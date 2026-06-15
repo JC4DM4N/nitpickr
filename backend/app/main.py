@@ -296,6 +296,41 @@ def _expire_exchanges():
                         action_url=f"{loops.FRONTEND_URL}/exchanges",
                     )
 
+        # ── Auto-approve exchange reviews (owner missed deadline) ─────────────
+        expired_owner_exchange = (
+            db.query(models.Review)
+            .filter(
+                models.Review.is_exchange == True,
+                models.Review.is_expired == False,
+                models.Review.is_complete == False,
+                models.Review.is_rejected == False,
+                models.Review.is_submitted == True,
+                models.Review.owner_deadline.isnot(None),
+                models.Review.owner_deadline < now,
+            )
+            .all()
+        )
+        for review in expired_owner_exchange:
+            app = db.query(models.App).filter(models.App.id == review.app_id).first()
+            owner = db.query(models.User).filter(models.User.id == app.owner_id).first() if app else None
+            reviewer = db.query(models.User).filter(models.User.id == review.reviewer_id).first()
+            if reviewer:
+                create_notification(
+                    db, reviewer.id, "owner_deadline_expired",
+                    f"Your exchange review of {app.name if app else 'an app'} was auto-approved after 48 hours.",
+                    app_id=app.id if app else None, review_id=review.id,
+                    action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
+                )
+            if owner:
+                create_notification(
+                    db, owner.id, "owner_deadline_expired",
+                    f"Your 48 hour window to approve the exchange review of {app.name if app else 'your app'} passed — it was auto-approved.",
+                    app_id=app.id if app else None, review_id=review.id,
+                    action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}/reviews/{review.id}" if app else f"{loops.FRONTEND_URL}/exchanges",
+                )
+            review.is_complete = True
+            review.owner_deadline = None
+
         db.commit()
     finally:
         db.close()
