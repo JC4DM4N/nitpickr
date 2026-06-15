@@ -262,7 +262,7 @@ export default function ExplorePage() {
             const timeStr = hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft}m`;
             onboardingDetail = (
               <>
-                Leave feedback on another app within the next {timeStr} to earn a bonus credit. Once you submit the review you'll receive an immediate bonus credit — giving you 2 credits total for that review. Your app will become immediately eligible for others to discover and review on the Explore page.
+                Leave feedback on another app within the next {timeStr} to earn a bonus credit. Once you submit the review you'll receive an immediate bonus credit — giving you 2 credits total for this review. Your app will become immediately eligible for others to discover and review on the Explore page.
               </>
             );
           }
@@ -292,7 +292,7 @@ export default function ExplorePage() {
             ...(showStep3 ? [{
               n: 3,
               status: onboarding.onboardingBonusCreditAwarded ? "done" : "none",
-              label: "Submit a second review to receive an immediate bonus credit",
+              label: "🎉 Submit a second review to receive an immediate bonus credit!",
               detail: onboarding.onboardingBonusCreditAwarded
                 ? "Bonus credit awarded! Your app is now immediately visible and eligible for review on the Explore page."
                 : onboardingDetail,
