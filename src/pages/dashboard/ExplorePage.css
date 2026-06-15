@@ -2,6 +2,7 @@
 .explore {
   min-height: 100%;
   background: #f6f5f1;
+  overflow-x: hidden;
 }
 
 /* Hero header */
@@ -344,6 +345,7 @@
 @media (max-width: 860px) {
   .explore-body { flex-direction: column; padding: 20px; }
   .explore-filters { width: 100%; position: static; }
+  .explore-results { width: 100%; }
 }
 
 @media (max-width: 640px) {
@@ -447,6 +449,11 @@
     margin-left: 0;
     padding-left: 56px; /* 44px icon + 12px gap */
     justify-content: flex-start;
+  }
+
+  .app-grid,
+  .user-grid {
+    grid-template-columns: 1fr;
   }
 
   .app-card-footer-actions {
