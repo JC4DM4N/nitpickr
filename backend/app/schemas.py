@@ -141,6 +141,8 @@ class UserCredits(BaseModel):
     total: int
     earned_ever: int
     spent_ever: int
+    onboarding_expires_at: datetime | None = None
+    onboarding_bonus_credit_awarded: bool = False
 
 
 class NotificationOut(BaseModel):

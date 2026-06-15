@@ -20,9 +20,11 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False, index=True)
     credits          = Column(Integer, nullable=False, default=0)
     escrow_credits   = Column(Integer, nullable=False, default=0)
-    twitter_username = Column(String(50), nullable=True)
-    is_banned        = Column(Boolean, nullable=False, default=False)
-    email_verified   = Column(Boolean, nullable=False, default=True)
+    twitter_username        = Column(String(50), nullable=True)
+    is_banned               = Column(Boolean, nullable=False, default=False)
+    email_verified          = Column(Boolean, nullable=False, default=True)
+    onboarding_expires_at = Column(DateTime(timezone=True), nullable=True)
+    onboarding_bonus_credit_awarded    = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

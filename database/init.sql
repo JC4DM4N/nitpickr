@@ -7,8 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
                    CHECK (username ~ '^[A-Za-z0-9_]+$'),  -- single word, no spaces
     credits          INTEGER     NOT NULL DEFAULT 1,
     escrow_credits   INTEGER     NOT NULL DEFAULT 0,
-    twitter_username VARCHAR(50) DEFAULT NULL,
-    email_verified   BOOLEAN     NOT NULL DEFAULT TRUE,
+    twitter_username              VARCHAR(50) DEFAULT NULL,
+    email_verified                BOOLEAN     NOT NULL DEFAULT TRUE,
+    onboarding_expires_at         TIMESTAMPTZ DEFAULT NULL,
+    onboarding_bonus_credit_awarded BOOLEAN   NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

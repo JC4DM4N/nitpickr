@@ -74,7 +74,13 @@ export default function ExplorePage() {
         const hasApprovedReview = myReviews.some((r) => r.is_complete);
         const hasPendingReview = !hasApprovedReview && myReviews.some((r) => r.is_submitted && !r.is_rejected && !r.is_expired);
         const leftFeedback = hasApprovedReview ? "done" : hasPendingReview ? "pending" : "none";
-        setOnboarding({ submittedApp: hasOwnApps, leftFeedback, hasStartedFeedback: myReviews.length > 0 });
+        setOnboarding({
+          submittedApp: hasOwnApps,
+          leftFeedback,
+          hasStartedFeedback: myReviews.length > 0,
+          onboardingExpiresAt: creditsData.onboarding_expires_at ? new Date(creditsData.onboarding_expires_at) : null,
+          onboardingBonusCreditAwarded: creditsData.onboarding_bonus_credit_awarded ?? false,
+        });
         const onboardingComplete = hasOwnApps && hasApprovedReview;
         const hasOngoingReview = myReviews.some((r) => !r.is_complete && !r.is_rejected && !r.is_expired);
         if (onboardingComplete && creditsData.available === 0 && !hasOngoingReview) {
@@ -234,9 +240,33 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {onboarding && !(onboarding.submittedApp && onboarding.leftFeedback === "done") && (() => {
-          const stepsComplete = (onboarding.submittedApp ? 1 : 0) + (onboarding.leftFeedback === "done" ? 1 : 0);
-          const pct = stepsComplete * 50;
+        {onboarding && (() => {
+          const now = Date.now();
+          const onboardingWindowActive = onboarding.onboardingExpiresAt && onboarding.onboardingExpiresAt.getTime() > now && !onboarding.onboardingBonusCreditAwarded;
+          const showStep3 = onboarding.submittedApp && (onboardingWindowActive || onboarding.onboardingBonusCreditAwarded);
+          const totalSteps = showStep3 ? 3 : 2;
+          const stepsComplete =
+            (onboarding.leftFeedback === "done" ? 1 : 0) +
+            (onboarding.submittedApp ? 1 : 0) +
+            (showStep3 && onboarding.onboardingBonusCreditAwarded ? 1 : 0);
+          const allDone = stepsComplete === totalSteps;
+          if (allDone) return null;
+
+          const pct = Math.round((stepsComplete / totalSteps) * 100);
+
+          let onboardingDetail = null;
+          if (onboardingWindowActive) {
+            const msLeft = onboarding.onboardingExpiresAt.getTime() - now;
+            const hoursLeft = Math.floor(msLeft / 3600000);
+            const minsLeft = Math.floor((msLeft % 3600000) / 60000);
+            const timeStr = hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft}m`;
+            onboardingDetail = (
+              <>
+                Leave feedback on another app within the next {timeStr} to earn a bonus credit. Once you submit the review you'll receive an immediate bonus credit — giving you 2 credits total for that review. Your app will become immediately eligible for others to discover and review on the Explore page.
+              </>
+            );
+          }
+
           const steps = [
             {
               n: 1,
@@ -252,14 +282,21 @@ export default function ExplorePage() {
               label: "Submit your app",
               detail: onboarding.hasStartedFeedback ? (
                 <>
-                  Add your app so other developers can discover it and leave feedback. It will become visible to reviewers 
-                  once your first feedback is approved.{" "}
+                  Add your app so other developers can discover it and leave feedback. The more detail you include, the better the nitpicks you'll get.{" "}
                   <button className="onboarding-link" onClick={() => navigate("/my-apps/new")}>Submit your app →</button>
                 </>
               ) : (
                 "Complete step 1 first — leave feedback on at least one app before you can submit your own."
               ),
             },
+            ...(showStep3 ? [{
+              n: 3,
+              status: onboarding.onboardingBonusCreditAwarded ? "done" : "none",
+              label: "Submit a second review to receive an immediate bonus credit",
+              detail: onboarding.onboardingBonusCreditAwarded
+                ? "Bonus credit awarded! Your app is now immediately visible and eligible for review on the Explore page."
+                : onboardingDetail,
+            }] : []),
           ];
           return (
             <div className="onboarding-bar">

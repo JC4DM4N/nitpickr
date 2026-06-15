@@ -56,10 +56,11 @@ def create_review(
     if existing:
         raise HTTPException(status_code=400, detail="You have already reviewed this app")
 
+    now = datetime.now(timezone.utc)
     review = models.Review(
         app_id=payload.app_id,
         reviewer_id=current_user.id,
-        reviewer_deadline=datetime.now(timezone.utc) + timedelta(hours=24),
+        reviewer_deadline=now + timedelta(hours=24),
     )
     db.add(review)
 
@@ -200,10 +201,18 @@ def update_review(
     if payload.is_submitted is not None:
         review.is_submitted = payload.is_submitted
         if payload.is_submitted:
+            now = datetime.now(timezone.utc)
             review.reviewer_deadline = None
-            review.owner_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
-            # review.owner_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
+            review.owner_deadline = now + timedelta(hours=48)
+            # review.owner_deadline = now + timedelta(minutes=10)
             owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
+            if (
+                current_user.onboarding_expires_at is not None
+                and current_user.onboarding_expires_at > now
+                and not current_user.onboarding_bonus_credit_awarded
+            ):
+                current_user.credits += 1
+                current_user.onboarding_bonus_credit_awarded = True
             if review.review_requested:
                 msg = f"{current_user.username} resubmitted their review for {app.name}"
                 notif_type = "review_resubmitted"

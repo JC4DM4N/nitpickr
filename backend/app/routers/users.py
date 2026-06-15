@@ -50,6 +50,8 @@ def get_my_credits(
         total=current_user.credits + in_escrow,
         earned_ever=earned_ever,
         spent_ever=spent_ever,
+        onboarding_expires_at=current_user.onboarding_expires_at,
+        onboarding_bonus_credit_awarded=current_user.onboarding_bonus_credit_awarded,
     )
 
 

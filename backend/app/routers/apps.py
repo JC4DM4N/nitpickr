@@ -111,6 +111,7 @@ def create_app(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    is_first_app = db.query(models.App).filter(models.App.owner_id == current_user.id).count() == 0
     initials = ''.join(w[0].upper() for w in payload.name.split()[:2])
     app = models.App(
         owner_id=current_user.id,
@@ -126,6 +127,8 @@ def create_app(
         slug=_unique_slug(payload.name, db),
     )
     db.add(app)
+    if is_first_app and current_user.onboarding_expires_at is None:
+        current_user.onboarding_expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
     db.commit()
     db.refresh(app)
     return _build_app_outs([app], db)[0]
