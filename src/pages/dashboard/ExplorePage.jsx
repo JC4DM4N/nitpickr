@@ -74,7 +74,7 @@ export default function ExplorePage() {
         const hasApprovedReview = myReviews.some((r) => r.is_complete);
         const hasPendingReview = !hasApprovedReview && myReviews.some((r) => r.is_submitted && !r.is_rejected && !r.is_expired);
         const leftFeedback = hasApprovedReview ? "done" : hasPendingReview ? "pending" : "none";
-        setOnboarding({ submittedApp: hasOwnApps, leftFeedback });
+        setOnboarding({ submittedApp: hasOwnApps, leftFeedback, hasStartedFeedback: myReviews.length > 0 });
         const onboardingComplete = hasOwnApps && hasApprovedReview;
         const hasOngoingReview = myReviews.some((r) => !r.is_complete && !r.is_rejected && !r.is_expired);
         if (onboardingComplete && creditsData.available === 0 && !hasOngoingReview) {
@@ -240,22 +240,25 @@ export default function ExplorePage() {
           const steps = [
             {
               n: 1,
-              status: onboarding.submittedApp ? "done" : "none",
-              label: "Submit your app",
-              detail: (
-                <>
-                  Add your app so other developers can discover it and leave feedback. The more detail you include, the better the nitpicks you'll get.{" "}
-                  <button className="onboarding-link" onClick={() => navigate("/my-apps/new")}>Submit your app →</button>
-                </>
-              ),
-            },
-            {
-              n: 2,
               status: onboarding.leftFeedback,
               label: "Leave feedback on someone's app",
               detail: onboarding.leftFeedback === "pending"
                 ? "Your review has been submitted and is awaiting approval from the app owner. Once they approve it, this step will complete."
-                : "Pick an app from the list below and leave honest, constructive feedback. Your app will become available for review once your review is approved.",
+                : "Pick an app from the list below and leave honest, constructive feedback. This unlocks the ability to receive feedback on your own app.",
+            },
+            {
+              n: 2,
+              status: onboarding.submittedApp ? "done" : "none",
+              label: "Submit your app",
+              detail: onboarding.hasStartedFeedback ? (
+                <>
+                  Add your app so other developers can discover it and leave feedback. It will become visible to reviewers 
+                  once your first feedback is approved.{" "}
+                  <button className="onboarding-link" onClick={() => navigate("/my-apps/new")}>Submit your app →</button>
+                </>
+              ) : (
+                "Complete step 1 first — leave feedback on at least one app before you can submit your own."
+              ),
             },
           ];
           return (

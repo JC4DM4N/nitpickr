@@ -24,7 +24,7 @@ export default function HowItWorksPage() {
         ))}
       </div>
       {tab === "credits" && (
-        <HowItWorks white links={['/my-apps/new', '/explore', '/reviews']} />
+        <HowItWorks white links={['/explore', '/my-apps/new', '/reviews']} />
       )}
       {tab === "exchanges" && (
         <HowItWorksExchanges white links={[

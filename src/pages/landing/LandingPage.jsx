@@ -150,15 +150,15 @@ export function HowItWorks({ white, links }) {
   const steps = [
     {
       number: "01",
-      icon: "🚀",
-      title: "Submit your app",
-      desc: "Add your app with a link, description, and what kind of feedback you're looking for.",
-    },
-    {
-      number: "02",
       icon: "💬",
       title: "Give feedback to others",
       desc: "Browse apps from other developers and leave honest, constructive feedback. Each feedback earns you a credit once approved by the app owner.",
+    },
+    {
+      number: "02",
+      icon: "🚀",
+      title: "Submit your app",
+      desc: "Add your app with a link, description, and what kind of feedback you're looking for.",
     },
     {
       number: "03",

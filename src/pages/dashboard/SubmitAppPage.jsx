@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
@@ -21,6 +21,15 @@ export default function SubmitAppPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [submittedAppId, setSubmittedAppId] = useState(null)
+  const [feedbackCheck, setFeedbackCheck] = useState({ loading: true, hasStarted: false })
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    authFetch('/reviews/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(reviews => setFeedbackCheck({ loading: false, hasStarted: Array.isArray(reviews) && reviews.length > 0 }))
+      .catch(() => setFeedbackCheck({ loading: false, hasStarted: false }))
+  }, [])
 
   function set(key) {
     return e => setFields(prev => ({ ...prev, [key]: e.target.value }))
@@ -59,6 +68,31 @@ export default function SubmitAppPage() {
   }
 
   const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  if (feedbackCheck.loading) {
+    return null
+  }
+
+  if (!feedbackCheck.hasStarted) {
+    return (
+      <div className="review-app-page">
+        <div className="review-app-header">
+          <button className="review-app-back" onClick={() => navigate('/explore')}>← Back</button>
+        </div>
+        <div className="review-app-body" style={{ display: 'flex', justifyContent: 'center', paddingTop: 48 }}>
+          <div style={{ maxWidth: 480, textAlign: 'center' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Leave feedback first</h2>
+            <p style={{ color: '#6b6a66', marginBottom: 24 }}>
+              You need to leave feedback on at least one app before you can submit your own. This keeps the community balanced.
+            </p>
+            <button className="edit-save-btn" onClick={() => navigate('/explore')}>
+              Browse apps →
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (submittedAppId) {
     return (
