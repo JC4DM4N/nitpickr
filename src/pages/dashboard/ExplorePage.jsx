@@ -72,8 +72,8 @@ export default function ExplorePage() {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const hasOwnApps = myApps.length > 0;
         const hasApprovedReview = myReviews.some((r) => r.is_complete);
-        const hasPendingReview = !hasApprovedReview && myReviews.some((r) => r.is_submitted && !r.is_rejected && !r.is_expired);
-        const leftFeedback = hasApprovedReview ? "done" : hasPendingReview ? "pending" : "none";
+        const hasSubmittedReview = myReviews.some((r) => (r.is_submitted || r.is_complete) && !r.is_rejected && !r.is_expired);
+        const leftFeedback = hasSubmittedReview ? "done" : "none";
         setOnboarding({
           submittedApp: hasOwnApps,
           leftFeedback,
@@ -243,13 +243,13 @@ export default function ExplorePage() {
         {onboarding && (() => {
           const now = Date.now();
           const onboardingWindowActive = onboarding.onboardingExpiresAt && onboarding.onboardingExpiresAt.getTime() > now && !onboarding.onboardingBonusCreditAwarded;
-          const showStep3 = onboarding.submittedApp && (onboardingWindowActive || onboarding.onboardingBonusCreditAwarded);
-          const totalSteps = showStep3 ? 3 : 2;
+          const totalSteps = 3;
           const stepsComplete =
             (onboarding.leftFeedback === "done" ? 1 : 0) +
             (onboarding.submittedApp ? 1 : 0) +
-            (showStep3 && onboarding.onboardingBonusCreditAwarded ? 1 : 0);
-          const allDone = stepsComplete === totalSteps;
+            (onboarding.onboardingBonusCreditAwarded ? 1 : 0);
+          const step3Resolved = onboarding.onboardingBonusCreditAwarded || !onboardingWindowActive;
+          const allDone = onboarding.leftFeedback === "done" && onboarding.submittedApp && step3Resolved;
           if (allDone) return null;
 
           const pct = Math.round((stepsComplete / totalSteps) * 100);
@@ -267,14 +267,23 @@ export default function ExplorePage() {
             );
           }
 
+          let step3Detail;
+          if (onboarding.onboardingBonusCreditAwarded) {
+            step3Detail = "Bonus credit awarded! Your app is now immediately visible and eligible for review on the Explore page.";
+          } else if (onboardingWindowActive) {
+            step3Detail = onboardingDetail;
+          } else if (!onboarding.onboardingExpiresAt) {
+            step3Detail = "Submit your app to unlock a 24-hour bonus window. Leave a second review within that window to earn an immediate bonus credit — your app will appear immediately on the Explore page.";
+          } else {
+            step3Detail = "The 24-hour bonus window has closed.";
+          }
+
           const steps = [
             {
               n: 1,
               status: onboarding.leftFeedback,
               label: "Leave feedback on someone's app",
-              detail: onboarding.leftFeedback === "pending"
-                ? "Your review has been submitted and is awaiting approval from the app owner. Once they approve it, this step will complete."
-                : "Pick an app from the list below and leave honest, constructive feedback. This unlocks the ability to receive feedback on your own app.",
+              detail: "Pick an app from the list below and leave honest, constructive feedback. This unlocks the ability to receive feedback on your own app.",
             },
             {
               n: 2,
@@ -289,14 +298,12 @@ export default function ExplorePage() {
                 "Complete step 1 first — leave feedback on at least one app before you can submit your own."
               ),
             },
-            ...(showStep3 ? [{
+            {
               n: 3,
               status: onboarding.onboardingBonusCreditAwarded ? "done" : "none",
-              label: "🎉 Submit a second review to receive an immediate bonus credit!",
-              detail: onboarding.onboardingBonusCreditAwarded
-                ? "Bonus credit awarded! Your app is now immediately visible and eligible for review on the Explore page."
-                : onboardingDetail,
-            }] : []),
+              label: "🎉 Leave a second review to receive an immediate bonus credit!",
+              detail: step3Detail,
+            },
           ];
           return (
             <div className="onboarding-bar">
