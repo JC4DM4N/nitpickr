@@ -105,60 +105,79 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     .post-idea-style { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #888; margin-bottom: 6px; }
     .post-idea-text { font-size: 0.85rem; background: #f8f9fa; padding: 10px; border-radius: 8px; white-space: pre-wrap; margin-bottom: 10px; line-height: 1.5; color: #1a1a1a; }
     .char-count { font-size: 0.72rem; color: #aaa; text-align: right; margin-top: -6px; margin-bottom: 8px; }
+    .section-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; margin-bottom:0; user-select:none; }
+    .section-chevron { font-size:0.8rem; color:#aaa; transition:transform .2s; flex-shrink:0; }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>X Thread Dashboard</h1>
+  <h1>X Dashboard</h1>
 
-  <!-- ① Scrape -->
+  <!-- Generate Replies -->
   <div class="card">
-    <div class="card-title">① Scrape</div>
-
-    <p class="hint"><strong>On phone:</strong> save the bookmarklet, open the x.com thread, scroll to load all replies, then tap it.</p>
-    <a class="bm-link" href="/bookmarklet">Get phone bookmarklet →</a>
-
-    <hr class="divider">
-
-    <p class="hint"><strong>On Mac:</strong> Chrome must be open with CDP. Tap Launch, navigate to the thread, scroll, then Scrape.</p>
-    <button onclick="launchChrome()">Launch Chrome with CDP</button>
-    <button class="grey" onclick="scrape()">Scrape Open Tab</button>
-
-    <div id="scrape-status" class="status"></div>
+    <div class="card-title section-header" onclick="toggleSection('gen-replies')">
+      <span>Generate Replies</span>
+      <span class="section-chevron" id="chevron-gen-replies" style="transform:rotate(180deg)">▲</span>
+    </div>
+    <div id="body-gen-replies" style="display:none;margin-top:10px">
+      <p class="hint"><strong>On phone:</strong> save the bookmarklet, open the x.com thread, scroll to load all replies, then tap it.</p>
+      <a class="bm-link" href="/bookmarklet">Get phone bookmarklet →</a>
+      <hr class="divider">
+      <p class="hint"><strong>On Mac:</strong> Chrome must be open with CDP. Tap Launch, navigate to the thread, scroll, then Scrape.</p>
+      <button onclick="launchChrome()">Launch Chrome with CDP</button>
+      <button class="grey" onclick="scrape()">Scrape Open Tab</button>
+      <div id="scrape-status" class="status"></div>
+      <hr class="divider">
+      <p class="hint">Extracts replies from thread.html → thread.json, excluding the OP.</p>
+      <button onclick="parse()">Parse Thread</button>
+      <div id="parse-status" class="status"></div>
+      <hr class="divider">
+      <p class="hint">Classifies replies with OpenAI and writes drafts.json.</p>
+      <button class="grey" onclick="draft()">Generate Drafts</button>
+      <div id="draft-status" class="status"></div>
+    </div>
   </div>
 
-  <!-- ② Parse -->
+  <!-- Replies -->
   <div class="card">
-    <div class="card-title">② Parse Thread</div>
-    <p class="hint">Extracts replies from thread.html → thread.json, excluding the OP.</p>
-    <button onclick="parse()">Parse Thread</button>
-    <div id="parse-status" class="status"></div>
+    <div class="card-title section-header" onclick="toggleSection('replies')">
+      <span>Replies<span id="draft-count" class="badge" style="display:none"></span></span>
+      <span class="section-chevron" id="chevron-replies">▲</span>
+    </div>
+    <div id="body-replies" style="margin-top:10px">
+      <button class="grey sm" onclick="loadDrafts()">Refresh</button>
+      <div id="drafts-status" class="status"></div>
+      <div id="drafts-list" style="margin-top:12px"></div>
+    </div>
   </div>
 
-  <!-- ③ Draft -->
+  <!-- Generate Posts -->
   <div class="card">
-    <div class="card-title">③ Generate Drafts (optional)</div>
-    <p class="hint">Runs x_draft.py — classifies replies with OpenAI and writes drafts.json.</p>
-    <button class="grey" onclick="draft()">Generate Drafts</button>
-    <div id="draft-status" class="status"></div>
+    <div class="card-title section-header" onclick="toggleSection('gen-posts')">
+      <span>Generate Posts</span>
+      <span class="section-chevron" id="chevron-gen-posts">▲</span>
+    </div>
+    <div id="body-gen-posts" style="margin-top:10px">
+      <p class="hint">Paste a trending news story or context — get 5 posts in your voice.</p>
+      <textarea id="post-idea-input" placeholder="Context / news story…" rows="2"></textarea>
+      <textarea id="post-opinion-input" placeholder="My take (optional) — e.g. AI is good" rows="1" style="margin-top:6px"></textarea>
+      <button onclick="generatePostIdeas()" style="margin-top:8px">Generate Posts</button>
+      <div id="post-ideas-status" class="status"></div>
+      <div id="post-ideas-list" style="margin-top:12px"></div>
+    </div>
   </div>
 
-  <!-- ④ Post -->
+  <!-- Posts -->
   <div class="card">
-    <div class="card-title">④ Post<span id="draft-count" class="badge" style="display:none"></span></div>
-    <button class="grey sm" onclick="loadDrafts()">Refresh Drafts</button>
-    <div id="drafts-status" class="status"></div>
-    <div id="drafts-list" style="margin-top:12px"></div>
-  </div>
-
-  <!-- ⑤ Post Ideas -->
-  <div class="card">
-    <div class="card-title">⑤ Post Ideas</div>
-    <p class="hint">Describe an idea or situation — get 5 posts at varying virality levels.</p>
-    <textarea id="post-idea-input" placeholder="e.g. my servers are causing me trouble" rows="2"></textarea>
-    <button onclick="generatePostIdeas()" style="margin-top:8px">Generate Posts</button>
-    <div id="post-ideas-status" class="status"></div>
-    <div id="post-ideas-list" style="margin-top:12px"></div>
+    <div class="card-title section-header" onclick="toggleSection('posts')">
+      <span>Posts<span id="posts-count" class="badge" style="display:none"></span></span>
+      <span class="section-chevron" id="chevron-posts">▲</span>
+    </div>
+    <div id="body-posts" style="margin-top:10px">
+      <button class="grey sm" onclick="loadPosts()">Refresh</button>
+      <div id="posts-status" class="status"></div>
+      <div id="posts-list" style="margin-top:12px"></div>
+    </div>
   </div>
 </div>
 
@@ -287,10 +306,11 @@ function esc(s) {
 
 async function generatePostIdeas() {
   const prompt = document.getElementById('post-idea-input').value.trim();
-  if (!prompt) { setStatus('post-ideas-status', 'Enter an idea first.', 'error'); return; }
+  if (!prompt) { setStatus('post-ideas-status', 'Enter a context first.', 'error'); return; }
+  const opinion = document.getElementById('post-opinion-input').value.trim();
   setStatus('post-ideas-status', 'Generating posts…', '');
   document.getElementById('post-ideas-list').innerHTML = '';
-  const r = await api('/api/generate_posts', {prompt});
+  const r = await api('/api/generate_posts', {prompt, opinion});
   if (!r.ok) { setStatus('post-ideas-status', r.message, 'error'); return; }
   setStatus('post-ideas-status', `${r.posts.length} posts generated`, 'ok');
   renderPostIdeas(r.posts);
@@ -310,6 +330,7 @@ function renderPostIdeas(posts) {
         <div class="draft-actions">
           <button class="green sm" onclick="postOnX(${i})">Post on X</button>
           <button class="grey sm" onclick="copyPostText(${i})">Copy</button>
+          <button class="grey sm" onclick="savePost(${i})">Save</button>
         </div>
       </div>`;
   }).join('');
@@ -330,7 +351,71 @@ async function copyPostText(i) {
   setTimeout(() => { btn.textContent = orig; btn.classList.remove('green'); }, 1500);
 }
 
+function toggleSection(id) {
+  const body = document.getElementById('body-' + id);
+  const chevron = document.getElementById('chevron-' + id);
+  const collapsed = body.style.display === 'none';
+  body.style.display = collapsed ? '' : 'none';
+  chevron.style.transform = collapsed ? '' : 'rotate(180deg)';
+}
+
+async function loadPosts() {
+  const res = await fetch('/api/posts');
+  const posts = await res.json();
+  const badge = document.getElementById('posts-count');
+  badge.textContent = posts.length;
+  badge.style.display = posts.length ? '' : 'none';
+  setStatus('posts-status', posts.length ? `${posts.length} saved post(s)` : 'No saved posts.', posts.length ? 'ok' : '');
+  renderPosts(posts);
+}
+
+function renderPosts(posts) {
+  const el = document.getElementById('posts-list');
+  if (!posts.length) { el.innerHTML = ''; return; }
+  el.innerHTML = posts.map((text, i) => {
+    const chars = text.length;
+    const overLimit = chars > 280;
+    return `
+      <div class="post-idea" id="saved-post-${i}">
+        <div class="post-idea-text">${esc(text)}</div>
+        <div class="char-count" style="color:${overLimit ? '#dc2626' : '#aaa'}">${chars}/280</div>
+        <div class="draft-actions">
+          <button class="green sm" onclick="postSaved(${i})">Post on X</button>
+          <button class="red sm" onclick="deletePost(${i})">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function postSaved(i) {
+  const text = document.getElementById(`saved-post-${i}`).querySelector('.post-idea-text').innerText;
+  await copyText(text);
+  window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+}
+
+async function deletePost(i) {
+  const r = await api('/api/delete_post', {index: i});
+  if (r.ok) loadPosts();
+}
+
+async function savePost(i) {
+  const text = document.getElementById(`post-text-${i}`).innerText;
+  const r = await api('/api/save_post', {text});
+  const btn = document.querySelectorAll(`#post-ideas-list .post-idea`)[i].querySelectorAll('.draft-actions button')[2];
+  if (r.ok) {
+    const orig = btn.textContent;
+    btn.textContent = 'Saved ✓';
+    btn.classList.add('green');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('green'); }, 1500);
+  } else {
+    btn.textContent = 'Error';
+    btn.style.background = '#dc2626';
+    setTimeout(() => { btn.textContent = 'Save'; btn.style.background = ''; }, 2000);
+  }
+}
+
 loadDrafts();
+loadPosts();
 </script>
 </body>
 </html>"""
@@ -681,8 +766,12 @@ def generate_posts():
     prompt = (data.get("prompt") or "").strip()
     if not prompt:
         return jsonify(ok=False, message="No prompt provided.")
+    opinion = (data.get("opinion") or "").strip()
+    cmd = [sys.executable, str(SCRIPT_DIR / "x_draft_posts.py"), prompt]
+    if opinion:
+        cmd.append(opinion)
     result = subprocess.run(
-        [sys.executable, str(SCRIPT_DIR / "x_draft_posts.py"), prompt],
+        cmd,
         capture_output=True, text=True, cwd=str(SCRIPT_DIR),
     )
     if result.returncode != 0:
@@ -692,6 +781,42 @@ def generate_posts():
     except Exception:
         return jsonify(ok=False, message="Failed to parse generated posts.")
     return jsonify(ok=True, posts=posts)
+
+
+@app.route("/api/posts")
+def get_posts():
+    f = DATA_DIR / "posts.json"
+    if not f.exists():
+        return jsonify([])
+    return jsonify(json.loads(f.read_text(encoding="utf-8")))
+
+
+@app.route("/api/delete_post", methods=["POST"])
+def delete_post():
+    data = request.get_json(silent=True) or {}
+    idx = data.get("index")
+    if idx is None:
+        return jsonify(ok=False, message="No index provided.")
+    posts_f = DATA_DIR / "posts.json"
+    posts = json.loads(posts_f.read_text(encoding="utf-8")) if posts_f.exists() else []
+    if idx < 0 or idx >= len(posts):
+        return jsonify(ok=False, message="Index out of range.")
+    posts.pop(idx)
+    posts_f.write_text(json.dumps(posts, indent=2, ensure_ascii=False), encoding="utf-8")
+    return jsonify(ok=True)
+
+
+@app.route("/api/save_post", methods=["POST"])
+def save_post():
+    data = request.get_json(silent=True) or {}
+    text = (data.get("text") or "").strip()
+    if not text:
+        return jsonify(ok=False, message="No text provided.")
+    posts_f = DATA_DIR / "posts.json"
+    posts = json.loads(posts_f.read_text(encoding="utf-8")) if posts_f.exists() else []
+    posts.append(text)
+    posts_f.write_text(json.dumps(posts, indent=2, ensure_ascii=False), encoding="utf-8")
+    return jsonify(ok=True)
 
 
 def _update_draft(href: str, action: str, variant: str | None):

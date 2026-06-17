@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Generate 5 viral X posts from a topic/idea prompt.
+Generate 5 X posts from a context/news story, matching a personality from personality.json.
 
 Usage:
-    python x/x_draft_posts.py "my servers are causing me trouble"
+    python x/x_draft_posts.py "trending news story or context here"
 
-Outputs JSON array of posts, ordered from least to most viral.
+Outputs JSON array of posts.
 """
 
 from __future__ import annotations
@@ -21,27 +21,40 @@ from pydantic import BaseModel
 
 load_dotenv(Path(__file__).parent / ".env")
 
+DATA_DIR = Path(__file__).parent / "data"
 
-SYSTEM_PROMPT = """\
-You are a ghostwriter who specialises in viral X (Twitter) posts for indie hackers and founders.
 
-Given a topic or situation, write 5 different posts about it — each with a different virality style.
-All posts should sound like a real person wrote them (not a marketer), be concise (under 280 characters unless a thread format suits), and feel authentic.
+def _build_system_prompt(opinion: str = "") -> str:
+    personality_file = DATA_DIR / "personality.json"
+    examples = ""
+    if personality_file.exists():
+        tweets = json.loads(personality_file.read_text(encoding="utf-8"))
+        examples = "\n".join(f'- {t}' for t in tweets[:20])
 
-Write them in this order, from least to most viral:
+    opinion_block = f"\nMY STANCE ON THIS TOPIC: {opinion}\nDo not write posts that contradict this stance.\n" if opinion else ""
 
-1. GENUINE — honest, conversational, no hooks. Just sharing how it is.
-2. RELATABLE — slightly broader appeal, taps into a shared feeling or frustration.
-3. STORY — short narrative arc or "I used to think X, now Y" structure.
-4. HOT TAKE — contrarian, thought-provoking, or an unexpected angle on the situation.
-5. VIRAL — bold hook, punchy format, highly shareable. Can be a short thread opener, a list, or a strong claim.
+    return f"""\
+You are a ghostwriter writing X (Twitter) posts for an indie hacker/founder.
+
+Your tone must closely match the examples below — dry, sardonic, self-aware, and human. \
+The humour is understated or deadpan. Posts can be blunt, slightly absurd, or deliberately \
+anti-hype. They feel like something a real person dashed off, not a marketer. \
+Short is fine. Lowercase is fine. Profanity if it fits.
+
+EXAMPLE POSTS (match this voice):
+{examples}
+{opinion_block}
+Given a context or news story, write 5 posts reacting to or riffing on it. \
+Each post should be a distinct angle — e.g. a dry observation, a hot take, a self-deprecating \
+riff, a contrarian view, or a punchy one-liner. Don't label them with their angle type, \
+just write the post naturally.
 
 Rules:
 - Never use emojis unless they genuinely add meaning.
-- Never start with "I've been" or "Let me tell you".
 - Avoid corporate buzzwords (game-changer, disruptive, revolutionary, etc).
-- Keep it first-person and grounded.
-- Each post should feel like a distinct creative choice, not a variation of the same sentence.
+- Keep it concise — under 280 characters unless a multi-line format genuinely helps.
+- Each post must feel like a distinct creative choice.
+- Sound like a person, not a content creator.
 """
 
 
@@ -54,7 +67,7 @@ class _Posts(BaseModel):
     posts: list[_Post]
 
 
-def generate_posts(prompt: str) -> list[dict]:
+def generate_posts(prompt: str, opinion: str = "") -> list[dict]:
     key = os.environ.get("OPENAI_API_KEY")
     if not key:
         sys.exit("OPENAI_API_KEY not set in .env")
@@ -63,7 +76,7 @@ def generate_posts(prompt: str) -> list[dict]:
     response = client.beta.chat.completions.parse(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": _build_system_prompt(opinion)},
             {"role": "user", "content": prompt},
         ],
         response_format=_Posts,
@@ -74,8 +87,9 @@ def generate_posts(prompt: str) -> list[dict]:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit("Usage: x_draft_posts.py <prompt>")
+        sys.exit("Usage: x_draft_posts.py <prompt> [opinion]")
 
-    prompt = " ".join(sys.argv[1:])
-    posts = generate_posts(prompt)
+    prompt = sys.argv[1]
+    opinion = sys.argv[2] if len(sys.argv) > 2 else ""
+    posts = generate_posts(prompt, opinion)
     print(json.dumps(posts, ensure_ascii=False))
