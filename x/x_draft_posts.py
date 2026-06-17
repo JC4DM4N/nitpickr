@@ -44,27 +44,40 @@ Short is fine. Lowercase is fine. Profanity if it fits.
 EXAMPLE POSTS (match this voice):
 {examples}
 {opinion_block}
-Given a context or news story, write 5 posts reacting to or riffing on it. \
-Each post should be a distinct angle — e.g. a dry observation, a hot take, a self-deprecating \
-riff, a contrarian view, or a punchy one-liner. Don't label them with their angle type, \
-just write the post naturally.
+Given a context or news story, write 6 post angles reacting to or riffing on it. \
+For each angle, write 3 variations — same intent, different phrasing or framing, \
+so the user can pick the one that feels most natural.
+
+The 6 angles:
+1. a dry, deadpan observation
+2. a hot take — commit to an actual side, not a vibe
+3. a self-deprecating riff
+4. a contrarian take — push against the obvious narrative
+5. a punchy one-liner, no setup
+6. a reply-magnet — a specific, slightly provocative claim or question that makes people want \
+to argue, correct you, or chime in with their own experience. The specificity should do the \
+work — never end with generic bait like "thoughts?", "agree?", or "retweet if...".
+
+Don't label them with their angle type, just write the post naturally.
 
 Rules:
 - Never use emojis unless they genuinely add meaning.
 - Avoid corporate buzzwords (game-changer, disruptive, revolutionary, etc).
+- No hashtags, no links in the body.
 - Keep it concise — under 280 characters unless a multi-line format genuinely helps.
+- Sharp or contrarian is good. Dunking for its own sake isn't — every post needs a real point, not just noise.
 - Each post must feel like a distinct creative choice.
 - Sound like a person, not a content creator.
 """
 
 
-class _Post(BaseModel):
+class _PostGroup(BaseModel):
     style: str
-    text: str
+    variations: list[str]
 
 
 class _Posts(BaseModel):
-    posts: list[_Post]
+    posts: list[_PostGroup]
 
 
 def generate_posts(prompt: str, opinion: str = "") -> list[dict]:
@@ -81,8 +94,8 @@ def generate_posts(prompt: str, opinion: str = "") -> list[dict]:
         ],
         response_format=_Posts,
     )
-    posts = response.choices[0].message.parsed.posts
-    return [{"style": p.style, "text": p.text} for p in posts]
+    groups = response.choices[0].message.parsed.posts
+    return [{"style": g.style, "variations": g.variations} for g in groups]
 
 
 if __name__ == "__main__":

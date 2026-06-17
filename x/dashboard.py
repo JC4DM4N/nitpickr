@@ -22,14 +22,16 @@ Mac scrape workflow (Chrome must have --remote-debugging-port=9222):
 from __future__ import annotations
 
 import json
+import os
 import socket
 import subprocess
 import sys
 from datetime import datetime, timezone
+from functools import wraps
 from pathlib import Path
 
 try:
-    from flask import Flask, jsonify, redirect, request, render_template_string, url_for
+    from flask import Flask, jsonify, redirect, request, render_template_string, session, url_for
 except ImportError:
     sys.exit("Run: pip install flask")
 
@@ -39,12 +41,26 @@ except ImportError:
     sys.exit("Run: pip install websocket-client")
 
 import requests as _req
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent / ".env")
 
 DATA_DIR   = Path(__file__).parent / "data"
 SCRIPT_DIR = Path(__file__).parent
 CDP_PORT   = 9222
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
+DASHBOARD_PASSWORD = os.environ.get("X_DASHBOARD_PASSWORD", "")
+
+
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("authed"):
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
 
 
 def _local_ip() -> str:
@@ -52,6 +68,44 @@ def _local_ip() -> str:
         return socket.gethostbyname(socket.gethostname())
     except Exception:
         return "unknown"
+
+
+# ── Login ─────────────────────────────────────────────────────────────────────
+
+LOGIN_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>X Dashboard · Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; background: #f0f2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #fff; border-radius: 14px; padding: 32px 24px; width: calc(100% - 32px); max-width: 340px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    h1 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
+    .sub { font-size: 0.82rem; color: #888; margin: 0 0 24px; }
+    label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #888; margin-bottom: 6px; }
+    input[type="password"] { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 0.9rem; font-family: inherit; outline: none; transition: border-color .15s; margin-bottom: 14px; }
+    input[type="password"]:focus { border-color: #1d9bf0; }
+    button { width: 100%; padding: 13px; background: #1d9bf0; color: #fff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+    button:active { opacity: .75; }
+    .error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; margin-bottom: 14px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>X Dashboard</h1>
+    <p class="sub">Enter the password to continue.</p>
+    <div class="error" id="err">Incorrect password.</div>
+    <form method="POST" action="/login">
+      <label for="pw">Password</label>
+      <input type="password" id="pw" name="password" autofocus autocomplete="current-password">
+      <button type="submit">Sign in</button>
+    </form>
+  </div>
+  <script>if (new URLSearchParams(location.search).get('error')) document.getElementById('err').style.display = 'block';</script>
+</body>
+</html>"""
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -142,9 +196,9 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <div class="card">
     <div class="card-title section-header" onclick="toggleSection('replies')">
       <span>Replies<span id="draft-count" class="badge" style="display:none"></span></span>
-      <span class="section-chevron" id="chevron-replies">▲</span>
+      <span class="section-chevron" id="chevron-replies" style="transform:rotate(180deg)">▲</span>
     </div>
-    <div id="body-replies" style="margin-top:10px">
+    <div id="body-replies" style="display:none;margin-top:10px">
       <button class="grey sm" onclick="loadDrafts()">Refresh</button>
       <div id="drafts-status" class="status"></div>
       <div id="drafts-list" style="margin-top:12px"></div>
@@ -155,9 +209,9 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <div class="card">
     <div class="card-title section-header" onclick="toggleSection('gen-posts')">
       <span>Generate Posts</span>
-      <span class="section-chevron" id="chevron-gen-posts">▲</span>
+      <span class="section-chevron" id="chevron-gen-posts" style="transform:rotate(180deg)">▲</span>
     </div>
-    <div id="body-gen-posts" style="margin-top:10px">
+    <div id="body-gen-posts" style="display:none;margin-top:10px">
       <p class="hint">Paste a trending news story or context — get 5 posts in your voice.</p>
       <textarea id="post-idea-input" placeholder="Context / news story…" rows="2"></textarea>
       <textarea id="post-opinion-input" placeholder="My take (optional) — e.g. AI is good" rows="1" style="margin-top:6px"></textarea>
@@ -171,12 +225,27 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <div class="card">
     <div class="card-title section-header" onclick="toggleSection('posts')">
       <span>Posts<span id="posts-count" class="badge" style="display:none"></span></span>
-      <span class="section-chevron" id="chevron-posts">▲</span>
+      <span class="section-chevron" id="chevron-posts" style="transform:rotate(180deg)">▲</span>
     </div>
-    <div id="body-posts" style="margin-top:10px">
+    <div id="body-posts" style="display:none;margin-top:10px">
       <button class="grey sm" onclick="loadPosts()">Refresh</button>
       <div id="posts-status" class="status"></div>
       <div id="posts-list" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- Reply-guy -->
+  <div class="card">
+    <div class="card-title section-header" onclick="toggleSection('reply-guy')">
+      <span>Reply-guy</span>
+      <span class="section-chevron" id="chevron-reply-guy" style="transform:rotate(180deg)">▲</span>
+    </div>
+    <div id="body-reply-guy" style="display:none;margin-top:10px">
+      <p class="hint">Paste a tweet you want to reply to — get 5 reply options in your voice.</p>
+      <textarea id="reply-guy-input" placeholder="Paste the tweet here…" rows="3"></textarea>
+      <button onclick="generateReplies()" style="margin-top:8px">Generate Replies</button>
+      <div id="reply-guy-status" class="status"></div>
+      <div id="reply-guy-list" style="margin-top:12px"></div>
     </div>
   </div>
 </div>
@@ -316,35 +385,47 @@ async function generatePostIdeas() {
   renderPostIdeas(r.posts);
 }
 
-function renderPostIdeas(posts) {
-  const el = document.getElementById('post-ideas-list');
-  if (!posts.length) { el.innerHTML = '<p style="font-size:.82rem;color:#888">No posts generated.</p>'; return; }
-  el.innerHTML = posts.map((p, i) => {
-    const chars = p.text.length;
-    const overLimit = chars > 280;
-    return `
-      <div class="post-idea">
-        <div class="post-idea-style">${esc(p.style)}</div>
-        <div class="post-idea-text" id="post-text-${i}">${esc(p.text)}</div>
-        <div class="char-count" style="color:${overLimit ? '#dc2626' : '#aaa'}">${chars}/280</div>
-        <div class="draft-actions">
-          <button class="green sm" onclick="postOnX(${i})">Post on X</button>
-          <button class="grey sm" onclick="copyPostText(${i})">Copy</button>
-          <button class="grey sm" onclick="savePost(${i})">Save</button>
-        </div>
-      </div>`;
-  }).join('');
+function updatePostCharCount(id) {
+  const ta = document.getElementById(id);
+  const cc = document.getElementById(`cc-${id}`);
+  const n = ta.value.length;
+  cc.textContent = `${n}/280`;
+  cc.style.color = n > 280 ? '#dc2626' : '#aaa';
 }
 
-function postOnX(i) {
-  const text = document.getElementById(`post-text-${i}`).innerText;
+function renderPostIdeas(groups) {
+  const el = document.getElementById('post-ideas-list');
+  if (!groups.length) { el.innerHTML = '<p style="font-size:.82rem;color:#888">No posts generated.</p>'; return; }
+  el.innerHTML = groups.map((g, gi) => `
+    <div class="post-idea">
+      <div class="post-idea-style">${esc(g.style)}</div>
+      ${g.variations.map((text, vi) => {
+        const id = `post-${gi}-${vi}`;
+        const chars = text.length;
+        return `
+        <div style="margin-bottom:10px">
+          <textarea id="${id}" oninput="updatePostCharCount('${id}')" rows="3" style="margin-bottom:4px">${esc(text)}</textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+            <span class="char-count" id="cc-${id}" style="margin:0;flex-shrink:0;color:${chars > 280 ? '#dc2626' : '#aaa'}">${chars}/280</span>
+            <div class="draft-actions" style="flex:1">
+              <button class="green sm" style="width:auto" onclick="postOnX('${id}')">Post on X</button>
+              <button class="grey sm" style="width:auto" onclick="copyPostText('${id}', this)">Copy</button>
+              <button class="grey sm" style="width:auto" onclick="savePost('${id}', this)">Save</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function postOnX(id) {
+  const text = document.getElementById(id).value;
   window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
 }
 
-async function copyPostText(i) {
-  const text = document.getElementById(`post-text-${i}`).innerText;
+async function copyPostText(id, btn) {
+  const text = document.getElementById(id).value;
   await copyText(text);
-  const btn = document.querySelectorAll(`#post-ideas-list .post-idea`)[i].querySelectorAll('.draft-actions button')[1];
   const orig = btn.textContent;
   btn.textContent = 'Copied ✓';
   btn.classList.add('green');
@@ -398,10 +479,9 @@ async function deletePost(i) {
   if (r.ok) loadPosts();
 }
 
-async function savePost(i) {
-  const text = document.getElementById(`post-text-${i}`).innerText;
+async function savePost(id, btn) {
+  const text = document.getElementById(id).value;
   const r = await api('/api/save_post', {text});
-  const btn = document.querySelectorAll(`#post-ideas-list .post-idea`)[i].querySelectorAll('.draft-actions button')[2];
   if (r.ok) {
     const orig = btn.textContent;
     btn.textContent = 'Saved ✓';
@@ -412,6 +492,55 @@ async function savePost(i) {
     btn.style.background = '#dc2626';
     setTimeout(() => { btn.textContent = 'Save'; btn.style.background = ''; }, 2000);
   }
+}
+
+async function generateReplies() {
+  const tweet = document.getElementById('reply-guy-input').value.trim();
+  if (!tweet) { setStatus('reply-guy-status', 'Paste a tweet first.', 'error'); return; }
+  setStatus('reply-guy-status', 'Generating replies…', '');
+  document.getElementById('reply-guy-list').innerHTML = '';
+  const r = await api('/api/generate_replies', {tweet});
+  if (!r.ok) { setStatus('reply-guy-status', r.message, 'error'); return; }
+  setStatus('reply-guy-status', `${r.replies.length} replies generated`, 'ok');
+  renderReplies(r.replies);
+}
+
+function renderReplies(groups) {
+  const el = document.getElementById('reply-guy-list');
+  if (!groups.length) { el.innerHTML = '<p style="font-size:.82rem;color:#888">No replies generated.</p>'; return; }
+  el.innerHTML = groups.map((g, gi) => `
+    <div class="post-idea">
+      <div class="post-idea-style">${esc(g.style)}</div>
+      ${g.variations.map((text, vi) => {
+        const id = `reply-${gi}-${vi}`;
+        const chars = text.length;
+        return `
+        <div style="margin-bottom:10px">
+          <textarea id="${id}" oninput="updateReplyCharCount('${id}')" rows="2" style="margin-bottom:4px">${esc(text)}</textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="char-count" id="cc-${id}" style="margin:0;color:${chars > 280 ? '#dc2626' : '#aaa'}">${chars}/280</span>
+            <button class="grey sm" style="width:auto" onclick="copyReplyText('${id}', this)">Copy</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function updateReplyCharCount(id) {
+  const ta = document.getElementById(id);
+  const cc = document.getElementById(`cc-${id}`);
+  const n = ta.value.length;
+  cc.textContent = `${n}/280`;
+  cc.style.color = n > 280 ? '#dc2626' : '#aaa';
+}
+
+async function copyReplyText(id, btn) {
+  const text = document.getElementById(id).value;
+  await copyText(text);
+  const orig = btn.textContent;
+  btn.textContent = 'Copied ✓';
+  btn.classList.add('green');
+  setTimeout(() => { btn.textContent = orig; btn.classList.remove('green'); }, 1500);
 }
 
 loadDrafts();
@@ -601,12 +730,30 @@ CAPTURE_HTML = """<!DOCTYPE html>
 
 # ── API routes ─────────────────────────────────────────────────────────────────
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if request.form.get("password") == DASHBOARD_PASSWORD:
+            session["authed"] = True
+            return redirect(url_for("index"))
+        return redirect(url_for("login") + "?error=1")
+    return render_template_string(LOGIN_HTML)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 @app.route("/")
+@require_auth
 def index():
     return render_template_string(DASHBOARD_HTML)
 
 
 @app.route("/bookmarklet")
+@require_auth
 def bookmarklet_page():
     # Use request.host so the bookmarklet points to whatever address the browser used —
     # works correctly whether accessed via localhost, LAN IP, or public IP.
@@ -625,11 +772,13 @@ def bookmarklet_page():
 
 
 @app.route("/capture")
+@require_auth
 def capture_page():
     return render_template_string(CAPTURE_HTML)
 
 
 @app.route("/api/scrape_push", methods=["POST"])
+@require_auth
 def scrape_push():
     data = request.get_json(silent=True) or {}
     html = data.get("html", "")
@@ -650,6 +799,7 @@ def scrape_push():
 
 
 @app.route("/api/launch_chrome", methods=["POST"])
+@require_auth
 def launch_chrome():
     try:
         subprocess.Popen(
@@ -662,6 +812,7 @@ def launch_chrome():
 
 
 @app.route("/api/scrape", methods=["POST"])
+@require_auth
 def scrape():
     try:
         tabs = _req.get(f"http://localhost:{CDP_PORT}/json", timeout=3).json()
@@ -707,6 +858,7 @@ def scrape():
 
 
 @app.route("/api/parse", methods=["POST"])
+@require_auth
 def parse():
     if not (DATA_DIR / "thread.html").exists():
         return jsonify(ok=False, message="thread.html not found — scrape first.")
@@ -720,6 +872,7 @@ def parse():
 
 
 @app.route("/api/draft", methods=["POST"])
+@require_auth
 def generate_draft():
     result = subprocess.run(
         [sys.executable, str(SCRIPT_DIR / "x_draft.py")],
@@ -731,6 +884,7 @@ def generate_draft():
 
 
 @app.route("/api/drafts")
+@require_auth
 def get_drafts():
     f = DATA_DIR / "drafts.json"
     if not f.exists():
@@ -749,18 +903,21 @@ def get_drafts():
 
 
 @app.route("/api/draft/use", methods=["POST"])
+@require_auth
 def draft_use():
     data = request.get_json(silent=True) or {}
     return _update_draft(data.get("href", ""), "sent", data.get("variant", "plain"))
 
 
 @app.route("/api/draft/pass", methods=["POST"])
+@require_auth
 def draft_pass():
     data = request.get_json(silent=True) or {}
     return _update_draft(data.get("href", ""), "passed", None)
 
 
 @app.route("/api/generate_posts", methods=["POST"])
+@require_auth
 def generate_posts():
     data = request.get_json(silent=True) or {}
     prompt = (data.get("prompt") or "").strip()
@@ -783,7 +940,28 @@ def generate_posts():
     return jsonify(ok=True, posts=posts)
 
 
+@app.route("/api/generate_replies", methods=["POST"])
+@require_auth
+def generate_replies():
+    data = request.get_json(silent=True) or {}
+    tweet = (data.get("tweet") or "").strip()
+    if not tweet:
+        return jsonify(ok=False, message="No tweet provided.")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_DIR / "x_reply_guy.py"), tweet],
+        capture_output=True, text=True, cwd=str(SCRIPT_DIR),
+    )
+    if result.returncode != 0:
+        return jsonify(ok=False, message=result.stderr.strip() or "Reply generation failed.")
+    try:
+        replies = json.loads(result.stdout.strip())
+    except Exception:
+        return jsonify(ok=False, message="Failed to parse generated replies.")
+    return jsonify(ok=True, replies=replies)
+
+
 @app.route("/api/posts")
+@require_auth
 def get_posts():
     f = DATA_DIR / "posts.json"
     if not f.exists():
@@ -792,6 +970,7 @@ def get_posts():
 
 
 @app.route("/api/delete_post", methods=["POST"])
+@require_auth
 def delete_post():
     data = request.get_json(silent=True) or {}
     idx = data.get("index")
@@ -807,6 +986,7 @@ def delete_post():
 
 
 @app.route("/api/save_post", methods=["POST"])
+@require_auth
 def save_post():
     data = request.get_json(silent=True) or {}
     text = (data.get("text") or "").strip()
