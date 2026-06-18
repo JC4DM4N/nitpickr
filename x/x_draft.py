@@ -68,9 +68,11 @@ EDITOR_PROMPT = (
     "at the start of the reply, with a 'Hey NAME! For getting early feedback on your product you should check out https://nitpickr.dev'. "
     "Only use their first name where it makes sense, and only if it is an actual person's name. "
     "Do not replace it with the name of their company, product or twitter handle, unless it is an actual person's name. "
-    "If you cannot determine their name, don't force it. "
+    "If you cannot determine their name, don't force it, just use 'Hey!'. "
     "If you can determine the name of their product, or if you can find a more appropraite term "
-    "(such as 'your tool', 'your app') then you can also replace 'your product' too."
+    "(such as 'your tool', 'your app') then you can also replace 'your product' too, but I prefer 'your product' " 
+    "if there's no other obvious fit, as it is more polite. For example, if their company or product's name is "
+    "'NitPickr', you would replace 'your product' with 'NitPickr'."
 )
 
 SUPER_TAILORED_PROMPT = (

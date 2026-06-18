@@ -7,3 +7,4 @@ sqlalchemy
 psycopg2-binary
 flask>=3.0.0
 websocket-client>=1.7.0
+playwright>=1.40.0

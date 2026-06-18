@@ -26,6 +26,7 @@ import os
 import socket
 import subprocess
 import sys
+import threading
 from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
@@ -45,13 +46,18 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent / ".env")
 
-DATA_DIR   = Path(__file__).parent / "data"
-SCRIPT_DIR = Path(__file__).parent
-CDP_PORT   = 9222
+DATA_DIR        = Path(__file__).parent / "data"
+SCRIPT_DIR      = Path(__file__).parent
+CDP_PORT        = 9222
+CHROME_BIN      = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+CHROME_PROFILE  = Path.home() / ".chrome_cdp_profile"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 DASHBOARD_PASSWORD = os.environ.get("X_DASHBOARD_PASSWORD", "")
+
+_autopost: dict = {"proc": None, "log": [], "running": False, "done_ok": False}
+_autopost_lock = threading.Lock()
 
 
 def require_auth(f):
@@ -199,8 +205,15 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <span class="section-chevron" id="chevron-replies" style="transform:rotate(180deg)">▲</span>
     </div>
     <div id="body-replies" style="display:none;margin-top:10px">
-      <button class="grey sm" onclick="loadDrafts()">Refresh</button>
+      <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+        <button class="grey sm" style="width:auto;flex:none" onclick="loadDrafts()">Refresh</button>
+        <input id="autopost-limit" type="number" min="1" max="200" value="50" style="width:58px;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;font-size:0.85rem;text-align:center;outline:none;flex:none">
+        <button class="green sm" id="autopost-start-btn" style="flex:1" onclick="startAutopost('tailored')">Auto-Post Tailored</button>
+        <button class="green sm" id="autopost-super-btn" style="flex:1" onclick="startAutopost('super')">Auto-Post Super</button>
+        <button class="red sm" id="autopost-stop-btn" style="width:100%;display:none" onclick="stopAutopost()">Stop</button>
+      </div>
       <div id="drafts-status" class="status"></div>
+      <div id="autopost-log" style="display:none;font-size:0.72rem;font-family:monospace;background:#f8f9fa;border-radius:8px;padding:8px;max-height:110px;overflow-y:auto;margin-top:6px;white-space:pre-wrap;color:#333;line-height:1.5"></div>
       <div id="drafts-list" style="margin-top:12px"></div>
     </div>
   </div>
@@ -543,6 +556,44 @@ async function copyReplyText(id, btn) {
   setTimeout(() => { btn.textContent = orig; btn.classList.remove('green'); }, 1500);
 }
 
+let _autopostTimer = null;
+
+async function startAutopost(variant) {
+  const limit = parseInt(document.getElementById('autopost-limit').value, 10) || 50;
+  const r = await api('/api/autopost/start', {limit, variant});
+  if (!r.ok) { setStatus('drafts-status', r.message, 'error'); return; }
+  document.getElementById('autopost-start-btn').style.display = 'none';
+  document.getElementById('autopost-super-btn').style.display = 'none';
+  document.getElementById('autopost-stop-btn').style.display = '';
+  document.getElementById('autopost-log').style.display = '';
+  pollAutopost();
+}
+
+async function stopAutopost() {
+  await api('/api/autopost/stop', {});
+}
+
+async function pollAutopost() {
+  const r = await fetch('/api/autopost/status').then(r => r.json()).catch(() => null);
+  if (!r) { _autopostTimer = setTimeout(pollAutopost, 3000); return; }
+
+  const logEl = document.getElementById('autopost-log');
+  if (r.log && r.log.length) {
+    logEl.textContent = r.log.slice(-15).join('\\n');
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  if (r.running) {
+    _autopostTimer = setTimeout(pollAutopost, 2000);
+  } else {
+    document.getElementById('autopost-start-btn').style.display = '';
+    document.getElementById('autopost-super-btn').style.display = '';
+    document.getElementById('autopost-stop-btn').style.display = 'none';
+    if (r.done_ok) { setStatus('drafts-status', 'Auto-post complete.', 'ok'); loadDrafts(); }
+    else { setStatus('drafts-status', 'Auto-post stopped or errored — see log above.', 'error'); }
+  }
+}
+
 loadDrafts();
 loadPosts();
 </script>
@@ -803,10 +854,20 @@ def scrape_push():
 def launch_chrome():
     try:
         subprocess.Popen(
-            ["open", "-a", "Google Chrome", "--args", f"--remote-debugging-port={CDP_PORT}"],
+            [CHROME_BIN,
+             f"--remote-debugging-port={CDP_PORT}",
+             f"--user-data-dir={CHROME_PROFILE}"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        return jsonify(ok=True, message=f"Chrome launched with --remote-debugging-port={CDP_PORT}. Navigate to the thread, scroll to load all replies, then tap Scrape Open Tab.")
+        first_run = not CHROME_PROFILE.exists()
+        msg = (
+            f"Chrome launched on port {CDP_PORT} — log into X in the new window, then use Scrape Open Tab."
+            if first_run else
+            f"Chrome launched on port {CDP_PORT}. Navigate to the thread, scroll, then Scrape Open Tab."
+        )
+        return jsonify(ok=True, message=msg)
+    except FileNotFoundError:
+        return jsonify(ok=False, message=f"Chrome not found at {CHROME_BIN}. Is Chrome installed?")
     except Exception as e:
         return jsonify(ok=False, message=str(e))
 
@@ -997,6 +1058,77 @@ def save_post():
     posts.append(text)
     posts_f.write_text(json.dumps(posts, indent=2, ensure_ascii=False), encoding="utf-8")
     return jsonify(ok=True)
+
+
+def _autopost_reader(proc: subprocess.Popen) -> None:
+    for line in proc.stdout:
+        line = line.rstrip()
+        with _autopost_lock:
+            _autopost["log"].append(line)
+            if len(_autopost["log"]) > 200:
+                _autopost["log"] = _autopost["log"][-200:]
+    proc.wait()
+    with _autopost_lock:
+        _autopost["running"] = False
+        _autopost["done_ok"] = proc.returncode == 0
+        _autopost["proc"] = None
+
+
+@app.route("/api/autopost/start", methods=["POST"])
+@require_auth
+def autopost_start():
+    data = request.get_json(silent=True) or {}
+    limit = int(data.get("limit", 50))
+    variant = data.get("variant", "tailored")
+    if variant not in ("plain", "tailored", "super"):
+        variant = "tailored"
+
+    with _autopost_lock:
+        if _autopost["running"]:
+            return jsonify(ok=False, message="Already running.")
+        _autopost["log"] = []
+        _autopost["done_ok"] = False
+        _autopost["running"] = True
+
+    try:
+        proc = subprocess.Popen(
+            [sys.executable, str(SCRIPT_DIR / "x_autopost.py"),
+             "--limit", str(limit), "--variant", variant],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, cwd=str(SCRIPT_DIR),
+        )
+    except Exception as e:
+        with _autopost_lock:
+            _autopost["running"] = False
+        return jsonify(ok=False, message=str(e))
+
+    with _autopost_lock:
+        _autopost["proc"] = proc
+
+    threading.Thread(target=_autopost_reader, args=(proc,), daemon=True).start()
+    return jsonify(ok=True, message="Auto-post started.")
+
+
+@app.route("/api/autopost/status")
+@require_auth
+def autopost_status():
+    with _autopost_lock:
+        return jsonify(
+            running=_autopost["running"],
+            done_ok=_autopost["done_ok"],
+            log=list(_autopost["log"]),
+        )
+
+
+@app.route("/api/autopost/stop", methods=["POST"])
+@require_auth
+def autopost_stop():
+    with _autopost_lock:
+        proc = _autopost.get("proc")
+    if proc:
+        proc.terminate()
+        return jsonify(ok=True, message="Stopped.")
+    return jsonify(ok=True, message="Not running.")
 
 
 def _update_draft(href: str, action: str, variant: str | None):
