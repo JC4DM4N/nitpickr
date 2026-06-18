@@ -80,12 +80,16 @@ SUPER_TAILORED_PROMPT = (
     "You will be given a draft reply as a starting point. Use it as the basis for your response — "
     "keep its core structure and purpose, but adapt the wording, details, and framing freely to suit the person's specific product. "
     "You can rephrase any part of it, swap out generic language for product-specific language, or adjust the tone to feel natural for their context. "
-    "Do not just tweak the opening line — tailor the whole reply so it feels specific to what they are building. "
-    "The final reply must still naturally mention https://nitpickr.dev as a way to get early feedback and real users. "
+    # "Do not just tweak the opening line — tailor the whole reply so it feels specific to what they are building. "
+    "The final reply must still naturally mention https://nitpickr.dev as a way to get early feedback and real users. Make sure "
+    "your reply explains clearly the core concept of NitPickr as being a way of getting free feedback and user testing in exchange "
+    "for giving feedback on other people's products. Make sure you use the word 'feedback' rather than 'insights' or other similar terms. "
+    "'Feedback and user testing' are key to NitPickr's brand. Make sure that receiving feedback and user testing is the primary offering, "
+    "don't make it sound like 'you get to review other people's work' is the main sell, because that will turn people off."
     "Use their first name if it is obvious from their display name. "
-    "Do not use words like 'game-changer', 'revolutionary', 'incredible', 'awesome', 'amazing', or 'congrats' if the launch isn't explicitly mentioned. "
+    "Do not use words like 'game-changer', 'revolutionary', 'incredible', 'awesome', 'amazing', or 'fantstic', 'the best part?'. "
     "Sound like a real person — warm and direct, not a marketing bot. "
-    "3-5 sentences total. Return only the reply text, nothing else."
+    "3-5 sentences total. Return only the reply text, nothing else. Inlcude line breaks like in the original draft reply."
 )
 
 
@@ -142,7 +146,11 @@ def tailor_response(reply: dict) -> str:
     )
     opening = response.choices[0].message.parsed.opening_line.strip()
     # return DRAFT_REPLY.replace("Hey! For getting early feedback on your product", opening, 1)
-    return DRAFT_REPLY.replace("Hey! For getting early feedback on your product you should check out https://nitpickr.dev", opening, 1)
+    return DRAFT_REPLY.replace(
+        "Hey! For getting early feedback on your product you should check out https://nitpickr.dev", 
+        opening, 
+        1
+    ).replace("\u2014", "-").replace("—", "-")
 
 
 def super_tailor_response(reply: dict) -> str:
@@ -158,7 +166,7 @@ def super_tailor_response(reply: dict) -> str:
         ],
         response_format=_SuperTailoredReply,
     )
-    return response.choices[0].message.parsed.reply.strip()
+    return response.choices[0].message.parsed.reply.strip().replace("\u2014", "-").replace("—", "-")
 
 # ── tweets.js ─────────────────────────────────────────────────────────────────
 
