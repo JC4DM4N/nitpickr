@@ -22,6 +22,8 @@ export default function ReviewAppPage() {
   const [error, setError] = useState(null)
   const [showValidation, setShowValidation] = useState(false)
   const [showValidationModal, setShowValidationModal] = useState(false)
+  const [showSpamModal, setShowSpamModal] = useState(false)
+  const [checking, setChecking] = useState(false)
   const [expandedImg, setExpandedImg] = useState(null)
   const [messages, setMessages] = useState([])
   const [msgInput, setMsgInput] = useState('')
@@ -88,13 +90,7 @@ export default function ReviewAppPage() {
     }
   }
 
-  async function handleSubmit() {
-    const invalid = feedback.trim().length < 200 || !testedPlatform || !testDuration.trim() || createdAccount === ''
-    if (invalid) {
-      setShowValidation(true)
-      setShowValidationModal(true)
-      return
-    }
+  async function doSubmit() {
     setSaving(true)
     setError(null)
     try {
@@ -125,6 +121,37 @@ export default function ReviewAppPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  async function handleSubmit() {
+    const invalid = feedback.trim().length < 200 || !testedPlatform || !testDuration.trim() || createdAccount === ''
+    if (invalid) {
+      setShowValidation(true)
+      setShowValidationModal(true)
+      return
+    }
+    setChecking(true)
+    setError(null)
+    try {
+      const token = localStorage.getItem('token')
+      const checkRes = await authFetch(`/reviews/${reviewId}/check-quality`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ feedback }),
+      })
+      if (checkRes.ok) {
+        const checkData = await checkRes.json()
+        if (checkData.verdict === 'spam') {
+          setShowSpamModal(true)
+          return
+        }
+      }
+    } catch {
+      // If the check errors, allow submission to proceed
+    } finally {
+      setChecking(false)
+    }
+    await doSubmit()
   }
 
   async function handleDelete() {
@@ -203,6 +230,15 @@ export default function ReviewAppPage() {
           </div>
         </div>
       )}
+      {showSpamModal && (
+        <div className="validation-modal-overlay" onClick={() => setShowSpamModal(false)}>
+          <div className="validation-modal" onClick={e => e.stopPropagation()}>
+            <p className="validation-modal-title">Review your feedback</p>
+            <p className="validation-modal-body">Your feedback doesn't seem to address what the developer is looking for. Please re-read their request and make sure your review speaks to it specifically.</p>
+            <button className="validation-modal-dismiss" onClick={() => setShowSpamModal(false)}>Revise my review</button>
+          </div>
+        </div>
+      )}
       <div className="review-app-header">
         <button className="review-app-back" onClick={() => navigate('/reviews')}>← Back to reviews</button>
         <div className="review-app-title-row">
@@ -260,9 +296,10 @@ export default function ReviewAppPage() {
           <button
             className="review-submit-btn"
             onClick={handleSubmit}
-            disabled={saving}
+            disabled={saving || checking}
           >
-            {saving ? 'Submitting…'
+            {checking ? 'Checking…'
+              : saving ? 'Submitting…'
               : detail.is_complete ? 'Approved'
               : detail.is_rejected ? 'Rejected'
               : detail.is_submitted ? 'Awaiting approval'

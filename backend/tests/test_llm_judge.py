@@ -8,7 +8,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.llm_judge import judge_conversation
+from app.llm_judge import judge_conversation, judge_review_quality
 
 # ---------------------------------------------------------------------------
 # Test cases
@@ -177,6 +177,166 @@ Overall though, the concept feels genuinely useful because it works with existin
 ]
 
 # ---------------------------------------------------------------------------
+# Quality-check test cases
+# Each entry: app_name, app_request, feedback, expected ("pass" | "spam")
+# ---------------------------------------------------------------------------
+
+QUALITY_CASES = [
+    {
+        "app_name": "Alfred the Butler",
+        "app_request": """Does he function as you'd expect him too behaviour wise?
+
+Is there anything you'd like him to do that he can't currently?
+
+Does the landing page sell you on his functionality?
+
+Please only review if you've actually tried using Alfred, or having a reason for not trying him.""",
+        "feedback": (
+            "Its a good concepti like that i have used it for 5-10 mins its easy explainable "
+            "Its a good concepti like that i have used it for 5-10 mins its easy explainable "
+            "Its a good concepti like that i have used it for 5-10 mins its easy explainable "
+        ),
+        "expected": "spam",
+    },
+    {
+        "app_name": "KPWorkSpace",
+        "app_request": """1. What were you trying to get done with kpworkspace, and how well did it work for you?
+
+  2. Was there anything confusing, frustrating, or slower than you expected while using the app?
+
+  3. Which feature did you find the most useful — and is there anything you wished it could do but couldn't?
+
+  4. How likely are you to keep using kpworkspace (and to recommend it to someone else)? Why?""",
+        "feedback": (
+            """I mainly tested the website and product positioning, not a full long-term workspace setup.
+
+1. I was trying to understand whether kpworkspace could replace some of the window switching I normally do while building projects — terminal, preview, code editor, Git, and task management. The idea is clear and useful, especially for people working with AI coding agents. Having Claude/Codex/Gemini-style terminals, browser preview, Git, editor, and Kanban in one place makes sense.
+
+2. The main thing that was a bit unclear for me was how much this replaces my current editor versus how much it should be used next to VS Code/Cursor. The landing page explains the features, but I would like to see a stronger “typical workflow” example, maybe from opening a project to running an agent, previewing changes, committing, and shipping.
+
+3. The most useful feature for me is the unified workspace idea: persistent terminals plus preview and Git in one place. That is the strongest part. The Kanban board also sounds useful if tasks are connected to actual project work, not just a separate todo list.
+
+4. I could see myself trying it for smaller projects or AI-agent-heavy workflows. I would be more likely to keep using it if the app feels fast, stable, and does not fight my existing dev setup. I would recommend it to developers who already use coding agents a lot and want a cleaner way to manage terminals, previews, commits, and tasks without jumping between too many windows.
+
+Overall, the product idea is strong. I would mainly improve the landing page with a clearer real-world workflow demo and explain more directly how it fits with existing tools like VS Code, Cursor, or GitHub Desktop."""
+        ),
+        "expected": "pass",
+    },
+    {
+        "app_name": "SprintFlint",
+        "app_request": """Most interested in the first-run experience. After you sign up, is it obvious how to create your first issue and move it across the board? Where do you stall or get confused? Does the empty board tell you what to do next, or leave you guessing? Honest reactions to the moment right after login are what we want most.""",
+        "feedback": (
+            """Tested the public web landing page only. The main promise is clear: sprint management with fast setup, velocity tracking, and AI or MCP support. The strongest part of the page is the comparison against heavier tools, because it tells small engineering teams why this is not just another task board. My main confusion is audience and first-run proof. The headline says team and velocity, but the free tier and quick start also feel appealing to solo builders. I would clarify whether the first best user is a solo founder, an engineering manager, or a small team lead. Since you asked about first-run experience, I wanted a short visible empty board preview or 3 step first sprint walkthrough before signup: create issue, move card, see velocity. The MCP angle is interesting but appears before I know the core workflow is easy. I would lead with the first sprint path, then show MCP as the power user layer. Pricing feels reasonable if the free plan truly proves the workflow before upgrade."""
+        ),
+        "expected": "spam",
+    },
+    {
+        "app_name": "RetrieveIT",
+        "app_request": """Looking for fresh-eyes feedback on the first 15 minutes of the product. The bar is "would a real buyer connect their actual work account and trust the answers?"
+
+1. Signup and first-source connect — Is it obvious which integration to start with? Does the OAuth flow feel safe enough that you'd connect a real work account, not just a throwaway?
+
+2. Indexing wait and first search — After you connect a source, indexing happens in the background. Is the wait communicated clearly, or does the page feel dead? When does your first query feel "real" vs. "still indexing"?
+
+3. Search quality and citations — When you run a natural-language query, do the cited sources actually answer the question? Does the AI answer feel grounded in those citations or like it's hallucinating around them?
+
+4. Workspaces and permissions — If you create a second workspace or invite a teammate, is the boundary clear? Does it feel like the permissions are being respected end-to-end?
+
+5. Value prop clarity — Was it obvious who this is built for and why someone would pay $30/seat instead of just using SharePoint search or ChatGPT? Where does the messaging fall short?
+
+Not looking for: typos, color preferences, "make the logo bigger." Looking for: the moment you got confused, the feature you wished existed, the thing that broke trust.""",
+        "feedback": (
+            """Too mnuch text in the first page itself. Better have the demo in the first page and a play button. it should be 1 liner explaination . the screen has too much information which is making me not try in the first place. you asked me for sign up without trying the product. please push the signup to last. let people experience the product first"""
+        ),
+        "expected": "spam",
+    },
+    {
+        "app_name": "ABAXUS Software",
+        "app_request": """Three things I want to know:
+1. Problem recognition — Does the landing page describe a failure you've actually experienced, or does it feel like a solution looking for a problem? The framing I'm testing is "billing layer broke at scale" rather than "compliance risk." Does that land?
+2. Clarity — After 30 seconds on the page, is it obvious what ABAXUS does, who it's for, and why self-hosted matters over just using Stripe or Metronome?
+3. CTA friction — The primary call to action is "Book Architecture Review." Does that feel like a natural next step, or does it feel like committing to a sales call?
+Bonus signal I'm hunting for: if you've ever changed your pricing model and broken your event collection as a result — or had a customer dispute an invoice that engineering couldn't explain — I'd genuinely love to hear what you tried.""",
+        "feedback": (
+            """The landing page was clear to me quite quickly. I understood that ABAXUS is for SaaS teams with usage-based billing problems, especially when event collection, invoice accuracy, pricing changes, and customer disputes become hard to manage at scale.
+
+The “billing layer broke at scale” framing works better for me than a pure compliance angle. It feels more practical and engineering-led. The examples like double-counted events, dashboards not matching invoices, and support not being able to explain charges make the problem feel real rather than theoretical.
+
+After around 30 seconds, I understood who it is for: technical SaaS teams, founders, or engineers dealing with metered billing and usage data. The self-hosted angle also makes sense, especially for teams that care about control, auditability, data ownership, and avoiding another external billing dependency.
+
+One thing I would maybe make even clearer near the top is when a team should choose ABAXUS instead of Stripe Billing or Metronome. The comparison is there, but a very simple “Use ABAXUS if…” section could help first-time visitors understand the fit faster.
+
+The CTA “Book Architecture Review” feels professional, but it does feel a bit like a sales call. For a serious B2B buyer that may be fine, but for someone still exploring, a softer CTA like “See Architecture Example” or “Check Billing Readiness” next to it would reduce friction.
+
+Overall, the site feels credible, technical, and focused. It does not feel like a random solution looking for a problem. The problem is clear, but I would make the first-step CTA slightly less intimidating for people who are interested but not ready to talk yet."""
+        ),
+        "expected": "pass",
+    },
+    {
+        "app_name": "Dealytix",
+        "app_request": """If context is all clear for a first time user who sees this service and website, pricing, potential willingness to pay for this kind of service considering if in the process of buying a YouTube channel. thanks! -> Also if the YouTube video is loading and playing on your end?""",
+        "feedback": (
+            """Your biggest risk is will people pay this much for a report when tools like Grok can do most of it already. 
+
+
+==== grok ===
+
+**You're right — I can do a very large part of what Dealytix does**, especially for public-facing analysis.
+
+### Here's a realistic comparison:
+
+| Aspect                        | Dealytix                              | Grok (me)                                      | Winner          |
+|-------------------------------|---------------------------------------|------------------------------------------------|-----------------|
+| Speed                         | 48 hours PDF                          | Instant / few minutes                          | Me              |
+| Cost                          | Paid (fixed report price)             | Free                                           | Me              |
+| Standardized scoring          | Yes (Dealytix Score A–D)              | I can create one on the fly                    | Dealytix (more consistent) |
+| Public data cross-checking    | Strong                                | Very strong (real-time web tools)              | Tie / Slight edge to me |
+| Traffic & social proof        | Good                                  | Excellent (SocialBlade, SimilarWeb, etc.)      | Me              |
+| Financial red flag detection  | Good                                  | Very good                                      | Tie             |
+| Legal/IP deep dive            | Limited (public only)                 | Limited (public only)                          | Tie             |
+| Owner dependency & risks      | Structured                            | I can analyze deeply                           | Me              |
+| Post-acquisition plan         | Included                              | I can generate one                             | Tie             |
+| Human review + proprietary data | Yes                                 | No proprietary databases                       | Dealytix        |
+| Full polished PDF             | Yes                                   | I can give you a detailed markdown report      | Dealytix        |
+
+### Bottom line:
+- For **quick screening**, sanity checks, and deep public-data analysis → **I can absolutely do this** (and often faster/better because it's real-time).
+- For a **professional, standardized, polished report** you can show to partners or use for serious negotiation → Dealytix has an advantage because it's a productized service with consistent methodology and human review.
+
+I have the same core limitations they do: we both work only with **public data** + whatever the seller shares. Neither of us gets access to the seller’s Google Analytics, AdSense, bank statements, etc. without their cooperation.
+
+---
+
+**Want to test me?**  
+Just drop a **YouTube channel URL** (or any online business listing) and I’ll give you a full diligence-style breakdown right now — including a score, risks, valuation thoughts, and questions for the seller. 
+
+No charge, no 48-hour wait. Want to try?"""
+        ),
+        "expected": "spam",
+    },
+    {
+        "app_name": "Alfred the Butler",
+        "app_request": """Does he function as you'd expect him too behaviour wise?
+
+Is there anything you'd like him to do that he can't currently?
+
+Does the landing page sell you on his functionality?
+
+Please only review if you've actually tried using Alfred, or having a reason for not trying him.""",
+        "feedback": (
+            """ I texted with Alfred on Whatsapp. I really love the way his communication is so polite and gentle ^^
+For the landing page, I would prefer it to have more images or videos which would be more engaging to me.
+I recorrected my location, Alfred could know my real location, not mistake it. Bravo
+Alfred can remind me of making my upcoming video, but when I ask him to suggest some places for me (based on my location), it does not recommend the suitable places for me. 
+Hope that you will make Alfred more interesting and amazing with these ideas ❤️ """
+        ),
+        "expected": "pass",
+    }
+]
+
+
+
+# ---------------------------------------------------------------------------
 
 
 def run_tests():
@@ -204,5 +364,34 @@ def run_tests():
     return failed
 
 
+def run_quality_tests():
+    passed = 0
+    failed = 0
+
+    for i, case in enumerate(QUALITY_CASES, 1):
+        result = judge_review_quality(
+            app_name=case["app_name"],
+            app_request=case["app_request"],
+            feedback=case["feedback"],
+        )
+        ok = result == case["expected"]
+        status = "PASS" if ok else "FAIL"
+        print(
+            f"[{status}] Quality case {i} — {case['app_name']}: "
+            f"expected={case['expected']}, got={result}"
+        )
+        if ok:
+            passed += 1
+        else:
+            failed += 1
+
+    print(f"\n{passed}/{passed + failed} passed")
+    return failed
+
+
 if __name__ == "__main__":
-    sys.exit(run_tests())
+    # failed = run_tests()
+    # print()
+    # print("--- Quality checks ---")
+    failed = run_quality_tests()
+    sys.exit(failed)

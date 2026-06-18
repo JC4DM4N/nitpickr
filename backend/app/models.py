@@ -149,6 +149,19 @@ class ReviewScreenshot(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class LlmJudgeRejection(Base):
+    __tablename__ = "llm_judge_rejections"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    review_id   = Column(Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False)
+    app_id      = Column(Integer, ForeignKey("apps.id",    ondelete="CASCADE"), nullable=False)
+    reviewer_id = Column(Integer, ForeignKey("users.id",   ondelete="CASCADE"), nullable=False)
+    owner_id    = Column(Integer, ForeignKey("users.id",   ondelete="CASCADE"), nullable=False)
+    feedback    = Column(Text, nullable=False)
+    app_request = Column(Text, nullable=False)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class CreditPurchase(Base):
     __tablename__ = "credit_purchases"
 

@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from .. import models, schemas, r2, loops
+from ..llm_judge import judge_review_quality
 from ..database import get_db
 from ..dependencies import get_current_user
 from .notifications import create_notification
@@ -167,6 +168,54 @@ def get_review(
     ]
     app_owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
     return _to_detail(review, app, screenshots, current_user.username, app_owner.username)
+
+
+# ── Quality check ─────────────────────────────────────────────────────────────
+
+class _QualityCheckPayload(BaseModel):
+    feedback: str
+
+
+@router.post("/{review_id}/check-quality")
+def check_review_quality(
+    review_id: int,
+    payload: _QualityCheckPayload,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    row = (
+        db.query(models.Review, models.App)
+        .join(models.App, models.Review.app_id == models.App.id)
+        .filter(models.Review.id == review_id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Review not found")
+    review, app = row
+    if review.reviewer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if len(payload.feedback.strip()) < 50:
+        return {"verdict": "spam"}
+
+    verdict = judge_review_quality(
+        app_name=app.name,
+        app_request=app.request,
+        feedback=payload.feedback,
+    )
+
+    if verdict == "spam":
+        db.add(models.LlmJudgeRejection(
+            review_id=review.id,
+            app_id=app.id,
+            reviewer_id=current_user.id,
+            owner_id=app.owner_id,
+            feedback=payload.feedback,
+            app_request=app.request,
+        ))
+        db.commit()
+
+    return {"verdict": verdict}
 
 
 # ── Update review ─────────────────────────────────────────────────────────────
