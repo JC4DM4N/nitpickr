@@ -537,7 +537,7 @@ function AppCard({ app, onReview, onShowMore }) {
             <span className="app-footer-label">STAGE</span>
             <span className="app-stage-badge" style={stage}>{app.stage}</span>
           </div>
-          <div className="app-footer-stat" style={{ marginLeft: 'auto' }}>
+          <div className="app-footer-stat">
             <span className="app-footer-label">REVIEWS GIVEN</span>
             <span className="app-footer-value">{app.owner_reviews_given}</span>
           </div>
