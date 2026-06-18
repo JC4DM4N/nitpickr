@@ -533,6 +533,7 @@ function AppCard({ app, onReview, onShowMore }) {
         </div>
         <p className="app-desc">{app.description}</p>
         <div className="app-card-footer">
+          <div className="app-footer-stats">
           <div className="app-footer-stat">
             <span className="app-footer-label">STAGE</span>
             <span className="app-stage-badge" style={stage}>{app.stage}</span>
@@ -556,6 +557,7 @@ function AppCard({ app, onReview, onShowMore }) {
           <div className="app-footer-stat">
             <span className="app-footer-label">CREDITS</span>
             <span className="app-footer-value">{app.credits}</span>
+            </div>
           </div>
           <div className="app-card-footer-actions">
             <button className="app-profile-btn" onClick={e => { e.stopPropagation(); navigate(`/${app.owner_username}`); }}>Profile</button>

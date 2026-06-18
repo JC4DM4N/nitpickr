@@ -457,7 +457,14 @@
     grid-template-columns: 1fr;
   } */
 
+  .app-card-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+  }
+
   .app-card-footer-actions {
+    grid-column: 1 / -1;
     gap: 8px;
     flex-wrap: wrap;
   }
@@ -626,6 +633,13 @@
   gap: 16px;
   padding-top: 14px;
   border-top: 1px solid #f0ede6;
+  flex-wrap: wrap;
+}
+
+.app-footer-stats {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
   flex-wrap: wrap;
 }
 
