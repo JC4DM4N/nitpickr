@@ -452,10 +452,10 @@
     justify-content: flex-start;
   }
 
-  .app-grid,
+  /* .app-grid,
   .user-grid {
     grid-template-columns: 1fr;
-  }
+  } */
 
   .app-card-footer-actions {
     gap: 8px;
