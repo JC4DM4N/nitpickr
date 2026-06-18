@@ -396,6 +396,24 @@
         </table>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-title">LLM Judge Rejections</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>App</th>
+              <th>Reviewer</th>
+              <th>Owner</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="table-llm-rejections"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -507,7 +525,7 @@
     });
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders, unverifiedUsers] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders, unverifiedUsers, llmRejections] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -522,6 +540,7 @@
         fetch('/api/banned-users').then(r => r.json()),
         fetch('/api/credit-holders').then(r => r.json()),
         fetch('/api/unverified-users').then(r => r.json()),
+        fetch('/api/llm-rejections').then(r => r.json()),
       ]);
 
       // Stats — exclude banned users from total
@@ -895,6 +914,28 @@
           <td>${u.email}</td>
           <td>${fmt(u.created_at)}</td>
         </tr>`).join('');
+      }
+
+      // LLM rejections table
+      const tbLlmRejections = document.getElementById('table-llm-rejections');
+      if (!Array.isArray(llmRejections) || llmRejections.error) {
+        tbLlmRejections.innerHTML = `<tr><td colspan="5" class="error">${llmRejections.error || 'Error loading'}</td></tr>`;
+      } else if (llmRejections.length === 0) {
+        tbLlmRejections.innerHTML = '<tr><td colspan="5" style="color:#64748b;padding:12px 10px">No rejections yet</td></tr>';
+      } else {
+        tbLlmRejections.innerHTML = llmRejections.map(r => {
+          const detail =
+            field('Developer\'s Request', r.app_request, true) +
+            field('Reviewer\'s Feedback', r.feedback, true);
+          return `<tr class="data-row">
+            <td>${r.id}</td>
+            <td>${r.app_name}</td>
+            <td>${r.reviewer}</td>
+            <td>${r.owner}</td>
+            <td>${fmt(r.created_at)}</td>
+          </tr>${expandRow(5, detail)}`;
+        }).join('');
+        attachToggle(tbLlmRejections);
       }
 
       document.getElementById('last-updated').textContent =

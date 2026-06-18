@@ -362,6 +362,30 @@ app.get('/api/unverified-users', async (_req, res) => {
   }
 });
 
+app.get('/api/llm-rejections', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        r.id,
+        a.name AS app_name,
+        u_reviewer.username AS reviewer,
+        u_owner.username AS owner,
+        r.created_at,
+        r.feedback,
+        r.app_request
+      FROM llm_judge_rejections r
+      JOIN apps a ON r.app_id = a.id
+      JOIN users u_reviewer ON r.reviewer_id = u_reviewer.id
+      JOIN users u_owner ON r.owner_id = u_owner.id
+      ORDER BY r.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/feedback-exchanges', async (_req, res) => {
   try {
     const result = await pool.query(`
