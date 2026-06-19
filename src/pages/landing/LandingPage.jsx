@@ -217,7 +217,7 @@ export function HowItWorksExchanges({ white, links }) {
       number: "03",
       icon: "⇄",
       title: "Both review each other",
-      desc: "Once accepted, you both have 48 hours to submit your feedback. No credits needed — it's a direct swap.",
+      desc: "Once accepted, you both have 24 hours to submit your feedback. No credits needed — it's a direct swap.",
     },
   ];
 
