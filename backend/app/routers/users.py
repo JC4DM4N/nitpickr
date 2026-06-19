@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -9,6 +11,25 @@ from ..database import get_db
 from ..dependencies import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get("/me/streak", response_model=schemas.StreakOut | None)
+def get_my_streak(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    now = datetime.now(timezone.utc)
+    streak = (
+        db.query(models.Streak)
+        .filter(
+            models.Streak.user_id == current_user.id,
+            models.Streak.is_expired == False,
+            models.Streak.streak_deadline > now,
+        )
+        .order_by(models.Streak.streak_start.desc())
+        .first()
+    )
+    return streak
 
 
 @router.get("/me/credits", response_model=schemas.UserCredits)

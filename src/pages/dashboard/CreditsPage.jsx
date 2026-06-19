@@ -36,7 +36,7 @@ export default function CreditsPage() {
           </button>
         </div>
         <p className="credits-page-sub">
-          Credits are spent when you approve feedback on your apps, and earned
+          Credits are spent when you approve feedback on your projects, and earned
           when your reviews are approved.
         </p>
       </div>
@@ -79,7 +79,7 @@ export default function CreditsPage() {
           <StatCard
             label="Total Spent"
             value={loading ? "—" : data?.spent_ever}
-            hint="Paid out for approved feedback on your apps"
+            hint="Paid out for approved feedback on your project"
           />
         </div>
 

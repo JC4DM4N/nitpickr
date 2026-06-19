@@ -9,7 +9,7 @@ export default function GetMoreCreditsPage() {
       <div className="gmc-header">
         <h1 className="gmc-title">Get More Credits</h1>
         <p className="gmc-sub">
-          Credits let you receive feedback on your apps. Earn them by leaving reviews, or buy them instantly.
+          Credits let you receive feedback on your projects. Earn them by leaving reviews, or buy them instantly.
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export default function GetMoreCreditsPage() {
           <ol className="gmc-steps">
             <li>Browse apps in Explore and start a review.</li>
             <li>Submit detailed, constructive feedback.</li>
-            <li>The app owner approves your review - a credit lands in your account.</li>
+            <li>The project owner approves your review - a credit lands in your account.</li>
           </ol>
 
           <div className="gmc-card-actions">

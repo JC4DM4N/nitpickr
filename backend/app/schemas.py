@@ -298,3 +298,13 @@ class CreditPurchaseRequest(BaseModel):
 
 class CheckoutSessionOut(BaseModel):
     checkout_url: str
+
+
+class StreakOut(BaseModel):
+    id: int
+    user_id: int
+    streak_start: datetime
+    streak_deadline: datetime
+    streak_total: int
+    is_complete: bool
+    is_expired: bool

@@ -6,6 +6,7 @@ import './SubmitAppPage.css'
 import './ExplorePage.css'
 import { STAGE_STYLES, CATEGORIES, STAGES, PALETTE } from '../../constants'
 import { authFetch } from '../../utils/authFetch'
+import confetti from 'canvas-confetti'
 
 export default function SubmitAppPage() {
   const navigate = useNavigate()
@@ -30,6 +31,11 @@ export default function SubmitAppPage() {
       .then(reviews => setFeedbackCheck({ loading: false, hasStarted: Array.isArray(reviews) && reviews.length > 0 }))
       .catch(() => setFeedbackCheck({ loading: false, hasStarted: false }))
   }, [])
+
+  useEffect(() => {
+    if (!submittedAppId) return
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 }, colors: ['#22c55e', '#f97316', '#facc15', '#3b82f6'] })
+  }, [submittedAppId])
 
   function set(key) {
     return e => setFields(prev => ({ ...prev, [key]: e.target.value }))
@@ -100,10 +106,10 @@ export default function SubmitAppPage() {
         <div className="modal-card">
           <div className="modal-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
             <div className="modal-title" style={{ fontSize: 18, fontWeight: 700, color: '#0f0e0b' }}>
-              Share your apps to get feedback faster!
+              Submitted!
             </div>
             <p className="modal-description" style={{ margin: 0 }}>
-              Go to your share page to get your shareable link.
+              Share your project to get feedback faster!
             </p>
           </div>
           <div className="modal-actions">

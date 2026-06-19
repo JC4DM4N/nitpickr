@@ -172,3 +172,15 @@ class CreditPurchase(Base):
     amount_cents      = Column(Integer, nullable=False)
     status            = Column(String(20), nullable=False, default="pending")  # pending | completed
     created_at        = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Streak(Base):
+    __tablename__ = "streaks"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    user_id          = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    streak_start     = Column(DateTime(timezone=True), nullable=False)
+    streak_deadline  = Column(DateTime(timezone=True), nullable=False)
+    streak_total     = Column(Integer, nullable=False, default=1)
+    is_complete      = Column(Boolean, nullable=False, default=False)
+    is_expired       = Column(Boolean, nullable=False, default=False)

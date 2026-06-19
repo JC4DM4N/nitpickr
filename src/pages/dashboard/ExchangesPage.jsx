@@ -205,7 +205,7 @@ export default function ExchangesPage() {
               <div className="modal-subtitle">
                 <p>
                   You are about to begin a direct feedback exchange with <strong>{acceptModal.requester_username}</strong>.
-                  They will review one of your apps, and you will review <strong>{acceptModal.requester_app_name}</strong> in return.
+                  They will review one of your projects, and you will review <strong>{acceptModal.requester_app_name}</strong> in return.
                   Once accepted, you will both have 24 hours to submit your feedback.
                 </p>
               </div>
@@ -217,7 +217,7 @@ export default function ExchangesPage() {
               </div>
             )}
             <p className="modal-section-label" style={{ padding: "0 24px" }}>
-              WHICH OF YOUR APPS WILL YOU REVIEW IN RETURN?
+              WHICH OF YOUR PROJECTS WILL YOU REVIEW IN RETURN?
             </p>
             <div className="exchange-app-options">
               {myApps.map((app) => (

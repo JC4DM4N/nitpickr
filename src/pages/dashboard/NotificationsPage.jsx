@@ -90,7 +90,7 @@ export default function NotificationsPage() {
       <div className="notif-header">
         <div>
           <h1 className="notif-title">Notifications</h1>
-          <p className="notif-sub">Activity related to your apps and reviews.</p>
+          <p className="notif-sub">Activity related to your projects and reviews.</p>
         </div>
         {notifications.some(n => !n.is_read) && (
           <button className="btn-submit-app" onClick={handleMarkAllRead}>

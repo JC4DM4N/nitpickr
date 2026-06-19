@@ -34,6 +34,7 @@ export default function ExplorePage() {
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [onboarding, setOnboarding] = useState(null);
   const [expandedStep, setExpandedStep] = useState(null);
+  const [streak, setStreak] = useState(null);
 
   const [ownApps, setOwnApps] = useState([]);
 
@@ -66,18 +67,23 @@ export default function ExplorePage() {
       authFetch("/reviews/me", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
       authFetch("/users/me/credits", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
       authFetch("/apps/count").then((r) => r.json()),
+      authFetch("/users/me/streak", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
     ])
-      .then(([allApps, myApps, myReviews, creditsData, countData]) => {
+      .then(([allApps, myApps, myReviews, creditsData, countData, streakData]) => {
+        setStreak(streakData);
         setOwnApps(myApps);
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const hasOwnApps = myApps.length > 0;
         const hasApprovedReview = myReviews.some((r) => r.is_complete);
-        const hasSubmittedReview = myReviews.some((r) => (r.is_submitted || r.is_complete) && !r.is_rejected && !r.is_expired);
+        const submittedReviews = myReviews.filter((r) => (r.is_submitted || r.is_complete) && !r.is_rejected && !r.is_expired);
+        const hasSubmittedReview = submittedReviews.length >= 1;
+        const hasSecondReview = submittedReviews.length >= 2;
         const leftFeedback = hasSubmittedReview ? "done" : "none";
         setOnboarding({
           submittedApp: hasOwnApps,
           leftFeedback,
           hasStartedFeedback: myReviews.length > 0,
+          hasSecondReview,
           onboardingExpiresAt: creditsData.onboarding_expires_at ? new Date(creditsData.onboarding_expires_at) : null,
           onboardingBonusCreditAwarded: creditsData.onboarding_bonus_credit_awarded ?? false,
         });
@@ -192,7 +198,7 @@ export default function ExplorePage() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
               <div className="modal-title" style={{ fontSize: 17, fontWeight: 700, color: "#0f0e0b" }}>You have no credits available</div>
-              <p className="modal-description" style={{ margin: 0 }}>Other users will not be able to review your apps currently. Review someone else's app to earn a credit.</p>
+              <p className="modal-description" style={{ margin: 0 }}>Other users will not be able to review your projects currently. Review someone else's app to earn a credit.</p>
             </div>
             <div className="modal-actions">
               <button className="modal-btn-cancel" onClick={() => setShowNoCreditsModal(false)}>Dismiss</button>
@@ -244,11 +250,12 @@ export default function ExplorePage() {
           const now = Date.now();
           const onboardingWindowActive = onboarding.onboardingExpiresAt && onboarding.onboardingExpiresAt.getTime() > now && !onboarding.onboardingBonusCreditAwarded;
           const totalSteps = 3;
+          const step3Done = onboarding.onboardingBonusCreditAwarded || onboarding.hasSecondReview;
           const stepsComplete =
             (onboarding.leftFeedback === "done" ? 1 : 0) +
             (onboarding.submittedApp ? 1 : 0) +
-            (onboarding.onboardingBonusCreditAwarded ? 1 : 0);
-          const step3Resolved = onboarding.onboardingBonusCreditAwarded || !onboardingWindowActive;
+            (step3Done ? 1 : 0);
+          const step3Resolved = step3Done || !onboardingWindowActive;
           const allDone = onboarding.leftFeedback === "done" && onboarding.submittedApp && step3Resolved;
           if (allDone) return null;
 
@@ -270,6 +277,8 @@ export default function ExplorePage() {
           let step3Detail;
           if (onboarding.onboardingBonusCreditAwarded) {
             step3Detail = "Bonus credit awarded! Your app is now immediately visible and eligible for review on the Explore page.";
+          } else if (onboarding.hasSecondReview) {
+            step3Detail = "Done! Submit your app to also unlock the immediate bonus credit next time.";
           } else if (onboardingWindowActive) {
             step3Detail = onboardingDetail;
           } else if (!onboarding.onboardingExpiresAt) {
@@ -300,7 +309,7 @@ export default function ExplorePage() {
             },
             {
               n: 3,
-              status: onboarding.onboardingBonusCreditAwarded ? "done" : "none",
+              status: step3Done ? "done" : "none",
               label: "🎉 Leave a second review to receive an immediate bonus credit!",
               detail: step3Detail,
             },
@@ -346,6 +355,32 @@ export default function ExplorePage() {
                   </div>
                 ))}
               </div>
+            </div>
+          );
+        })()}
+
+        {streak && !streak.is_complete && (() => {
+          const now = Date.now();
+          const deadline = new Date(streak.streak_deadline);
+          if (deadline.getTime() <= now) return null;
+          const msLeft = deadline.getTime() - now;
+          const hoursLeft = Math.floor(msLeft / 3600000);
+          const minsLeft = Math.floor((msLeft % 3600000) / 60000);
+          const timeStr = hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft}m`;
+          const remaining = 3 - streak.streak_total;
+          const pct = Math.round((streak.streak_total / 3) * 100);
+          return (
+            <div className="onboarding-bar">
+              <div className="onboarding-header">
+                <span className="onboarding-title">Current streak 🔥</span>
+                <span className="onboarding-pct">{streak.streak_total} / 3</span>
+              </div>
+              <div className="onboarding-track">
+                <div className="onboarding-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <p className="onboarding-step-detail" style={{ padding: "0 6px 4px" }}>
+                Submit {remaining} more {remaining === 1 ? "review" : "reviews"} in the next {timeStr} to receive an immediate bonus credit.
+              </p>
             </div>
           );
         })()}
@@ -534,29 +569,29 @@ function AppCard({ app, onReview, onShowMore }) {
         <p className="app-desc">{app.description}</p>
         <div className="app-card-footer">
           <div className="app-footer-stats">
-          <div className="app-footer-stat">
-            <span className="app-footer-label">STAGE</span>
-            <span className="app-stage-badge" style={stage}>{app.stage}</span>
-          </div>
-          <div className="app-footer-stat">
-            <span className="app-footer-label">REVIEWS GIVEN</span>
-            <span className="app-footer-value">{app.owner_reviews_given}</span>
-          </div>
-          <div className="app-footer-stat">
-            <span className="app-footer-label">REVIEWER RATING</span>
-            {app.owner_reviewer_rating != null ? (
-              <span className="app-footer-value user-card-rating">
-                {app.owner_reviewer_rating}
-                <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
-                / 5
-              </span>
-            ) : (
-              <span className="app-footer-value">—</span>
-            )}
-          </div>
-          <div className="app-footer-stat">
-            <span className="app-footer-label">CREDITS</span>
-            <span className="app-footer-value">{app.credits}</span>
+            <div className="app-footer-stat">
+              <span className="app-footer-label">STAGE</span>
+              <span className="app-stage-badge" style={stage}>{app.stage}</span>
+            </div>
+            <div className="app-footer-stat">
+              <span className="app-footer-label">REVIEWS GIVEN</span>
+              <span className="app-footer-value">{app.owner_reviews_given}</span>
+            </div>
+            <div className="app-footer-stat">
+              <span className="app-footer-label">REVIEWER RATING</span>
+              {app.owner_reviewer_rating != null ? (
+                <span className="app-footer-value user-card-rating">
+                  {app.owner_reviewer_rating}
+                  <img src="/star.png" width="20" height="20" alt="star" style={{ display: 'block' }} />
+                  / 5
+                </span>
+              ) : (
+                <span className="app-footer-value">—</span>
+              )}
+            </div>
+            <div className="app-footer-stat">
+              <span className="app-footer-label">CREDITS</span>
+              <span className="app-footer-value">{app.credits}</span>
             </div>
           </div>
           <div className="app-card-footer-actions">

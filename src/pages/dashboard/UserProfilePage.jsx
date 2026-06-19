@@ -201,10 +201,10 @@ export default function UserProfilePage() {
               {username?.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="explore-title profile-title">{profile?.username || username}'s apps</h1>
+              <h1 className="explore-title profile-title">{profile?.username || username}</h1>
               {isOwnProfile && (
                 <p className="explore-sub profile-sub">
-                  Share this page so others can discover and review your apps.
+                  Share this page so others can discover and review your projects.
                 </p>
               )}
               {/* {!isOwnProfile && !loading && !hasCredits && (
@@ -501,18 +501,18 @@ function ExchangeModal({ mode, username, myApps, onClose, onLogin, onSignup, onE
         <div className="modal-header">
           <div className="modal-subtitle">
             <p>
-            You are about to offer to give feedback on one of <strong>{username}</strong>'s apps in exchange for 
+            You are about to offer to give feedback on one of <strong>{username}</strong>'s projects in exchange for 
             feedback on one of your own. If they accept, you will both have 24 hours to submit your feedback on each
             others apps.
             </p>
             <br/>
             <p>
-            Select which of your apps you would like <strong>{username}</strong> to review, and leave them a nice 
+            Select which of your projects you would like <strong>{username}</strong> to review, and leave them a nice 
             message to introduce yourself.
             </p>
           </div>
         </div>
-        <p className="modal-section-label">WHICH OF YOUR APPS SHOULD {username.toUpperCase()} REVIEW?</p>
+        <p className="modal-section-label">WHICH OF YOUR PROJECTS SHOULD {username.toUpperCase()} REVIEW?</p>
         {/* <div className="exchange-app-options" style={{ padding: '8px 24px 4px' }}> */}
         <div className="exchange-app-options">
           {myApps.map(app => (

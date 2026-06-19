@@ -52,7 +52,7 @@ export default function CreditsPurchasePage() {
       <div className="cp-header">
         <h1 className="cp-title">Buy Credits</h1>
         <p className="cp-sub">
-          Credits let you receive feedback on your apps from the NitPickr
+          Credits let you receive feedback on your projects from the NitPickr
           community.
         </p>
       </div>

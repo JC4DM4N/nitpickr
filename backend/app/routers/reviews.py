@@ -218,6 +218,38 @@ def check_review_quality(
     return {"verdict": verdict}
 
 
+# ── Streak helper ─────────────────────────────────────────────────────────────
+
+def _handle_streak(db, user, now):
+    active_streak = (
+        db.query(models.Streak)
+        .filter(
+            models.Streak.user_id == user.id,
+            models.Streak.is_complete == False,
+            models.Streak.is_expired == False,
+            models.Streak.streak_deadline > now,
+        )
+        .first()
+    )
+    if active_streak:
+        active_streak.streak_total += 1
+        if active_streak.streak_total >= 3:
+            active_streak.is_complete = True
+            user.credits += 1
+            create_notification(
+                db, user.id, "streak_complete",
+                "Streak complete! You submitted 3 reviews in 24 hours — bonus credit awarded.",
+                action_url=f"{loops.FRONTEND_URL}/explore",
+            )
+    else:
+        db.add(models.Streak(
+            user_id=user.id,
+            streak_start=now,
+            streak_deadline=now + timedelta(hours=24),
+            streak_total=1,
+        ))
+
+
 # ── Update review ─────────────────────────────────────────────────────────────
 
 @router.patch("/{review_id}", response_model=schemas.ReviewDetail)
@@ -262,6 +294,8 @@ def update_review(
             ):
                 current_user.credits += 1
                 current_user.onboarding_bonus_credit_awarded = True
+            if not review.review_requested:
+                _handle_streak(db, current_user, now)
             if review.review_requested:
                 msg = f"{current_user.username} resubmitted their review for {app.name}"
                 notif_type = "review_resubmitted"

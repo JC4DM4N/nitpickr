@@ -152,7 +152,7 @@ export function HowItWorks({ white, links }) {
       number: "01",
       icon: "💬",
       title: "Give feedback to others",
-      desc: "Browse apps from other developers and leave honest, constructive feedback. Each feedback earns you a credit once approved by the app owner.",
+      desc: "Browse apps from other developers and leave honest, constructive feedback. Each feedback earns you a credit once approved by the project owner.",
     },
     {
       number: "02",
@@ -211,7 +211,7 @@ export function HowItWorksExchanges({ white, links }) {
       number: "02",
       icon: "📨",
       title: "Request an exchange",
-      desc: "Send a feedback exchange request, selecting which of your apps you'd like them to review in return.",
+      desc: "Send a feedback exchange request, selecting which of your projects you'd like them to review in return.",
     },
     {
       number: "03",

@@ -6,6 +6,7 @@ import { OwnerMessageBanner } from '../../components/OwnerMessageBanner'
 import { ImageLightbox } from '../../components/ImageLightbox'
 import { ReviewerDeadlineBanner, OwnerDeadlineBanner } from '../../components/DeadlineBanner'
 import { authFetch } from '../../utils/authFetch'
+import confetti from 'canvas-confetti'
 
 export default function ReviewAppPage() {
   const { reviewId } = useParams()
@@ -23,6 +24,14 @@ export default function ReviewAppPage() {
   const [showValidation, setShowValidation] = useState(false)
   const [showValidationModal, setShowValidationModal] = useState(false)
   const [showSpamModal, setShowSpamModal] = useState(false)
+  const [showReviewSubmittedModal, setShowReviewSubmittedModal] = useState(false)
+  const [showOnboardingCompleteModal, setShowOnboardingCompleteModal] = useState(false)
+  const [showStreakModal, setShowStreakModal] = useState(false)
+  const [showStreakCompleteModal, setShowStreakCompleteModal] = useState(false)
+  const pendingOnboardingModal = useRef(false)
+  const pendingStreakModal = useRef(false)
+  const pendingCompletionModal = useRef(false)
+  const preSubmitOnboardingComplete = useRef(false)
   const [checking, setChecking] = useState(false)
   const [expandedImg, setExpandedImg] = useState(null)
   const [messages, setMessages] = useState([])
@@ -41,8 +50,12 @@ export default function ReviewAppPage() {
       authFetch(`/reviews/${reviewId}/messages`, {
         headers: { 'Authorization': `Bearer ${token}` },
       }).then(r => r.json()),
+      authFetch('/users/me/credits', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).then(r => r.json()),
     ])
-      .then(([data, msgData]) => {
+      .then(([data, msgData, creditsData]) => {
+        preSubmitOnboardingComplete.current = creditsData.onboarding_bonus_credit_awarded ?? false
         setDetail(data)
         setFeedback(data.feedback || '')
         setTestedPlatform(data.tested_platform || '')
@@ -58,6 +71,26 @@ export default function ReviewAppPage() {
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    if (!showReviewSubmittedModal) return
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 }, colors: ['#22c55e', '#f97316', '#facc15', '#3b82f6'] })
+  }, [showReviewSubmittedModal])
+
+  useEffect(() => {
+    if (!showOnboardingCompleteModal) return
+    confetti({ particleCount: 160, spread: 90, origin: { y: 0.5 }, colors: ['#22c55e', '#f97316', '#facc15', '#3b82f6'] })
+  }, [showOnboardingCompleteModal])
+
+  useEffect(() => {
+    if (!showStreakModal) return
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 }, colors: ['#22c55e', '#f97316', '#facc15', '#3b82f6'] })
+  }, [showStreakModal])
+
+  useEffect(() => {
+    if (!showStreakCompleteModal) return
+    confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, colors: ['#22c55e', '#f97316', '#facc15', '#3b82f6'] })
+  }, [showStreakCompleteModal])
 
   async function handleSendMessage() {
     if (!msgInput.trim()) return
@@ -90,6 +123,13 @@ export default function ReviewAppPage() {
     }
   }
 
+  function dismissReviewSubmitted() {
+    setShowReviewSubmittedModal(false)
+    if (pendingOnboardingModal.current) { pendingOnboardingModal.current = false; setShowOnboardingCompleteModal(true) }
+    else if (pendingCompletionModal.current) { pendingCompletionModal.current = false; setShowStreakCompleteModal(true) }
+    else if (pendingStreakModal.current) { pendingStreakModal.current = false; setShowStreakModal(true) }
+  }
+
   async function doSubmit() {
     setSaving(true)
     setError(null)
@@ -116,6 +156,32 @@ export default function ReviewAppPage() {
       }
       const data = await res.json()
       setDetail(data)
+      pendingOnboardingModal.current = false
+      pendingStreakModal.current = false
+      pendingCompletionModal.current = false
+      if (!data.review_requested) {
+        const token2 = localStorage.getItem('token')
+        const [creditsRes, streakRes] = await Promise.all([
+          authFetch('/users/me/credits', { headers: { Authorization: `Bearer ${token2}` } }),
+          authFetch('/users/me/streak', { headers: { Authorization: `Bearer ${token2}` } }),
+        ])
+        if (creditsRes.ok) {
+          const creditsData = await creditsRes.json()
+          if (creditsData.onboarding_bonus_credit_awarded && !preSubmitOnboardingComplete.current) {
+            pendingOnboardingModal.current = true
+            preSubmitOnboardingComplete.current = true
+          }
+        }
+        if (streakRes.ok) {
+          const streakData = await streakRes.json()
+          if (streakData?.is_complete) {
+            pendingCompletionModal.current = true
+          } else if (streakData?.streak_total === 1) {
+            pendingStreakModal.current = true
+          }
+        }
+      }
+      setShowReviewSubmittedModal(true)
     } catch {
       setError('Could not connect to server')
     } finally {
@@ -239,6 +305,53 @@ export default function ReviewAppPage() {
           </div>
         </div>
       )}
+      {showReviewSubmittedModal && (
+        <div className="validation-modal-overlay" onClick={dismissReviewSubmitted}>
+          <div className="validation-modal" onClick={e => e.stopPropagation()}>
+            <p className="validation-modal-title">Review submitted!</p>
+            <p className="validation-modal-body">The project developer now has 24 hours to approve or request changes on your review. If they don't respond in time, your review will be auto-approved and you'll receive your credit.</p>
+            <div className="streak-modal-actions">
+              <button className="validation-modal-dismiss" onClick={dismissReviewSubmitted}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showOnboardingCompleteModal && (
+        <div className="validation-modal-overlay" onClick={() => setShowOnboardingCompleteModal(false)}>
+          <div className="validation-modal" onClick={e => e.stopPropagation()}>
+            <p className="validation-modal-title">Onboarding complete!</p>
+            <p className="validation-modal-body">Congratulations! 1 bonus credit has been added to your account.</p>
+            <div className="streak-modal-actions">
+              <button className="validation-modal-dismiss" onClick={() => setShowOnboardingCompleteModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showStreakModal && (
+        <div className="validation-modal-overlay" onClick={() => setShowStreakModal(false)}>
+          <div className="validation-modal" onClick={e => e.stopPropagation()}>
+            <p className="validation-modal-title">🔥 You're on a streak</p>
+            <p className="validation-modal-body">Submit 3 reviews within 24 hours and you'll receive an immediate bonus credit - before the owner even approves your review!</p>
+            <p className="validation-modal-body">Head back to the Explore page to keep it going.</p>
+            <div className="streak-modal-actions">
+              <button className="streak-modal-close" onClick={() => setShowStreakModal(false)}>Close</button>
+              <button className="validation-modal-dismiss" onClick={() => { setShowStreakModal(false); navigate('/explore') }}>Explore page →</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showStreakCompleteModal && (
+        <div className="validation-modal-overlay" onClick={() => setShowStreakCompleteModal(false)}>
+          <div className="validation-modal" onClick={e => e.stopPropagation()}>
+            <p className="validation-modal-title">🎉 Streak complete!</p>
+            <p className="validation-modal-body">Congratulations! 1 bonus credit has been added to your account.</p>
+            <div className="streak-modal-actions">
+              <button className="streak-modal-close" onClick={() => setShowStreakCompleteModal(false)}>Close</button>
+              <button className="validation-modal-dismiss" onClick={() => { setShowStreakCompleteModal(false); navigate('/explore') }}>Explore page →</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="review-app-header">
         <button className="review-app-back" onClick={() => navigate('/reviews')}>← Back to reviews</button>
         <div className="review-app-title-row">
@@ -274,7 +387,7 @@ export default function ReviewAppPage() {
               className="header-action-btn owner-profile-btn"
               onClick={() => navigate(`/${detail.owner_username}`)}
             >
-              See {detail.owner_username}'s apps →
+              See {detail.owner_username}'s projects →
             </button>
             <button
               className="header-action-btn visit-app-btn"
@@ -427,7 +540,7 @@ export default function ReviewAppPage() {
                 <div className="chat-input-row">
                   <textarea
                     className="chat-input"
-                    placeholder="Reply to the app owner…"
+                    placeholder="Reply to the owner…"
                     value={msgInput}
                     onChange={e => {
                       setMsgInput(e.target.value)

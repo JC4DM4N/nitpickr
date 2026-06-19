@@ -336,6 +336,27 @@ def _expire_exchanges():
         db.close()
 
 
+def _expire_streaks():
+    """Runs every minute. Marks streaks whose deadline has passed as expired."""
+    db = SessionLocal()
+    try:
+        now = datetime.now(timezone.utc)
+        expired = (
+            db.query(models.Streak)
+            .filter(
+                models.Streak.is_complete == False,
+                models.Streak.is_expired == False,
+                models.Streak.streak_deadline < now,
+            )
+            .all()
+        )
+        for streak in expired:
+            streak.is_expired = True
+        db.commit()
+    finally:
+        db.close()
+
+
 scheduler = BackgroundScheduler()
 
 
@@ -343,6 +364,7 @@ scheduler = BackgroundScheduler()
 async def lifespan(app: FastAPI):
     scheduler.add_job(_expire_reviews,   "interval", minutes=1, id="expire_reviews")
     scheduler.add_job(_expire_exchanges, "interval", minutes=1, id="expire_exchanges")
+    scheduler.add_job(_expire_streaks,   "interval", minutes=1, id="expire_streaks")
     scheduler.start()
     yield
     scheduler.shutdown()
