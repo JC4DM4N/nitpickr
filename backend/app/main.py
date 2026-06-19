@@ -187,13 +187,13 @@ def _expire_reviews():
                     reviewer.credits += app.credits
                     create_notification(
                         db, reviewer.id, "owner_deadline_expired",
-                        f"Your review of {app.name} was auto-approved after 48 hours — credit earned.",
+                        f"Your review of {app.name} was auto-approved after 24 hours — credit earned.",
                         app_id=app.id, review_id=review.id,
                         action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
                     )
                     create_notification(
                         db, owner.id, "owner_deadline_expired",
-                        f"Your 48 hour window to approve the review of {app.name} passed — it was auto-approved.",
+                        f"Your 24 hour window to approve the review of {app.name} passed — it was auto-approved.",
                         app_id=app.id, review_id=review.id,
                         action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}/reviews/{review.id}",
                     )
@@ -317,14 +317,14 @@ def _expire_exchanges():
             if reviewer:
                 create_notification(
                     db, reviewer.id, "owner_deadline_expired",
-                    f"Your exchange review of {app.name if app else 'an app'} was auto-approved after 48 hours.",
+                    f"Your exchange review of {app.name if app else 'an app'} was auto-approved.",
                     app_id=app.id if app else None, review_id=review.id,
                     action_url=f"{loops.FRONTEND_URL}/reviews/{review.id}",
                 )
             if owner:
                 create_notification(
                     db, owner.id, "owner_deadline_expired",
-                    f"Your 48 hour window to approve the exchange review of {app.name if app else 'your app'} passed — it was auto-approved.",
+                    f"Your 24 hour window to approve the exchange review of {app.name if app else 'your app'} passed — it was auto-approved.",
                     app_id=app.id if app else None, review_id=review.id,
                     action_url=f"{loops.FRONTEND_URL}/my-apps/{app.id}/reviews/{review.id}" if app else f"{loops.FRONTEND_URL}/exchanges",
                 )

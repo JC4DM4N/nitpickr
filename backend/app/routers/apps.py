@@ -453,7 +453,7 @@ def post_app_review_message(
 
     # Owner messaged → only pass the deadline to the reviewer if it was currently the owner's turn
     if not review.is_complete and not review.is_rejected and review.owner_deadline is not None:
-        review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+        review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(hours=24)
         # review.reviewer_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
         review.owner_deadline = None
 

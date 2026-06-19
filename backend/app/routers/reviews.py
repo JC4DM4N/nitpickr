@@ -252,7 +252,7 @@ def update_review(
         if payload.is_submitted:
             now = datetime.now(timezone.utc)
             review.reviewer_deadline = None
-            review.owner_deadline = now + timedelta(hours=48)
+            review.owner_deadline = now + timedelta(hours=24)
             # review.owner_deadline = now + timedelta(minutes=10)
             owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
             if (
@@ -405,7 +405,7 @@ def post_review_message(
 
     # Reviewer replied → only pass the deadline to the owner if it was currently the reviewer's turn
     if not review.is_complete and not review.is_rejected and review.reviewer_deadline is not None:
-        review.owner_deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+        review.owner_deadline = datetime.now(timezone.utc) + timedelta(hours=24)
         # review.owner_deadline = datetime.now(timezone.utc) + timedelta(minutes=10)
         review.reviewer_deadline = None
 

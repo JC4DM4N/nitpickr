@@ -206,7 +206,7 @@ export default function ExchangesPage() {
                 <p>
                   You are about to begin a direct feedback exchange with <strong>{acceptModal.requester_username}</strong>.
                   They will review one of your apps, and you will review <strong>{acceptModal.requester_app_name}</strong> in return.
-                  Once accepted, you will both have 48 hours to submit your feedback.
+                  Once accepted, you will both have 24 hours to submit your feedback.
                 </p>
               </div>
             </div>
