@@ -414,6 +414,44 @@
         </table>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-title">Onboarding</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Joined</th>
+              <th>Step 1</th>
+              <th>Step 2</th>
+              <th>Step 3</th>
+              <th>Bonus</th>
+            </tr>
+          </thead>
+          <tbody id="table-onboarding"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Streaks</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Total</th>
+              <th>Deadline</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="table-streaks"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -525,7 +563,7 @@
     });
 
     async function load() {
-      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders, unverifiedUsers, llmRejections] = await Promise.all([
+      const [users, reviews, active, completed, failed, credits, appCount, apps, exchanges, allUsers, completedCount, bannedUsers, creditHolders, unverifiedUsers, llmRejections, onboarding, streaks] = await Promise.all([
         fetch('/api/users-per-day').then(r => r.json()),
         fetch('/api/reviews-completed-per-day').then(r => r.json()),
         fetch('/api/active-reviews').then(r => r.json()),
@@ -541,6 +579,8 @@
         fetch('/api/credit-holders').then(r => r.json()),
         fetch('/api/unverified-users').then(r => r.json()),
         fetch('/api/llm-rejections').then(r => r.json()),
+        fetch('/api/onboarding').then(r => r.json()),
+        fetch('/api/streaks').then(r => r.json()),
       ]);
 
       // Stats — exclude banned users from total
@@ -936,6 +976,50 @@
           </tr>${expandRow(5, detail)}`;
         }).join('');
         attachToggle(tbLlmRejections);
+      }
+
+      // Onboarding table
+      const tbOnboarding = document.getElementById('table-onboarding');
+      if (!Array.isArray(onboarding) || onboarding.error) {
+        tbOnboarding.innerHTML = `<tr><td colspan="7" class="error">${onboarding.error || 'Error loading'}</td></tr>`;
+      } else if (onboarding.length === 0) {
+        tbOnboarding.innerHTML = '<tr><td colspan="7" style="color:#64748b;padding:12px 10px">No onboarding records</td></tr>';
+      } else {
+        const tick = v => v
+          ? '<span class="badge badge-green">✓</span>'
+          : '<span class="badge badge-grey">—</span>';
+        tbOnboarding.innerHTML = onboarding.map(o => `<tr>
+          <td>${o.user_id}</td>
+          <td>${o.username}</td>
+          <td>${fmt(o.created_at)}</td>
+          <td>${tick(o.step_1_complete)}</td>
+          <td>${tick(o.step_2_complete)}</td>
+          <td>${tick(o.step_3_complete)}</td>
+          <td>${tick(o.onboarding_bonus_credit_awarded)}</td>
+        </tr>`).join('');
+      }
+
+      // Streaks table
+      const tbStreaks = document.getElementById('table-streaks');
+      if (!Array.isArray(streaks) || streaks.error) {
+        tbStreaks.innerHTML = `<tr><td colspan="5" class="error">${streaks.error || 'Error loading'}</td></tr>`;
+      } else if (streaks.length === 0) {
+        tbStreaks.innerHTML = '<tr><td colspan="5" style="color:#64748b;padding:12px 10px">No streaks yet</td></tr>';
+      } else {
+        tbStreaks.innerHTML = streaks.map((s, i) => {
+          const statusBadge = s.is_complete
+            ? '<span class="badge badge-green">Complete</span>'
+            : s.is_expired
+            ? '<span class="badge badge-grey">Expired</span>'
+            : '<span class="badge badge-blue">Active</span>';
+          return `<tr>
+            <td>${i + 1}</td>
+            <td>${s.username}</td>
+            <td>${s.streak_total} / 3</td>
+            <td>${fmt(s.streak_deadline)}</td>
+            <td>${statusBadge}</td>
+          </tr>`;
+        }).join('');
       }
 
       document.getElementById('last-updated').textContent =

@@ -386,6 +386,50 @@ app.get('/api/llm-rejections', async (_req, res) => {
   }
 });
 
+app.get('/api/onboarding', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        ob.user_id,
+        u.username,
+        u.created_at,
+        ob.step_1_complete,
+        ob.step_2_complete,
+        ob.step_3_complete,
+        ob.onboarding_bonus_credit_awarded
+      FROM onboarding ob
+      JOIN users u ON ob.user_id = u.id
+      ORDER BY ob.user_id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/streaks', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.username,
+        s.streak_start,
+        s.streak_deadline,
+        s.streak_total,
+        s.is_complete,
+        s.is_expired
+      FROM streaks s
+      JOIN users u ON s.user_id = u.id
+      ORDER BY s.streak_start DESC
+      LIMIT 200
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/feedback-exchanges', async (_req, res) => {
   try {
     const result = await pool.query(`
