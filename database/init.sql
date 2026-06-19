@@ -131,6 +131,16 @@ CREATE TABLE IF NOT EXISTS testimonials (
     created_at  TIMESTAMPTZ  DEFAULT NOW()
 );
 
+-- ── Onboarding ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS onboarding (
+    id                              SERIAL PRIMARY KEY,
+    user_id                         INTEGER  NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+    step_1_complete                 BOOLEAN  NOT NULL DEFAULT FALSE,
+    step_2_complete                 BOOLEAN  NOT NULL DEFAULT FALSE,
+    step_3_complete                 BOOLEAN  NOT NULL DEFAULT FALSE,
+    onboarding_bonus_credit_awarded BOOLEAN  NOT NULL DEFAULT FALSE
+);
+
 -- ── Streaks ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS streaks (
     id               SERIAL PRIMARY KEY,

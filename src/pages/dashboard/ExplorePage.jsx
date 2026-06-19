@@ -68,24 +68,20 @@ export default function ExplorePage() {
       authFetch("/users/me/credits", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
       authFetch("/apps/count").then((r) => r.json()),
       authFetch("/users/me/streak", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      authFetch("/users/me/onboarding", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
     ])
-      .then(([allApps, myApps, myReviews, creditsData, countData, streakData]) => {
+      .then(([allApps, myApps, myReviews, creditsData, countData, streakData, onboardingData]) => {
         setStreak(streakData);
         setOwnApps(myApps);
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const hasOwnApps = myApps.length > 0;
         const hasApprovedReview = myReviews.some((r) => r.is_complete);
-        const submittedReviews = myReviews.filter((r) => (r.is_submitted || r.is_complete) && !r.is_rejected && !r.is_expired);
-        const hasSubmittedReview = submittedReviews.length >= 1;
-        const hasSecondReview = submittedReviews.length >= 2;
-        const leftFeedback = hasSubmittedReview ? "done" : "none";
         setOnboarding({
-          submittedApp: hasOwnApps,
-          leftFeedback,
+          step1: onboardingData.step_1_complete,
+          step2: onboardingData.step_2_complete,
+          step3: onboardingData.step_3_complete,
+          bonusAwarded: onboardingData.onboarding_bonus_credit_awarded,
           hasStartedFeedback: myReviews.length > 0,
-          hasSecondReview,
-          onboardingExpiresAt: creditsData.onboarding_expires_at ? new Date(creditsData.onboarding_expires_at) : null,
-          onboardingBonusCreditAwarded: creditsData.onboarding_bonus_credit_awarded ?? false,
         });
         const onboardingComplete = hasOwnApps && hasApprovedReview;
         const hasOngoingReview = myReviews.some((r) => !r.is_complete && !r.is_rejected && !r.is_expired);
@@ -247,56 +243,35 @@ export default function ExplorePage() {
         </div>
 
         {onboarding && (() => {
-          const now = Date.now();
-          const onboardingWindowActive = onboarding.onboardingExpiresAt && onboarding.onboardingExpiresAt.getTime() > now && !onboarding.onboardingBonusCreditAwarded;
-          const totalSteps = 3;
-          const step3Done = onboarding.onboardingBonusCreditAwarded || onboarding.hasSecondReview;
-          const stepsComplete =
-            (onboarding.leftFeedback === "done" ? 1 : 0) +
-            (onboarding.submittedApp ? 1 : 0) +
-            (step3Done ? 1 : 0);
-          const step3Resolved = step3Done || !onboardingWindowActive;
-          const allDone = onboarding.leftFeedback === "done" && onboarding.submittedApp && step3Resolved;
+          const step1Done = onboarding.step1;
+          const step2Done = onboarding.step2;
+          const step3Done = onboarding.step3;
+          const bonusAwarded = onboarding.bonusAwarded;
+          const allDone = step1Done && step2Done && step3Done;
           if (allDone) return null;
 
-          const pct = Math.round((stepsComplete / totalSteps) * 100);
-
-          let onboardingDetail = null;
-          if (onboardingWindowActive) {
-            const msLeft = onboarding.onboardingExpiresAt.getTime() - now;
-            const hoursLeft = Math.floor(msLeft / 3600000);
-            const minsLeft = Math.floor((msLeft % 3600000) / 60000);
-            const timeStr = hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft}m`;
-            onboardingDetail = (
-              <>
-                Leave feedback on another app within the next {timeStr} to earn a bonus credit. Once you submit the review you'll receive an immediate bonus credit — giving you 2 credits total for this review. Your app will become immediately eligible for others to discover and review on the Explore page.
-              </>
-            );
-          }
+          const stepsComplete = (step1Done ? 1 : 0) + (step2Done ? 1 : 0) + (step3Done ? 1 : 0);
+          const pct = Math.round((stepsComplete / 3) * 100);
 
           let step3Detail;
-          if (onboarding.onboardingBonusCreditAwarded) {
+          if (bonusAwarded) {
             step3Detail = "Bonus credit awarded! Your app is now immediately visible and eligible for review on the Explore page.";
-          } else if (onboarding.hasSecondReview) {
-            step3Detail = "Done! Submit your app to also unlock the immediate bonus credit next time.";
-          } else if (onboardingWindowActive) {
-            step3Detail = onboardingDetail;
-          } else if (!onboarding.onboardingExpiresAt) {
-            step3Detail = "Submit your app to unlock a 24-hour bonus window. Leave a second review within that window to earn an immediate bonus credit — your app will appear immediately on the Explore page.";
+          } else if (step3Done) {
+            step3Detail = "Done! Submit your app to also unlock the immediate bonus credit.";
           } else {
-            step3Detail = "The 24-hour bonus window has closed.";
+            step3Detail = "Leave a second review and submit your app to earn an immediate bonus credit.";
           }
 
           const steps = [
             {
               n: 1,
-              status: onboarding.leftFeedback,
+              status: step1Done ? "done" : "none",
               label: "Leave feedback on someone's app",
               detail: "Pick an app from the list below and leave honest, constructive feedback. This unlocks the ability to receive feedback on your own app.",
             },
             {
               n: 2,
-              status: onboarding.submittedApp ? "done" : "none",
+              status: step2Done ? "done" : "none",
               label: "Submit your app",
               detail: onboarding.hasStartedFeedback ? (
                 <>

@@ -300,6 +300,13 @@ class CheckoutSessionOut(BaseModel):
     checkout_url: str
 
 
+class OnboardingOut(BaseModel):
+    step_1_complete: bool
+    step_2_complete: bool
+    step_3_complete: bool
+    onboarding_bonus_credit_awarded: bool
+
+
 class StreakOut(BaseModel):
     id: int
     user_id: int

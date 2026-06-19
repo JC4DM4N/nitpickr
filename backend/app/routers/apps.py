@@ -7,6 +7,7 @@ from sqlalchemy import func
 from typing import List
 
 from .. import models, schemas, loops
+from ..onboarding_utils import handle_onboarding_app_submitted
 from ..database import get_db
 from ..dependencies import get_current_user
 from .notifications import create_notification
@@ -127,8 +128,8 @@ def create_app(
         slug=_unique_slug(payload.name, db),
     )
     db.add(app)
-    if is_first_app and current_user.onboarding_expires_at is None:
-        current_user.onboarding_expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    if is_first_app:
+        handle_onboarding_app_submitted(db, current_user)
     db.commit()
     db.refresh(app)
     return _build_app_outs([app], db)[0]

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './ReviewAppPage.css'
 import './MyAppDetailPage.css'
@@ -23,12 +23,21 @@ export default function SubmitAppPage() {
   const [error, setError] = useState(null)
   const [submittedAppId, setSubmittedAppId] = useState(null)
   const [feedbackCheck, setFeedbackCheck] = useState({ loading: true, hasStarted: false })
+  const [showOnboardingCompleteModal, setShowOnboardingCompleteModal] = useState(false)
+  const pendingOnboardingModal = useRef(false)
+  const preSubmitBonusAwarded = useRef(false)
+  const postNavigatePath = useRef(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    authFetch('/reviews/me', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(reviews => setFeedbackCheck({ loading: false, hasStarted: Array.isArray(reviews) && reviews.length > 0 }))
+    Promise.all([
+      authFetch('/reviews/me', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      authFetch('/users/me/onboarding', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+    ])
+      .then(([reviews, onboardingData]) => {
+        setFeedbackCheck({ loading: false, hasStarted: Array.isArray(reviews) && reviews.length > 0 })
+        preSubmitBonusAwarded.current = onboardingData.onboarding_bonus_credit_awarded
+      })
       .catch(() => setFeedbackCheck({ loading: false, hasStarted: false }))
   }, [])
 
@@ -36,6 +45,11 @@ export default function SubmitAppPage() {
     if (!submittedAppId) return
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 }, colors: ['#22c55e', '#f97316', '#facc15', '#3b82f6'] })
   }, [submittedAppId])
+
+  useEffect(() => {
+    if (!showOnboardingCompleteModal) return
+    confetti({ particleCount: 180, spread: 100, origin: { y: 0.5 }, colors: ['#22c55e', '#f97316', '#facc15', '#3b82f6', '#a855f7'] })
+  }, [showOnboardingCompleteModal])
 
   function set(key) {
     return e => setFields(prev => ({ ...prev, [key]: e.target.value }))
@@ -65,11 +79,32 @@ export default function SubmitAppPage() {
         setError(data.detail || 'Failed to submit app')
         return
       }
+      pendingOnboardingModal.current = false
+      try {
+        const onboardingRes = await authFetch('/users/me/onboarding', { headers: { Authorization: `Bearer ${token}` } })
+        if (onboardingRes.ok) {
+          const onboardingData = await onboardingRes.json()
+          if (onboardingData.onboarding_bonus_credit_awarded && !preSubmitBonusAwarded.current) {
+            pendingOnboardingModal.current = true
+            preSubmitBonusAwarded.current = true
+          }
+        }
+      } catch {}
       setSubmittedAppId(data.id)
     } catch {
       setError('Could not connect to server')
     } finally {
       setSaving(false)
+    }
+  }
+
+  function dismissAppSubmitted(navPath) {
+    if (pendingOnboardingModal.current) {
+      pendingOnboardingModal.current = false
+      postNavigatePath.current = navPath
+      setShowOnboardingCompleteModal(true)
+    } else {
+      navigate(navPath)
     }
   }
 
@@ -100,23 +135,45 @@ export default function SubmitAppPage() {
     )
   }
 
+  if (showOnboardingCompleteModal) {
+    return (
+      <div className="modal-overlay">
+        <div className="modal-card">
+          <div className="modal-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            <div className="modal-title" style={{ fontSize: 18, fontWeight: 700, color: '#0f0e0b' }}>
+              Onboarding complete! 🎉
+            </div>
+            <p className="modal-description" style={{ margin: 0 }}>
+              Congratulations! 1 bonus credit has been added to your account.
+            </p>
+          </div>
+          <div className="modal-actions">
+            <button className="modal-btn-cancel" onClick={() => navigate(postNavigatePath.current || `/my-apps/${submittedAppId}`)}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (submittedAppId) {
     return (
       <div className="modal-overlay">
         <div className="modal-card">
           <div className="modal-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
             <div className="modal-title" style={{ fontSize: 18, fontWeight: 700, color: '#0f0e0b' }}>
-              Submitted!
+              App submitted!
             </div>
             <p className="modal-description" style={{ margin: 0 }}>
-              Share your project to get feedback faster!
+              Share your apps to get feedback faster!
             </p>
           </div>
           <div className="modal-actions">
-            <button className="modal-btn-cancel" onClick={() => navigate(`/my-apps/${submittedAppId}`)}>
+            <button className="modal-btn-cancel" onClick={() => dismissAppSubmitted(`/my-apps/${submittedAppId}`)}>
               Close
             </button>
-            <button className="modal-btn-start" onClick={() => navigate(`/${user.username}`)}>
+            <button className="modal-btn-start" onClick={() => dismissAppSubmitted(`/${user.username}`)}>
               Go →
             </button>
           </div>

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas, r2, loops
 from ..llm_judge import judge_review_quality
+from ..onboarding_utils import handle_onboarding_review_submitted
 from ..database import get_db
 from ..dependencies import get_current_user
 from .notifications import create_notification
@@ -287,14 +288,8 @@ def update_review(
             review.owner_deadline = now + timedelta(hours=24)
             # review.owner_deadline = now + timedelta(minutes=10)
             owner = db.query(models.User).filter(models.User.id == app.owner_id).first()
-            if (
-                current_user.onboarding_expires_at is not None
-                and current_user.onboarding_expires_at > now
-                and not current_user.onboarding_bonus_credit_awarded
-            ):
-                current_user.credits += 1
-                current_user.onboarding_bonus_credit_awarded = True
             if not review.review_requested:
+                handle_onboarding_review_submitted(db, current_user, review)
                 _handle_streak(db, current_user, now)
             if review.review_requested:
                 msg = f"{current_user.username} resubmitted their review for {app.name}"

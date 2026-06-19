@@ -13,6 +13,27 @@ from ..dependencies import get_current_user
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+@router.get("/me/onboarding", response_model=schemas.OnboardingOut)
+def get_my_onboarding(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    ob = db.query(models.Onboarding).filter(models.Onboarding.user_id == current_user.id).first()
+    if not ob:
+        return schemas.OnboardingOut(
+            step_1_complete=False,
+            step_2_complete=False,
+            step_3_complete=False,
+            onboarding_bonus_credit_awarded=False,
+        )
+    return schemas.OnboardingOut(
+        step_1_complete=ob.step_1_complete,
+        step_2_complete=ob.step_2_complete,
+        step_3_complete=ob.step_3_complete,
+        onboarding_bonus_credit_awarded=ob.onboarding_bonus_credit_awarded,
+    )
+
+
 @router.get("/me/streak", response_model=schemas.StreakOut | None)
 def get_my_streak(
     db: Session = Depends(get_db),

@@ -174,6 +174,17 @@ class CreditPurchase(Base):
     created_at        = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Onboarding(Base):
+    __tablename__ = "onboarding"
+
+    id                              = Column(Integer, primary_key=True, index=True)
+    user_id                         = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    step_1_complete                 = Column(Boolean, nullable=False, default=False)
+    step_2_complete                 = Column(Boolean, nullable=False, default=False)
+    step_3_complete                 = Column(Boolean, nullable=False, default=False)
+    onboarding_bonus_credit_awarded = Column(Boolean, nullable=False, default=False)
+
+
 class Streak(Base):
     __tablename__ = "streaks"
 
