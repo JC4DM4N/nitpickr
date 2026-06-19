@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,9 +43,9 @@ SENT_FILE   = DATA_DIR / "sent.json"
 CLASSIFIER_PROMPT = (
     "You analyse replies to 'what are you building?' threads on X (Twitter). "
     "Return is_promo=true if the reply is promoting, showcasing, or describing "
-    "a product, app, tool, or startup the author is building or has built. "
-    "Return is_promo=false for vague one-liners, general encouragement, "
-    "questions, or off-topic comments that aren't actually promoting anything."
+    "their product, app, tool, or startup the author is building or has built. "
+    "Return is_promo=false for vague one-liners, general encouragement, discussion threads, "
+    "engagement farming, questions, or off-topic comments that aren't actually promoting anything."
 )
 
 
@@ -76,21 +77,108 @@ EDITOR_PROMPT = (
 )
 
 SUPER_TAILORED_PROMPT = (
-    "You are personalising a reply on X (Twitter) to someone who has shared what they are building. "
-    "You will be given a draft reply as a starting point. Use it as the basis for your response — "
-    "keep its core structure and purpose, but adapt the wording, details, and framing freely to suit the person's specific product. "
-    "You can rephrase any part of it, swap out generic language for product-specific language, or adjust the tone to feel natural for their context. "
-    # "Do not just tweak the opening line — tailor the whole reply so it feels specific to what they are building. "
-    "The final reply must still naturally mention https://nitpickr.dev as a way to get early feedback and real users. Make sure "
-    "your reply explains clearly the core concept of NitPickr as being a way of getting free feedback and user testing in exchange "
-    "for giving feedback on other people's products. Make sure you use the word 'feedback' rather than 'insights' or other similar terms. "
-    "'Feedback and user testing' are key to NitPickr's brand. Make sure that receiving feedback and user testing is the primary offering, "
-    "don't make it sound like 'you get to review other people's work' is the main sell, because that will turn people off."
-    "Use their first name if it is obvious from their display name. "
-    "Do not use words like 'game-changer', 'revolutionary', 'incredible', 'awesome', 'amazing', or 'fantstic', 'the best part?'. "
+    "You are writing a personalised reply on X (Twitter) to someone who has shared what they are building. "
+    "You will be given a draft reply as a starting point and context about their product. "
+    "\n\n"
+    "Your reply must promote Nitpickr as a way to get early feedback and user testing — these two terms are "
+    "core to Nitpickr's brand and must appear naturally. The concept to convey: Nitpickr is a free platform "
+    "where founders get real user feedback and user testing by giving feedback on someone else's product in return. "
+    "Always frame what they RECEIVE (feedback + user testing) as the primary benefit — not what they have to do. "
+    "\n\n"
+    "VARY YOUR STRUCTURE — do not follow the same pattern every time:\n"
+    "- Opening: sometimes use their first name, sometimes open directly with a comment on their product, "
+    "sometimes open with a question about their early feedback plans. Do not always start with 'Hey [Name]!'.\n"
+    "- URL placement: sometimes include https://nitpickr.dev early, sometimes at the end, and roughly one "
+    "reply in three just refer to it as 'Nitpickr' or 'nitpickr.dev' without the full URL — phrased more "
+    "as a casual mention ('worth checking out Nitpickr') than a hard sell.\n"
+    "- Closing: end differently every time. Do not reuse 'Happy building!', 'Best of luck!', "
+    "'Wishing you great success', 'Excited to see how X evolves', 'And the best part?', or any fixed sign-off. "
+    "Sometimes just end on the value statement with no closing line at all.\n"
+    "\n\n"
+    "Only use their first name if it is clearly a real person's name — not a company name, product name, "
+    "or Twitter handle. If unsure, skip the name. "
+    "Do not use words like 'game-changer', 'revolutionary', 'incredible', 'awesome', 'amazing', 'fantastic', "
+    "'powerful', 'the best part?', or 'insights' (use 'feedback' instead). "
+    "Do not use the sentence pattern 'It's a [X] way to...' — it appears too formulaic. "
+    "Do not use 'Can't wait to see how X evolves' or any variation of that phrase. "
+    "Mentioning that Nitpickr is free is fine — but only say it in roughly one reply in three, "
+    "and vary how you say it ('no cost', 'free to use', 'at no cost to you', etc.). "
     "Sound like a real person — warm and direct, not a marketing bot. "
-    "3-5 sentences total. Return only the reply text, nothing else. Inlcude line breaks like in the original draft reply."
+    "3-5 sentences total. Return only the reply text, nothing else. "
+    "Include line breaks between paragraphs as in the original draft."
 )
+
+
+# ── Banned terms (super tailored only) ───────────────────────────────────────
+# Edit this list to add/remove terms. All checks are case-insensitive substring matches.
+
+BANNED_TERMS: list[str] = [
+    # Banned words
+    "insights",
+    "insightful",
+    "game-changer",
+    "game changer",
+    "revolutionary",
+    "incredible",
+    "awesome",
+    "amazing",
+    "fantastic",
+    "powerful",
+    "fascinating",
+    "intriguing",
+    # Banned phrases
+    "and the best part?",
+    "win-win",
+    "can't wait to see",
+    "happy building",
+    "best of luck",
+    "wishing you",       # covers "wishing you great success", "wishing you lots of success", etc.
+    "excited to see",    # catches "excited to see X in action!" and "excited to see how"
+    # Formulaic sentence patterns — add variants as you discover them
+    "it's a great way to",
+    "it's a simple way to",
+    "it's an easy way to",
+    "it's a helpful way to",
+    "it's a straightforward way to",
+    "it's a wonderful way to",
+    "it's a win-win",
+    "a great way to do this",
+    "an easy way to",
+    "a smart way to",
+    "a great way to",    # catches the prefix-less version
+    "a nifty way to",
+]
+
+
+_FIXER_PROMPT = (
+    "You are editing a reply for X (Twitter). It contains banned terms that must be removed. "
+    "Rewrite the reply so that none of the banned terms appear — not even close synonyms or rewordings of them. "
+    "Keep the same overall tone, length, structure, and core message. "
+    "Return only the rewritten reply text, nothing else."
+)
+
+
+def _strip_markdown(text: str) -> str:
+    # X doesn't render markdown — convert [label](url) → label (url)
+    return re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'\1 (\2)', text)
+
+
+def _banned_violations(text: str) -> list[str]:
+    lower = text.lower()
+    return [term for term in BANNED_TERMS if term.lower() in lower]
+
+
+def _fix_violations(text: str, violations: list[str]) -> str:
+    prompt = f"Banned terms to eliminate: {', '.join(violations)}\n\nReply to fix:\n{text}"
+    response = _get_openai().beta.chat.completions.parse(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": _FIXER_PROMPT},
+            {"role": "user", "content": prompt},
+        ],
+        response_format=_SuperTailoredReply,
+    )
+    return _strip_markdown(response.choices[0].message.parsed.reply.strip().replace("—", "-").replace("—", "-"))
 
 
 class _PromoResult(BaseModel):
@@ -153,20 +241,34 @@ def tailor_response(reply: dict) -> str:
     ).replace("\u2014", "-").replace("—", "-")
 
 
-def super_tailor_response(reply: dict) -> str:
+def super_tailor_response(reply: dict) -> str | None:
     name = reply.get("name") or reply.get("username", "")
     username = reply.get("username", "")
     tweet = reply.get("tweet", "")
 
     response = _get_openai().beta.chat.completions.parse(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": SUPER_TAILORED_PROMPT},
             {"role": "user", "content": f"Draft reply:\n{DRAFT_REPLY}\n\nName: {name}\nUsername: @{username}\nTweet: {tweet}"},
         ],
         response_format=_SuperTailoredReply,
     )
-    return response.choices[0].message.parsed.reply.strip().replace("\u2014", "-").replace("—", "-")
+    text = _strip_markdown(response.choices[0].message.parsed.reply.strip().replace("\u2014", "-").replace("—", "-"))
+
+    # Fix any violations with a targeted edit call rather than regenerating from scratch
+    for fix_attempt in range(2):
+        violations = _banned_violations(text)
+        if not violations:
+            return text
+        print(f"  ! banned terms found ({', '.join(violations)}), fixing...", flush=True)
+        text = _fix_violations(text, violations)
+
+    violations = _banned_violations(text)
+    if violations:
+        print(f"  ! could not eliminate banned terms ({', '.join(violations)}) — skipping draft", flush=True)
+        return None
+    return text
 
 # ── tweets.js ─────────────────────────────────────────────────────────────────
 
@@ -249,7 +351,12 @@ def main() -> None:
             print(f"  ✗ not a promo")
             continue
 
-        print(f"  ✓ promo — draft queued")
+        print(f"  ✓ promo — generating drafts")
+        super_tailored = super_tailor_response(reply)
+        if super_tailored is None:
+            skipped["banned_terms"] = skipped.get("banned_terms", 0) + 1
+            continue
+
         draft = {
             "created_at": datetime.now(timezone.utc).isoformat(),
             "reply_to_href": href,
@@ -259,7 +366,7 @@ def main() -> None:
             "original_text": tweet,
             "draft_text": f"{DRAFT_REPLY}",
             "draft_text_tailored": tailor_response(reply),
-            "draft_text_super_tailored": super_tailor_response(reply),
+            "draft_text_super_tailored": super_tailored,
             "status": "draft",
         }
         new_drafts.append(draft)
@@ -268,7 +375,8 @@ def main() -> None:
 
     print(f"\nSkipped: {skipped['already_replied']} already replied · "
           f"{skipped['already_drafted']} already drafted · "
-          f"{skipped['not_promo']} not a promo")
+          f"{skipped['not_promo']} not a promo · "
+          f"{skipped.get('banned_terms', 0)} banned terms (unfixable)")
 
     if new_drafts:
         save_drafts(existing_drafts + new_drafts)

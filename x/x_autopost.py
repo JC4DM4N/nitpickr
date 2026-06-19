@@ -16,6 +16,7 @@ Output lines are prefixed with STATUS/POSTING/OK/WAIT/SKIP/ERROR/DONE for machin
 import argparse
 import asyncio
 import json
+import math
 import random
 import sys
 from datetime import datetime, timezone
@@ -48,15 +49,62 @@ def save_json(path: Path, data: list) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def _jitter(lo: float, hi: float) -> float:
+    """Log-normally distributed delay centred between lo and hi.
+
+    Right-skewed with a long tail — closer to how humans actually pause
+    rather than a flat uniform spread. Values below lo*0.6 are clamped up.
+    """
+    centre = (lo + hi) / 2
+    return max(lo * 0.6, random.lognormvariate(math.log(centre), 0.4))
+
+
+def _post_gap(min_s: float, max_s: float) -> float:
+    """Inter-post gap with occasional distraction pauses (~1 in 8 posts).
+
+    Most gaps are log-normally distributed around the midpoint; sometimes
+    a longer pause is injected to break the metronomic rhythm.
+    """
+    if random.random() < 0.12:
+        return random.uniform(max_s * 1.8, max_s * 4.0)
+    centre = (min_s + max_s) / 2
+    return max(min_s * 0.5, random.lognormvariate(math.log(centre), 0.35))
+
+
+async def _human_mouse(page) -> None:
+    await page.mouse.move(
+        random.randint(200, 900),
+        random.randint(150, 550),
+        steps=random.randint(8, 20),
+    )
+    await asyncio.sleep(random.uniform(0.1, 0.3))
+
+
+async def _click_human(locator) -> None:
+    box = await locator.bounding_box()
+    if box:
+        await locator.click(position={
+            "x": box["width"] * random.uniform(0.25, 0.75),
+            "y": box["height"] * random.uniform(0.25, 0.75),
+        })
+    else:
+        await locator.click()
+
+
 async def post_reply(page, href: str, text: str) -> None:
     await page.goto(href, wait_until="domcontentloaded", timeout=30_000)
-    await asyncio.sleep(random.uniform(2.0, 3.5))
+    await asyncio.sleep(_jitter(2.0, 3.5))
+
+    # Scroll down as a real user would to read the tweet before replying
+    await page.mouse.wheel(0, random.randint(200, 500))
+    await asyncio.sleep(_jitter(0.4, 0.9))
 
     # On a tweet permalink page there is already an inline reply box — no need
     # to click the reply icon (that opens a modal, which is wrong)
     compose = page.locator('[data-testid="tweetTextarea_0"]').first
     await compose.wait_for(state="visible", timeout=15_000)
-    await compose.click()
+    await _human_mouse(page)
+    await _click_human(compose)
     await asyncio.sleep(0.8)
 
     # Insert text via JS — keyboard simulation is unreliable on CDP-attached browsers
@@ -89,15 +137,16 @@ async def post_reply(page, href: str, text: str) -> None:
         if not content.strip():
             raise RuntimeError("Text insertion failed")
 
-    await asyncio.sleep(random.uniform(0.8, 1.5))
+    await asyncio.sleep(_jitter(0.8, 1.5))
 
     post_btn = page.locator('[data-testid="tweetButtonInline"]')
     await post_btn.wait_for(state="visible", timeout=10_000)
-    await post_btn.click()
+    await _human_mouse(page)
+    await _click_human(post_btn)
 
     # Inline reply box stays on the page after posting (doesn't hide like a modal)
     # so just wait for the network request to land
-    await asyncio.sleep(random.uniform(3.0, 4.5))
+    await asyncio.sleep(_jitter(3.0, 4.5))
 
 
 async def run(limit: int, variant: str, min_delay: float, max_delay: float) -> None:
@@ -159,7 +208,7 @@ async def run(limit: int, variant: str, min_delay: float, max_delay: float) -> N
                 print(f"ERROR: [{i+1}/{len(pending)}] @{username} — {e}", flush=True)
 
             if i < len(pending) - 1:
-                delay = random.uniform(min_delay, max_delay)
+                delay = _post_gap(min_delay, max_delay)
                 print(f"WAIT: {delay:.0f}s…", flush=True)
                 await asyncio.sleep(delay)
 
